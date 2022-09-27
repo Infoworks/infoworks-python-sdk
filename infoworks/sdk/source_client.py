@@ -930,12 +930,7 @@ class SourceClient(BaseClient):
                                      source_configuration_url,
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                                      data=config_body)
-            parsed_response = IWUtils.ejson_deserialize(
-                self.call_api("POST",
-                              source_configuration_url,
-                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
-                              data=config_body).content
-            )
+            parsed_response = IWUtils.ejson_deserialize(response.content)
             if response.status_code == 200:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS)
             else:
@@ -984,6 +979,39 @@ class SourceClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in listing tables under source")
             raise SourceError("Error in listing tables under source" + str(e))
+
+    def get_table_columns_details(self, source_id, table_name, schema_name, database_name):
+        url_to_list_tables = url_builder.list_tables_under_source(self.client_config, source_id)
+        filter_cond = "?filter={\"table\":\"" + table_name + "\",\"catalog_name\":\"" + database_name + "\",\"schemaNameAtSource\": \"" + schema_name + "\"} "
+        get_source_table_info_url = url_to_list_tables + filter_cond
+        try:
+            response = self.call_api("GET", get_source_table_info_url,
+                                     headers=IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                                     )
+            if response.status_code != 200:
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.GENERIC_ERROR,
+                                                   error_desc=f"Failed to get metasync table information for {table_name}")
+            else:
+                if IWUtils.ejson_deserialize(response.content).get('message') == "No Tables found for given source":
+                    return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                       error_code=ErrorCode.GENERIC_ERROR,
+                                                       error_desc=f"No Tables found for given source with name {table_name}")
+
+                result = IWUtils.ejson_deserialize(response.content).get('result', [])
+                if len(result) != 0:
+                    lookup_columns = result[0]["columns"]
+                    lookup_columns_dict = {}
+                    for column in lookup_columns:
+                        lookup_columns_dict[column["name"]] = {}
+                        lookup_columns_dict[column["name"]]["target_sql_type"] = column["target_sql_type"]
+                        lookup_columns_dict[column["name"]]["target_precision"] = column.get("target_precision", "")
+                        lookup_columns_dict[column["name"]]["target_scale"] = column.get("target_scale", "")
+                        lookup_columns_dict[column["name"]]["col_size"] = column.get("col_size", "")
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=lookup_columns_dict)
+        except Exception as e:
+            self.logger.error(f"Error in getting column details for table {table_name}")
+            raise SourceError(f"Error in getting column details for table {table_name}" + str(e))
 
     def get_table_configurations(self, source_id, table_id, ingestion_config_only=False):
         """
