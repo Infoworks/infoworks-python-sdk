@@ -452,6 +452,23 @@ class AdminClient(BaseClient):
             self.logger.error("Error in getting compute template details")
             raise AdminError("Error in getting compute template details" + str(e))
 
+
+    def get_environment_id_from_name(self, environment_name):
+        result = self.get_environment_details(environment_id=None,params={"filter": {"name": environment_name}})["result"]["response"]
+        if len(result) > 0:
+            return result[0]["id"]
+        else:
+            return None
+
+
+    def get_environment_default_warehouse(self, environment_id):
+        result = self.get_environment_details(environment_id=environment_id,params=None)["result"]["response"]
+        if len(result) > 0:
+            return result[0]["data_warehouse_configuration"]["warehouse"][0]["name"]
+        else:
+            return None
+
+
     def get_compute_id_from_name(self, environment_id, compute_name):
         result = self.get_compute_template_details(environment_id, compute_id=None, is_interactive=True,
                                                    params={"filter": {"name": compute_name}})["result"]["response"]
