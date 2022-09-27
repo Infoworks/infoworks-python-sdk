@@ -12,7 +12,6 @@ Supports Infoworks version 5.2 onwards
 
 # Documentation
 
-https://abhr1994.github.io/infoworks_sdk/
 
 # Installation
 
