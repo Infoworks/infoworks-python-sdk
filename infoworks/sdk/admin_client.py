@@ -351,7 +351,7 @@ class AdminClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 if environment_id is not None:
-                    env_details.extend(result)
+                    env_details.extend([result])
                 else:
                     while len(result) > 0:
                         env_details.extend(result)
@@ -389,7 +389,7 @@ class AdminClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 if storage_id is not None:
-                    storage_details.extend(result)
+                    storage_details.extend([result])
                 else:
                     while len(result) > 0:
                         storage_details.extend(result)
@@ -434,7 +434,7 @@ class AdminClient(BaseClient):
             if response is not None and "result" in response:
                 result = response.get("result", [])
                 if compute_id is not None:
-                    compute_details.extend(result)
+                    compute_details.extend([result])
                 else:
                     while len(result) > 0:
                         compute_details.extend(result)

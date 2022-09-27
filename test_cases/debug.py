@@ -14,7 +14,8 @@ from infoworks.sdk.client import InfoworksClientSDK
 # # Connect to Prod environment
 refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 iwx_client_prd = InfoworksClientSDK()
-iwx_client_prd.initialize_client_with_defaults("http", "10.28.1.95", "3001", refresh_token)
+iwx_client_prd.initialize_client_with_defaults("http", "10.38.10.133", "3001", refresh_token)
+iwx_client_prd.get_environment_details("cfc879153b26323297758bf1")
 iwx_client_prd.get_mappings_from_config_file(ini_config_file_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/test_cases/config.ini")
 iwx_client_prd.cicd_upload_source_configurations(
     configuration_file_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps/source/source_DEMO_ORACLE.json",
