@@ -1,0 +1,19 @@
+name: YAML definition file with connection details
+source_details:
+    Demo_Oracle:
+      connection_url: jdbc:oracle:thin:@52.73.246.109:1521:xe
+      username: automation_db
+    DEMO_ORACLE:
+      username: automation_db
+      password: xyz
+dataconnection_details:
+    sf_export:
+      username: automation_db
+src_export_details:
+  Src_name:
+    username: automation_db
+    connection_url: jdbc:oracle:thin:@52.73.246.109:1521:xe
+  Src_name_table_name:
+    username: automation_db
+    connection_url: jdbc:oracle:thin:@52.73.246.109:1521:xe
+

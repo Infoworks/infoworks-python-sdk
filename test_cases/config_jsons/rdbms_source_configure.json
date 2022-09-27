@@ -1,0 +1,329 @@
+{
+	"configuration": {
+		"entity_configs": [],
+		"iw_mappings": [{
+				"entity_id": "627a523580cccd05ac200159",
+				"entity_type": "source",
+				"recommendation": {
+					"source_name": "iwx_sdk_srcname"
+				}
+			},
+			{
+				"entity_type": "table",
+				"entity_id": "627a898f80cccd05ac20044e",
+				"recommendation": {
+					"table_name": "CUSTOMERS",
+					"schema_name_at_source": "AUTOMATION_DB"
+				}
+			},
+			{
+				"entity_type": "table",
+				"entity_id": "627a898f80cccd05ac20044f",
+				"recommendation": {
+					"table_name": "ORDERS",
+					"schema_name_at_source": "AUTOMATION_DB"
+				}
+			},
+			{
+				"entity_type": "table_group",
+				"entity_id": "223502319bf1a768832bf6e6",
+				"recommendation": {
+					"table_group_name": "tg1"
+				}
+			},
+			{
+				"entity_type": "environment_compute_template",
+				"entity_id": "03e08fb415447fd56df9d888",
+				"recommendation": {
+					"compute_name": "Default_Persistent_Compute_Template"
+				}
+			}
+		],
+		"table_configs": [{
+				"entity_id": "627a898f80cccd05ac20044e",
+				"entity_type": "table",
+				"configuration": {
+					"configuration": {
+						"crawl_data_filter_enabled": false,
+						"crawl_filter_conditions": [],
+						"is_archive_enabled": false,
+						"natural_keys": [
+							"CUSTOMER_ID"
+						],
+						"generate_history_view": false,
+						"is_scd2_table": false,
+						"write_supported_engines": [
+							"SPARK"
+						],
+						"read_supported_engines": [
+							"SPARK"
+						],
+						"target_table_name": "CUSTOMERS",
+						"storage_format": "parquet",
+						"target_schema_name": "IWX_SDK_TEST_SCHEMA",
+						"sync_type": "full-load",
+						"exclude_legacy_audit_columns": true
+					},
+					"name": "CUSTOMERS",
+					"columns": [{
+							"is_audit_column": false,
+							"is_deleted": false,
+							"name": "CUSTOMER_ID",
+							"original_name": "CUSTOMER_ID",
+							"sql_type": 2,
+							"target_sql_type": 3,
+							"precision": 38,
+							"target_precision": "38",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 39
+						},
+						{
+							"is_audit_column": false,
+							"is_deleted": false,
+							"name": "CUSTOMER_NAME",
+							"original_name": "CUSTOMER_NAME",
+							"sql_type": 12,
+							"target_sql_type": 12,
+							"precision": 255,
+							"target_precision": "255",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 255
+						},
+						{
+							"is_audit_column": true,
+							"is_deleted": false,
+							"name": "ziw_target_timestamp",
+							"original_name": "ziw_target_timestamp",
+							"sql_type": 93,
+							"target_sql_type": 93,
+							"precision": 0,
+							"target_precision": "0",
+							"scale": 6,
+							"target_scale": "6",
+							"format": "yyyy-MM-dd HH:mm:ss"
+						},
+						{
+							"is_audit_column": true,
+							"is_deleted": false,
+							"name": "ziw_is_deleted",
+							"original_name": "ziw_is_deleted",
+							"sql_type": 16,
+							"target_sql_type": 16,
+							"precision": 0,
+							"target_precision": "0",
+							"scale": 0,
+							"target_scale": "0"
+						},
+						{
+							"is_audit_column": true,
+							"is_deleted": false,
+							"name": "ZIW_ziw_nn",
+							"original_name": "ZIW_ziw_nn",
+							"sql_type": 12,
+							"target_sql_type": 12,
+							"precision": 40,
+							"target_precision": "40",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 40
+						}
+					],
+					"schema_name_at_source": "AUTOMATION_DB",
+					"meta_crawl_performed": true
+				}
+			},
+			{
+				"entity_id": "627a898f80cccd05ac20044f",
+				"entity_type": "table",
+				"configuration": {
+					"configuration": {
+						"split_by_key": {
+							"is_derived_split": false,
+							"split_column": "ID"
+						},
+						"crawl_data_filter_enabled": false,
+						"crawl_filter_conditions": [],
+						"is_archive_enabled": false,
+						"natural_keys": [
+							"ID"
+						],
+						"generate_history_view": false,
+						"is_scd2_table": false,
+						"write_supported_engines": [
+							"SPARK"
+						],
+						"read_supported_engines": [
+							"SPARK"
+						],
+						"target_table_name": "ORDERS",
+						"storage_format": "parquet",
+						"target_schema_name": "IWX_SDK_TEST_SCHEMA",
+						"sync_type": "full-load",
+						"exclude_legacy_audit_columns": true
+					},
+					"name": "ORDERS",
+					"columns": [{
+							"is_audit_column": false,
+							"is_deleted": false,
+							"name": "ID",
+							"original_name": "ID",
+							"sql_type": 2,
+							"target_sql_type": 3,
+							"precision": 38,
+							"target_precision": "38",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 39
+						},
+						{
+							"is_audit_column": false,
+							"is_deleted": false,
+							"name": "NAME",
+							"original_name": "NAME",
+							"sql_type": 12,
+							"target_sql_type": 12,
+							"precision": 20,
+							"target_precision": "20",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 20
+						},
+						{
+							"is_audit_column": false,
+							"is_deleted": false,
+							"name": "TEST",
+							"original_name": "TEST",
+							"sql_type": 12,
+							"target_sql_type": 12,
+							"precision": 10,
+							"target_precision": "10",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 10
+						},
+						{
+							"is_audit_column": false,
+							"is_deleted": false,
+							"name": "TEST_NEW",
+							"original_name": "TEST_NEW",
+							"sql_type": 12,
+							"target_sql_type": 12,
+							"precision": 10,
+							"target_precision": "10",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 10
+						},
+						{
+							"is_audit_column": false,
+							"is_deleted": false,
+							"name": "NEW_COL",
+							"original_name": "NEW_COL",
+							"sql_type": 12,
+							"target_sql_type": 12,
+							"precision": 10,
+							"target_precision": "10",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 10
+						},
+						{
+							"is_audit_column": true,
+							"is_deleted": false,
+							"name": "ziw_target_timestamp",
+							"original_name": "ziw_target_timestamp",
+							"sql_type": 93,
+							"target_sql_type": 93,
+							"precision": 0,
+							"target_precision": "0",
+							"scale": 6,
+							"target_scale": "6",
+							"format": "yyyy-MM-dd HH:mm:ss"
+						},
+						{
+							"is_audit_column": true,
+							"is_deleted": false,
+							"name": "ziw_is_deleted",
+							"original_name": "ziw_is_deleted",
+							"sql_type": 16,
+							"target_sql_type": 16,
+							"precision": 0,
+							"target_precision": "0",
+							"scale": 0,
+							"target_scale": "0"
+						},
+						{
+							"is_audit_column": true,
+							"is_deleted": false,
+							"name": "ZIW_ziw_nn",
+							"original_name": "ZIW_ziw_nn",
+							"sql_type": 12,
+							"target_sql_type": 12,
+							"precision": 40,
+							"target_precision": "40",
+							"scale": 0,
+							"target_scale": "0",
+							"col_size": 40
+						}
+					],
+					"schema_name_at_source": "AUTOMATION_DB",
+					"meta_crawl_performed": true
+				}
+			}
+		],
+		"table_group_configs": [{
+			"entity_type": "table_group",
+			"entity_id": "223502319bf1a768832bf6e6",
+			"configuration": {
+				"id": "223502319bf1a768832bf6e6",
+				"environment_compute_template": {
+					"environment_compute_template_id": "03e08fb415447fd56df9d888"
+				},
+				"name": "tg1",
+				"max_connections": 10,
+				"max_parallel_entities": 2,
+				"tables": [{
+						"table_id": "627a898f80cccd05ac20044e",
+						"connection_quota": 50
+					},
+					{
+						"table_id": "627a898f80cccd05ac20044f",
+						"connection_quota": 50
+					}
+				]
+			}
+		}],
+		"file_mappings": [],
+		"topic_mappings": [],
+		"source_configs": {
+			"id": "627a523580cccd05ac200159",
+			"name": "iwx_sdk_srcname",
+			"type": "rdbms",
+			"sub_type": "oracle",
+			"quoted_identifier": "\"",
+			"is_generic_jdbc_source_type": false,
+			"is_oem_connector": false,
+			"transformation_extensions": [],
+			"connection": {
+				"driver_name": "oracle.jdbc.driver.OracleDriver",
+				"driver_version": "v2",
+				"connection_url": "jdbc:oracle:thin:@52.73.246.109:1521:xe",
+				"username": "automation_db",
+				"password": "eEBcRuPkw0zh9oIPvKnal+1BNKmFH5TfdI1ieDinruUv47Z5+f/oPjb+uyqUmfcQusM2DjoHc3OM",
+				"connection_mode": "JDBC",
+				"database": "ORACLE"
+			}
+		},
+		"entity": {
+			"entity_name": "iwx_sdk_srcname",
+			"entity_id": "627a523580cccd05ac200159",
+			"entity_type": "source"
+		},
+		"export": {
+			"exported_by": "6RkfybTRQQByEey3v",
+			"exported_at": "2022-05-10T16:08:57.241Z"
+		}
+	}
+}

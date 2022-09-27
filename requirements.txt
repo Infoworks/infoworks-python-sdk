@@ -1,0 +1,15 @@
+requests
+bson
+pycryptodomex
+cryptography==37.0.2
+urllib3
+pandas
+pytest
+pytest-dependency
+networkx
+pyyaml
+google-cloud-kms
+google-cloud-storage
+boto3
+azure-identity
+azure-keyvault-secrets
