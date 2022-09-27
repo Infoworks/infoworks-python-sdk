@@ -1086,7 +1086,7 @@ class SourceClient(BaseClient):
         """
         try:
             response = self.call_api("PUT",
-                                     url_builder.update_table_config_url(self.client_config, source_id, table_id),
+                                     url_builder.get_table_configuration(self.client_config, source_id, table_id),
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                                      data=config_body)
             parsed_response = IWUtils.ejson_deserialize(
@@ -1474,7 +1474,7 @@ class SourceClient(BaseClient):
                         watermark_column=None, partition_key=None, derived_partition=False,
                         derive_partition_format=None, split_by_key=None, storage_format=None):
         """
-        Function to fetch ingestion metrics of source tables
+        Function to configure the ingestion configs of table
         :param source_id: Entity identifier for source
         :type source_id: String
         :param table_id: table entity id
@@ -1548,7 +1548,7 @@ class SourceClient(BaseClient):
             if storage_format is not None:
                 table_config_body["storage_format"] = storage_format
             response = IWUtils.ejson_deserialize(
-                self.call_api("PUT", url_builder.update_table_config_url(self.client_config, source_id, table_id),
+                self.call_api("PUT", url_builder.update_table_ingestion_config_url(self.client_config, source_id, table_id),
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                               data=table_config_body).content,
             )

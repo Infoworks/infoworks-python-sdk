@@ -913,7 +913,7 @@ def get_table_configuration(config, source_id, table_id):
     return request
 
 
-def update_table_config_url(config, source_id, table_id):
+def update_table_ingestion_config_url(config, source_id, table_id):
     """
     returns URL to update the table configurations using v3 rest apis
     :param config: client configurations
