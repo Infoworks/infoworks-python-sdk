@@ -34,7 +34,7 @@ from infoworks.sdk.client import InfoworksClientSDK
 refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 # Initialise the client
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_user("http", "10.18.1.28", "3001", refresh_token)
+iwx_client.initialize_client_with_defaults("http", "10.18.1.28", "3001", refresh_token)
 
 # Create Oracle Source
 
