@@ -1523,3 +1523,35 @@ class SourceClient(BaseClient):
         except Exception as e:
             self.logger.error("Error Updating the table configuration details")
             raise SourceError(f"Error Updating the table configuration details for table for {table_id} " + str(e))
+
+    def get_tableid_from_name(self, source_id, table_name):
+        params = {"filter": {"source": source_id, "table": table_name}}
+        url_to_list_tables_under_source = url_builder.list_tables_under_source(
+            self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_tables_under_source,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                if len(result) > 0:
+                    return result[0]["id"]
+        except Exception as e:
+            self.logger.error("Error in listing tables under source")
+            raise SourceError("Error in listing tables under source " + str(e))
+
+    def get_tablename_from_id(self, source_id, table_id):
+        params = {"filter": {"source": source_id, "_id": table_id}}
+        url_to_list_tables_under_source = url_builder.list_tables_under_source(
+            self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_tables_under_source,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                if len(result) > 0:
+                    return result[0]["name"]
+        except Exception as e:
+            self.logger.error("Error in listing tables under source")
+            raise SourceError("Error in listing tables under source " + str(e))
