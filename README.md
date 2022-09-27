@@ -8,11 +8,11 @@ It includes pre-defined set of functions performing various actions.
 <br>
 Supports Infoworks version 5.2 onwards
 
-![alt text](https://github.com/abhr1994/infoworks_sdk/blob/master/infoworks_sdk.gif?raw=true)
+![alt text](https://github.com/infoworks/InfoworksPythonSDK/blob/master/infoworks_sdk.gif?raw=true)
 
 # Documentation
 
-https://abhr1994.github.io/infoworks_sdk/
+https://infoworks.github.io/InfoworksPythonSDK/
 
 # Installation
 
