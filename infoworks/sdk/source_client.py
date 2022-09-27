@@ -930,7 +930,12 @@ class SourceClient(BaseClient):
                                      source_configuration_url,
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                                      data=config_body)
-            parsed_response = IWUtils.ejson_deserialize(response.content)
+            parsed_response = IWUtils.ejson_deserialize(
+                self.call_api("POST",
+                              source_configuration_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              data=config_body).content
+            )
             if response.status_code == 200:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS)
             else:

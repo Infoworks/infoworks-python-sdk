@@ -1088,3 +1088,16 @@ def trigger_pipeline_build_url(config, domain_id, pipeline_id):
         domain_id=domain_id,
         pipeline_id=pipeline_id)
     return request
+
+
+def create_source_extension_url(config):
+    """
+    returns URL to create source extension
+    :param config: client configurations
+    :type config: dict
+    :return: url to create source extension
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/source-extensions'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request

@@ -487,3 +487,29 @@ class AdminClient(BaseClient):
             return result[0]["id"]
         else:
             return None
+
+    def create_source_extension(self, data):
+        """
+        Function to create a source extension
+        :param data: Source extension details body
+        :param data: JSON Payload with source extension details
+        :return: response dict
+        """
+        try:
+            response = self.call_api("POST",
+                                     url_builder.create_source_extension_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error creating source extension {data['name']}")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error creating source extension {data['name']}.Please do it by yourself from UI.")
+            raise AdminError(f"Error creating source extension  {data['name']}.Please do it by yourself from UI." + str(e))
