@@ -453,6 +453,12 @@ class AdminClient(BaseClient):
             raise AdminError("Error in getting compute template details" + str(e))
 
     def get_environment_id_from_name(self, environment_name):
+        """
+                Function to return environment Id from name
+                :param environment_name: Infoworks Environment Name
+                :type environment_name: String
+                :return: Environment Identifier
+        """
         result = \
         self.get_environment_details(environment_id=None, params={"filter": {"name": environment_name}})["result"][
             "response"]
@@ -462,6 +468,12 @@ class AdminClient(BaseClient):
             return None
 
     def get_environment_default_warehouse(self, environment_id):
+        """
+                Function to return environment Id from name
+                :param environment_id: Infoworks Environment Id
+                :type environment_name: String
+                :return: Environment Name
+        """
         result = self.get_environment_details(environment_id=environment_id, params=None)["result"]["response"]
         if len(result) > 0:
             return result[0]["data_warehouse_configuration"]["warehouse"][0]["name"]
@@ -469,6 +481,14 @@ class AdminClient(BaseClient):
             return None
 
     def get_compute_id_from_name(self, environment_id, compute_name):
+        """
+                Function to return Environment Compute Id from name
+                :param environment_id: Environment identifier
+                :type environment_id: String
+                :param compute_name: Environment Compute Name
+                :type compute_name: String
+                :return: Table name
+        """
         result = self.get_compute_template_details(environment_id, compute_id=None, is_interactive=True,
                                                    params={"filter": {"name": compute_name}})["result"]["response"]
         if len(result) > 0:
@@ -481,6 +501,14 @@ class AdminClient(BaseClient):
         return None
 
     def get_storage_id_from_name(self, environment_id, storage_name):
+        """
+                Function to return Environment Storage Id from name
+                :param environment_id: Environment identifier
+                :type environment_id: String
+                :param storage_name: Environment Storage Name
+                :type storage_name: String
+                :return: Table name
+        """
         result = self.get_storage_details(environment_id=environment_id,
                                           params={"filter": {"name": storage_name}})["result"]["response"]
         if len(result) > 0:
@@ -490,10 +518,10 @@ class AdminClient(BaseClient):
 
     def create_source_extension(self, data):
         """
-        Function to create a source extension
-        :param data: Source extension details body
-        :param data: JSON Payload with source extension details
-        :return: response dict
+            Function to create a source extension
+            :param data: Source extension details body
+            :type data: String
+            :return: response dict
         """
         try:
             response = self.call_api("POST",

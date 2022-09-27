@@ -16,6 +16,20 @@ class SourceClient(BaseClient):
     def poll_job(self, source_id=None, job_id=None, poll_timeout=local_configurations.POLLING_TIMEOUT,
                  polling_frequency=local_configurations.POLLING_FREQUENCY_IN_SEC,
                  retries=local_configurations.NUM_POLLING_RETRIES):
+        """
+                Polls Infoworks source job and returns its status
+                :param source_id: Source Identifier
+                :type source_id: String
+                :param job_id: Job Identifier
+                :type job_id: String
+                :param poll_timeout: Polling timeout(default : 1200 seconds)
+                :type poll_timeout: Integer
+                :param polling_frequency: Polling Frequency(default : 15 seconds)
+                :type polling_frequency: Integer
+                :param retries: Number of Retries (default : 3)
+                :type retries: Integer
+                :return: response Object with Job status
+        """
         failed_count = 0
         response = {}
         timeout = time.time() + poll_timeout
@@ -986,6 +1000,18 @@ class SourceClient(BaseClient):
             raise SourceError("Error in listing tables under source" + str(e))
 
     def get_table_columns_details(self, source_id, table_name, schema_name, database_name):
+        """
+        Function to get the table column details
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param table_name: Snowflake Table Name
+        :type table_name: String
+        :param schema_name: Snowflake Schema Name
+        :type schema_name: String
+        :param database_name: Snowflake Database Name
+        :type database_name: String
+        :return: response dict
+        """
         url_to_list_tables = url_builder.list_tables_under_source(self.client_config, source_id)
         filter_cond = "?filter={\"table\":\"" + table_name + "\",\"catalog_name\":\"" + database_name + "\",\"schemaNameAtSource\": \"" + schema_name + "\"} "
         get_source_table_info_url = url_to_list_tables + filter_cond
@@ -1330,6 +1356,11 @@ class SourceClient(BaseClient):
             raise SourceError(f"Failed to add table and configure file mappings " + str(e))
 
     def get_sourceid_from_name(self, source_name):
+        """
+        Function to return source id from name
+        :param source_name: Source name
+        :return: Source Identifier
+        """
         params = {"filter": {"name": source_name}}
         url_to_list_sources = url_builder.list_sources_url(
             self.client_config) + IWUtils.get_query_params_string_from_dict(params=params)
@@ -1347,7 +1378,7 @@ class SourceClient(BaseClient):
 
     def get_sourcename_from_id(self, src_id):
         """
-        Function to return source id from name
+        Function to return source name from Id
         :param src_id: Source identifier
         :return: Source name
         """
@@ -1530,6 +1561,14 @@ class SourceClient(BaseClient):
             raise SourceError(f"Error Updating the table configuration details for table for {table_id} " + str(e))
 
     def get_tableid_from_name(self, source_id, table_name):
+        """
+                Function to return table id from name
+                :param source_id: Source Identifier
+                :type source_id: String
+                :param table_name: Table name
+                :type table_name: String
+                :return: Table id
+        """
         params = {"filter": {"source": source_id, "table": table_name}}
         url_to_list_tables_under_source = url_builder.list_tables_under_source(
             self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
@@ -1546,6 +1585,14 @@ class SourceClient(BaseClient):
             raise SourceError("Error in listing tables under source " + str(e))
 
     def get_tablename_from_id(self, source_id, table_id):
+        """
+                Function to return table name from id
+                :param source_id: Source identifier
+                :type source_id: String
+                :param table_id: Table identifier
+                :type table_id: String
+                :return: Table name
+        """
         params = {"filter": {"source": source_id, "_id": table_id}}
         url_to_list_tables_under_source = url_builder.list_tables_under_source(
             self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
