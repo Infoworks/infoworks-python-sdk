@@ -1470,9 +1470,10 @@ class SourceClient(BaseClient):
                             "Source has been browsed successfully. Please proceed to add tables to source (add_tables_to_source) ")
                         return src_id
 
-    def configure_table(self, source_id, table_id, natural_keys=None, sync_type="full-load", update_strategy=None,
-                        watermark_column=None, partition_key=None, derived_partition=False,
-                        derive_partition_format=None, split_by_key=None, storage_format=None):
+    def configure_table_ingestion_properties(self, source_id, table_id, natural_keys=None, sync_type="full-load",
+                                             update_strategy=None,
+                                             watermark_column=None, partition_key=None, derived_partition=False,
+                                             derive_partition_format=None, split_by_key=None, storage_format=None):
         """
         Function to configure the ingestion configs of table
         :param source_id: Entity identifier for source
@@ -1548,7 +1549,8 @@ class SourceClient(BaseClient):
             if storage_format is not None:
                 table_config_body["storage_format"] = storage_format
             response = IWUtils.ejson_deserialize(
-                self.call_api("PUT", url_builder.update_table_ingestion_config_url(self.client_config, source_id, table_id),
+                self.call_api("PUT",
+                              url_builder.update_table_ingestion_config_url(self.client_config, source_id, table_id),
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                               data=table_config_body).content,
             )
