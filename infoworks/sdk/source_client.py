@@ -1559,8 +1559,34 @@ class SourceClient(BaseClient):
 
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
-            self.logger.error("Error Updating the table configuration details")
-            raise SourceError(f"Error Updating the table configuration details for table for {table_id} " + str(e))
+            self.logger.error("Error Updating the table ingestion configuration details")
+            raise SourceError(f"Error Updating the table ingestion configuration details for table for {table_id} " + str(e))
+
+    def configure_table_ingestion_properties_with_payload(self, source_id, table_id, table_payload):
+        """
+        Function to configure the ingestion configs of table
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param table_id: table entity id
+        :type table_id: String
+        :param table_payload: Payload to configure
+        :type table_payload: Dict
+        :return: response dict
+        """
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("PUT",
+                              url_builder.update_table_ingestion_config_url(self.client_config, source_id, table_id),
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              data=table_payload).content,
+            )
+            if response is not None:
+                result = response.get("result", [])
+
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error Updating the table ingestion configuration details")
+            raise SourceError(f"Error Updating the table ingestion configuration details for table for {table_id} " + str(e))
 
     def get_tableid_from_name(self, source_id, table_name):
         """
