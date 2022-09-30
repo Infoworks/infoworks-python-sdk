@@ -469,14 +469,18 @@ class AdminClient(BaseClient):
 
     def get_environment_default_warehouse(self, environment_id):
         """
-                Function to return environment Id from name
-                :param environment_id: Infoworks Environment Id
-                :type environment_name: String
-                :return: Environment Name
+            Function to return default warehouse name
+            :param environment_id: Infoworks Environment Id
+            :type environment_id: String
+            :return: Environment Name
         """
         result = self.get_environment_details(environment_id=environment_id, params=None)["result"]["response"]
         if len(result) > 0:
-            return result[0]["data_warehouse_configuration"]["warehouse"][0]["name"]
+            for item in result[0]["data_warehouse_configuration"]["warehouse"]:
+                if item["is_default_warehouse"]:
+                    return item["name"]
+            else:
+                return result[0]["data_warehouse_configuration"]["warehouse"][0]["name"]
         else:
             return None
 

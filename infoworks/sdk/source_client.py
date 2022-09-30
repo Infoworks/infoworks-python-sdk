@@ -540,13 +540,12 @@ class SourceClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
 
-        if tg_id is not None:
+        if tg_id is None:
             url_to_list_tg = url_builder.create_table_group_url(
                 self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
         else:
             url_to_list_tg = url_builder.create_table_group_url(
-                self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params).strip(
-                "/") + f"/{tg_id}"
+                self.client_config, source_id)  + f"/{tg_id}"
         tg_list = []
         try:
             response = IWUtils.ejson_deserialize(
