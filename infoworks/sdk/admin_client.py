@@ -96,7 +96,7 @@ class AdminClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 if user_id is not None:
-                    users_list.extend(result)
+                    users_list.extend([result])
                 else:
                     while len(result) > 0:
                         users_list.extend(result)

@@ -235,6 +235,48 @@ class DomainClient(BaseClient):
         except Exception as e:
             raise DomainError(f"Failed to remove source from the domain {domain_id}" + str(e))
 
+    def get_data_connection(self, domain_id, data_connection_id=None, params=None):
+        """
+        Function to create data connection in the domain
+        :param domain_id: Entity identifier for the domain
+        :param data_connection_id: id of dataconnection for which config has to be fetched
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+
+        if data_connection_id is None:
+            url_to_get_data_connection = url_builder.create_data_connection(
+                self.client_config, domain_id) + IWUtils.get_query_params_string_from_dict(params=params)
+        else:
+            url_to_get_data_connection = url_builder.create_data_connection(
+                self.client_config, domain_id) + f"/{data_connection_id}"
+        dataconnection_list = []
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_get_data_connection,
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                if data_connection_id is not None:
+                    dataconnection_list.extend([result])
+                else:
+                    while len(result) > 0:
+                        dataconnection_list.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=dataconnection_list)
+        except Exception as e:
+            raise DomainError(f"Failed to get data connection details" + str(e))
+
     def create_data_connection(self, domain_id, config_body):
         """
         Function to create data connection in the domain

@@ -545,7 +545,7 @@ class SourceClient(BaseClient):
                 self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
         else:
             url_to_list_tg = url_builder.create_table_group_url(
-                self.client_config, source_id)  + f"/{tg_id}"
+                self.client_config, source_id) + f"/{tg_id}"
         tg_list = []
         try:
             response = IWUtils.ejson_deserialize(
@@ -554,7 +554,7 @@ class SourceClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 if tg_id is not None:
-                    tg_list.extend(result)
+                    tg_list.extend([result])
                 else:
                     while len(result) > 0:
                         tg_list.extend(result)
@@ -705,7 +705,7 @@ class SourceClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 while len(result) > 0:
-                    source_list.extend(result)
+                    source_list.extend([result])
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -858,7 +858,7 @@ class SourceClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 if key is not None:
-                    adv_config_list.extend(result)
+                    adv_config_list.extend([result])
                 else:
                     while len(result) > 0:
                         adv_config_list.extend(result)
@@ -1559,7 +1559,8 @@ class SourceClient(BaseClient):
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error Updating the table ingestion configuration details")
-            raise SourceError(f"Error Updating the table ingestion configuration details for table for {table_id} " + str(e))
+            raise SourceError(
+                f"Error Updating the table ingestion configuration details for table for {table_id} " + str(e))
 
     def configure_table_ingestion_properties_with_payload(self, source_id, table_id, table_payload):
         """
@@ -1585,7 +1586,8 @@ class SourceClient(BaseClient):
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error Updating the table ingestion configuration details")
-            raise SourceError(f"Error Updating the table ingestion configuration details for table for {table_id} " + str(e))
+            raise SourceError(
+                f"Error Updating the table ingestion configuration details for table for {table_id} " + str(e))
 
     def get_tableid_from_name(self, source_id, table_name):
         """
