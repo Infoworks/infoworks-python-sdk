@@ -3,7 +3,7 @@ class CICDResponse:
         pass
 
     @staticmethod
-    def parse_result(status=None, error_code=None, error_desc=None, job_id=None, parent_entity_id=None, child_entity_id=None, response=None):
+    def parse_result(status=None, error_code=None, error_desc=None, job_id=None, entity_id=None, response=None):
         result = {
             'error': {
                 'error_code': error_code,
@@ -12,8 +12,7 @@ class CICDResponse:
             'result': {
                 'job_id': job_id,
                 'status': status,
-                'parent_entity_id': parent_entity_id,
-                'child_entity_id': child_entity_id,
+                'entity_id': entity_id,
                 'response': response
             }
         }
