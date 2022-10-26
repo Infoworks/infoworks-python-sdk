@@ -6,7 +6,7 @@ applications written in the Python language.
 It includes pre-defined set of functions performing various actions.
 
 <br>
-Supports Infoworks version 5.2.x
+Supports Infoworks version 5.3.x
 
 ![alt text](https://github.com/abhr1994/infoworks_sdk/blob/master/infoworks_sdk.gif?raw=true)
 
