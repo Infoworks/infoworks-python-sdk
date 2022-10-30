@@ -1,11 +1,10 @@
 import json
-
 import requests
 import yaml
-
 from infoworks.sdk.url_builder import get_source_details_url
 from infoworks.sdk.utils import IWUtils
-
+from infoworks.sdk.source_response import SourceResponse
+from infoworks.sdk.local_configurations import Response
 
 class CSVSource:
     def __init__(self, environment_id, storage_id, source_config_path, secrets=None, replace_words=""):
@@ -32,10 +31,13 @@ class CSVSource:
             "storage_id": self.storage_id,
             "is_source_ingested": True
         }
+        if data.get("target_database_name",""):
+            create_csv_source_payload["target_database_name"] = data.get("target_database_name","")
         src_create_response = src_client_obj.create_source(source_config=create_csv_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id_created = src_create_response["result"]["source_id"]
-            return source_id_created
+            print("Source created successfully")
+            return src_create_response
         else:
             src_client_obj.logger.info('Cant create source {} '.format(data["name"]))
             src_client_obj.logger.info(f"Getting the existing SourceId with name {data['name']} if exists")
@@ -54,11 +56,16 @@ class CSVSource:
             response = IWUtils.ejson_deserialize(response.content)
             if not response.get('result', None):
                 src_client_obj.logger.error("Failed to make an api call to get source details")
+                print("Failed to make an api call to get source details")
                 src_client_obj.logger.info(response)
+                print(response)
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   source_id=None,response=response)
             else:
                 src_client_obj.logger.info(
                     f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
-                return response['result'][0]['id']
+                print(f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=response['result'][0]['id'],response=response)
 
     def configure_csv_source(self, src_client_obj, source_id, mappings, read_passwords_from_secrets=False, env_tag="",
                              secret_type=""):
@@ -129,12 +136,13 @@ class CSVSource:
             }
         elif storage_type == "remote":
             # SFTP Source
-            source_configure_payload = {}
+            data = self.configuration_obj["configuration"]["source_configs"]["connection"]
+            source_configure_payload = data
         else:
             source_configure_payload = {}
 
         response = src_client_obj.configure_source_connection(source_id, connection_object=source_configure_payload)
-        return response["result"]["status"].upper()
+        return response
 
     def import_source_configuration(self, src_client_obj, source_id,
                                     mappings, export_configuration_file=None, export_config_lookup=True,
@@ -214,16 +222,16 @@ class CSVSource:
                     except Exception as e:
                         src_client_obj.logger.error(
                             f"Failed to lookup the export configuration password from secrets due to {str(e)}")
-
         response = src_client_obj.configure_tables_and_tablegroups(source_id,
                                                                    configuration_obj=source_import_payload.get(
                                                                        "configuration"))
-        if response["result"]["status"].upper() != "SUCCESS":
-            src_client_obj.logger.error("Failed to import the source {} (source config path : {})"
-                                        .format(source_id, self.source_config_path))
-            src_client_obj.logger.error(response.get("message", "") + "(source config path : {})"
-                                        .format(self.source_config_path))
-            return "FAILED"
-        else:
-            src_client_obj.logger.info(f"Successfully imported source configurations to {source_id}")
-            return "SUCCESS"
+        return response
+        # if response["result"]["status"].upper() != "SUCCESS":
+        #     src_client_obj.logger.error("Failed to import the source {} (source config path : {})"
+        #                                 .format(source_id, self.source_config_path))
+        #     src_client_obj.logger.error(response.get("message", "") + "(source config path : {})"
+        #                                 .format(self.source_config_path))
+        #     return "FAILED"
+        # else:
+        #     src_client_obj.logger.info(f"Successfully imported source configurations to {source_id}")
+        #     return "SUCCESS"

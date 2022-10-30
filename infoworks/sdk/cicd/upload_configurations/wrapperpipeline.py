@@ -165,14 +165,16 @@ class WrapperPipeline(BaseClient):
                                                                              params={"filter": {"name": compute_name}})
                         if len(result["result"]["response"]) != 0:
                             compute_id = result["result"]["response"][0]["id"]
-            if env_id is None or storage_id is None or compute_id is None:
-                raise Exception("No env id or storage id or compute id mapping found")
+            if env_id is None:
+                print("No env id and no mapping found")
+                raise Exception("No env id and no mapping found")
             pl_obj = Pipeline(configuration_file_path, env_id, storage_id, compute_id, replace_words, self.secrets_config)
             pipeline_id, domain_id = pl_obj.create(self, domain_id, domain_name)
             if pipeline_id is not None:
                 status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings, read_passwords_from_secrets,env_tag=env_tag, secret_type=secret_type)
         except Exception as e:
             self.logger.error(str(e))
+            print(str(e))
             traceback.print_stack()
 
     def __execute(self, thread_number, q):
