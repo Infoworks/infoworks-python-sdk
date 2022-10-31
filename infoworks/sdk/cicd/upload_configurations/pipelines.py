@@ -51,12 +51,29 @@ class Pipeline:
         pipeline_json_object = {
             "name": pipeline_name,
             "environment_id": self.environment_id,
-            "domain_id": domain_id,
-            "storage_id": self.storage_id,
-            "compute_template_id": self.interactive_id
+            "domain_id": domain_id
         }
+        #5.2.x versions need storage id and compute id
+        batch_engine = self.configuration_obj["configuration"].get("pipeline_configs",{}).get("batch_engine","")
+        storage_id = self.storage_id
+        if storage_id:
+            pipeline_json_object["storage_id"] = storage_id
+        if batch_engine != "":
+            pipeline_json_object["batch_engine"] = batch_engine
+
+        #5.3.x onwards CDW support
+        if self.interactive_id is None:
+            pipeline_json_object["run_job_on_data_plane"] = False
+        else:
+            pipeline_json_object["compute_id"] = self.interactive_id
+
+        #todo warehouse
+
+
+        print(pipeline_json_object)
         if domain_id is None and domain_name is None:
             pipeline_client_obj.logger.error('Either domainId or domain Name is required to create pipeline.')
+            print('Either domainId or domain Name is required to create pipeline.')
             traceback.print_stack()
             raise Exception("Either domainId or domain Name is required to create pipeline.")
         if domain_name is not None and domain_id is None:
@@ -80,6 +97,8 @@ class Pipeline:
                 else:
                     pipeline_client_obj.logger.error('Can not find domain with given name {} '.format(domain_name))
                     pipeline_client_obj.logger.info('Creating a domain with given name {} '.format(domain_name))
+                    print(f'Can not find domain with given name {domain_name}')
+                    print(f'Creating a domain with given name {domain_name}')
                     domain_id_new = domain_obj.create(pipeline_client_obj, domain_name)
                     print('New domain id' + domain_id_new)
                     pipeline_json_object["domain_id"] = domain_id_new
@@ -89,15 +108,18 @@ class Pipeline:
             final_domain_id = domain_id
             pipeline_json_object["domain_id"] = domain_id
         pipeline_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
+        print(f"Adding user {user_email} to domain {final_domain_id}")
         domain_obj.add_user_to_domain(pipeline_client_obj, final_domain_id, None, user_email)
         pipeline_client_obj.logger.info(
             'Adding sources {} to domain {}'.format(sourceids_in_pipelines, final_domain_id))
+        print(f'Adding sources {sourceids_in_pipelines} to domain {final_domain_id}')
         domain_obj.add_sources_to_domain(pipeline_client_obj, final_domain_id, sourceids_in_pipelines)
         url_for_creating_pipeline = create_pipeline_url(pipeline_client_obj.client_config,
                                                         pipeline_json_object["domain_id"])
         pipeline_client_obj.logger.info('url - ' + url_for_creating_pipeline)
         json_string = IWUtils.ejson_serialize(pipeline_json_object)
         pipeline_client_obj.logger.info(json_string)
+        print(json_string)
         if json_string is not None:
             try:
                 response = requests.post(url_for_creating_pipeline, data=json_string, headers={
@@ -108,7 +130,9 @@ class Pipeline:
                         {'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
                          'Content-Type': 'application/json'})
                     response = requests.post(url_for_creating_pipeline, data=json_string, headers=headers, verify=False)
+
                 response = IWUtils.ejson_deserialize(response.content)
+                print("response:",response)
                 result = response.get('result', None)
                 pipeline_client_obj.logger.info("result is: " + str(result))
                 if result is None:
@@ -135,8 +159,10 @@ class Pipeline:
                 else:
                     new_pipeline_id = result.get('id')
                 pipeline_client_obj.logger.info(f'Pipeline ID: {new_pipeline_id}')
+                print(f'Pipeline ID: {new_pipeline_id}')
             except Exception as ex:
                 pipeline_client_obj.logger.exception('Response from server: {}'.format(str(ex)))
+                print(f'Response from server: {str(ex)}')
 
         return new_pipeline_id, pipeline_json_object["domain_id"]
 
@@ -145,9 +171,11 @@ class Pipeline:
             mappings = {}
         if self.configuration_obj.get("dataconnection_configurations", None):
             pipeline_client_obj.logger.info("Checking for any data connection")
+            print("Checking for any data connection")
             create_data_connection_url = create_data_connection(pipeline_client_obj.client_config, domain_id)
             for item in self.configuration_obj.get("dataconnection_configurations"):
                 pipeline_client_obj.logger.info("Creating a data connection {}".format(item["name"]))
+                print(f"Creating a data connection {item['name']}")
                 override_keys = []
                 if override_dataconnection_config_file is not None:
                     with open(override_dataconnection_config_file) as file:
@@ -201,6 +229,7 @@ class Pipeline:
                     response = requests.post(create_data_connection_url, headers=headers, data=data, verify=False)
                 response = IWUtils.ejson_deserialize(response.content)
                 pipeline_client_obj.logger.info(response)
+                print(response)
 
         import_configs = {
             "run_pipeline_metadata_build": False,
@@ -228,4 +257,5 @@ class Pipeline:
         response = IWUtils.ejson_deserialize(response.content)
         if response is not None:
             pipeline_client_obj.logger.info(response.get("message", "") + " Done")
+            print(f'{response.get("message", "")} Done')
             return "SUCCESS"

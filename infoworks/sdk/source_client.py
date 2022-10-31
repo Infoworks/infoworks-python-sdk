@@ -1,4 +1,5 @@
 import time
+import traceback
 
 from infoworks.error import SourceError
 from infoworks.sdk import url_builder, local_configurations
@@ -54,7 +55,7 @@ class SourceClient(BaseClient):
                                                                job_id=job_id)
                         else:
                             return SourceResponse.parse_result(status=job_status, source_id=source_id,
-                                                               job_id=job_id)
+                                                               job_id=job_id,response=response)
                 else:
                     self.logger.error(f"Error occurred during job {job_id} status poll")
                     if failed_count >= retries - 1:
@@ -111,11 +112,12 @@ class SourceClient(BaseClient):
 
             source_id = str(source_id)
             self.logger.info('Source {id} has been created.'.format(id=source_id))
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to create a new source.')
+            print('Error occurred while trying to create a new source.')
             raise SourceError(response.get("message", "Error occurred while trying to create a new source."))
 
     def configure_source_connection(self, source_id, connection_object, read_passwords_from_secrets=False):
@@ -172,7 +174,7 @@ class SourceClient(BaseClient):
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                    error_desc=response, job_id=None, source_id=None)
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=response)
         except Exception as e:
             raise SourceError(f"Failed to configure the source connection for {source_id} " + str(e))
 
@@ -456,6 +458,7 @@ class SourceClient(BaseClient):
                                                    job_id=None,
                                                    source_id=source_id)
         except Exception as e:
+            traceback.print_exc()
             raise SourceError(f"Failed to configure tables and table groups" + str(e))
 
     def create_table_group(self, source_id, table_group_obj):

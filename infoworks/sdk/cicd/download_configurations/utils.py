@@ -91,9 +91,9 @@ class Utils:
             if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
                 result = parsed_response.get("result", [])
                 if len(result) > 0:
-                    environment_id = result["environment_id"]
-                    storage_id = result["storage_id"]
-                    compute_template_id = result["compute_template_id"]
+                    environment_id = result.get("environment_id",None)
+                    storage_id = result.get("storage_id",None)
+                    compute_template_id = result.get("compute_template_id",None)
                     cicd_client.logger.info(
                         "Environment ID is {} Storage ID is {} Compute Template Id is {}".format(environment_id,
                                                                                                  storage_id,
@@ -291,9 +291,12 @@ class Utils:
                         env_name, storage_name, compute_name = self.get_env_entities_names(cicd_client, environment_id,
                                                                                            None, None)
                         environment_names.append(env_name)
+                        print(env_name, storage_name, compute_name)
                     configuration_obj["environment_configurations"] = {"environment_name": environment_names,
                                                                        "environment_compute_template_name": compute_name,
                                                                        "environment_storage_name": storage_name}
+                else:
+                    print("in else")
             else:
                 env_name, storage_name, compute_name = self.get_env_entities_names(
                     cicd_client, environment_id,
@@ -331,8 +334,10 @@ class Utils:
                     cicd_client.logger.info("Configurations have been dumped")
             except Exception as e:
                 cicd_client.logger.error(str(e))
+                print(str(e))
         else:
             cicd_client.logger.info("Unable to dump the configurations")
+            print("Unable to dump the configurations")
         for item in response_to_return:
             print(item, json.dumps(response_to_return[item]))
         return filename, configuration_obj

@@ -47,6 +47,7 @@ class WrapperSource(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=env_details)
         except Exception as e:
             self.logger.error("Error in getting environment details")
+            print("Error in getting environment details")
 
     def __wrapper_get_storage_details(self, environment_id, storage_id=None, params=None):
         if params is None and storage_id is None:
@@ -77,6 +78,7 @@ class WrapperSource(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=storage_details)
         except Exception as e:
             self.logger.error("Error in getting storage details")
+            print("Error in getting storage details")
 
     def cicd_upload_source_configurations(self, configuration_file_path, override_configuration_file=None,
                                           export_lookup=False, replace_words="", read_passwords_from_secrets=False,
@@ -89,6 +91,7 @@ class WrapperSource(BaseClient):
         :param replace_words: Pass the strings to be replaced in the configuration file. Example: DEV->PROD;dev->prod
         :param read_passwords_from_secrets: True/False. If True all the source related passwords are read from encrypted file name passed
         """
+        response_to_return ={}
         try:
             env_id = self.client_config.get("default_environment_id", None)
             storage_id = self.client_config.get("default_storage_id", None)
@@ -102,6 +105,7 @@ class WrapperSource(BaseClient):
                 if env_name is not None:
                     result = self.__wrapper_get_environment_details(params={"filter": {"name": env_name}})
                     env_id = result["result"]["response"][0]["id"] if len(result["result"]["response"]) > 0 else None
+                    response_to_return["get_environment_entity_response"] = result
             if storage_id is None and "storage_mappings" in self.mappings:
                 storage_name = self.mappings["storage_mappings"].get(
                     environment_configurations["environment_storage_name"],
@@ -110,23 +114,44 @@ class WrapperSource(BaseClient):
                     result = self.__wrapper_get_storage_details(environment_id=env_id,
                                                                 params={"filter": {"name": storage_name}})
                     storage_id = result["result"]["response"][0]["id"] if len(result["result"]["response"]) > 0 else None
+                    response_to_return["get_storage_entity_response"] = result
             if env_id is None or storage_id is None:
-                raise Exception("No env id and storage id")
+                print("No env id or storage id found")
+                raise Exception("No env id or storage id found")
 
             source_type = configuration_obj["configuration"]["source_configs"]["type"]
             source_sub_type = configuration_obj["configuration"]["source_configs"]["sub_type"]
             if source_type == "file" and source_sub_type == "structured":
                 source_obj = CSVSource(env_id, storage_id, configuration_file_path, self.secrets_config, replace_words)
-                source_id = source_obj.create_csv_source(self)
+                create_source_response = source_obj.create_csv_source(self)
+                source_id=create_source_response["result"]["source_id"]
                 if source_id is not None:
                     # Proceed to configure the source connection details
-                    if source_obj.configure_csv_source(self, source_id, self.mappings, read_passwords_from_secrets=read_passwords_from_secrets, env_tag=env_tag, secret_type=secret_type) == "SUCCESS":
+                    source_connection_configurations_response = source_obj.configure_csv_source(self, source_id, self.mappings,
+                                                    read_passwords_from_secrets=read_passwords_from_secrets,
+                                                    env_tag=env_tag, secret_type=secret_type)
+                    if source_connection_configurations_response["result"]["status"].upper() == "SUCCESS":
+                        print("Successfully configured the connection details")
+                        self.logger.info("Successfully configured the connection details")
                         # Proceed to configure tables and table groups
-                        status = source_obj.import_source_configuration(self, source_id, self.mappings,
+                        source_import_configuration_response = source_obj.import_source_configuration(self, source_id, self.mappings,
                                                                         override_configuration_file, export_lookup,
                                                                         read_passwords_from_secrets)
-                        if status == "SUCCESS":
+                        if source_import_configuration_response["result"]["status"].upper() == "SUCCESS":
                             self.logger.info("Configured source successfully")
+                            print("Configured Source successfully!")
+                        else:
+                            self.logger.info("Failed to configure source")
+                            print("Failed to configure source")
+                        response_to_return[
+                            "source_import_configuration_response"] = source_import_configuration_response
+                    else:
+                        print("Failed to configure the source connection details")
+                    response_to_return["source_connection_configurations_response"] = source_connection_configurations_response
+
+                else:
+                    print("Failed to create source")
+                response_to_return["create_source_response"] = create_source_response
             elif source_type == "rdbms" and source_sub_type!="snowflake":
                 source_obj = RDBMSSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
@@ -145,6 +170,7 @@ class WrapperSource(BaseClient):
                                 status = source_obj.add_tables_to_source(self, source_id)
                                 if status == "SUCCESS":
                                     self.logger.info("Added tables to source successfully")
+                                    print("Added tables to source successfully")
                                 status = source_obj.configure_tables_and_tablegroups(self, source_id,
                                                                                      override_configuration_file,
                                                                                      export_lookup, self.mappings,
@@ -153,6 +179,7 @@ class WrapperSource(BaseClient):
                                                                                      secret_type=secret_type)
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
+                                    print("Configured source successfully")
             elif source_type == "crm" and source_sub_type == "salesforce":
                 source_obj = SalesforceSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
@@ -176,6 +203,7 @@ class WrapperSource(BaseClient):
                                                                                      secret_type=secret_type)
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
+                                    print("Configured source successfully")
             else:    #assumes to be cdata source
                 source_obj = CdataSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
@@ -194,6 +222,7 @@ class WrapperSource(BaseClient):
                                 status = source_obj.add_tables_to_source(self, source_id)
                                 if status == "SUCCESS":
                                     self.logger.info("Added tables to source successfully")
+                                    print("Added tables to source successfully")
                                 status = source_obj.configure_tables_and_tablegroups(self, source_id,
                                                                                      override_configuration_file,
                                                                                      export_lookup, self.mappings,
@@ -202,9 +231,14 @@ class WrapperSource(BaseClient):
                                                                                      secret_type=secret_type)
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
+                                    print("Configured source successfully")
+
+            return response_to_return
         except Exception as e:
             self.logger.error(str(e))
             traceback.print_exc()
+            print(str(e))
+            return response_to_return
 
     def __execute(self, thread_number, q):
         while True:

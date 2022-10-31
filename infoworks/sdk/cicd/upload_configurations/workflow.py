@@ -37,6 +37,7 @@ class Workflow:
             response = requests.request("GET", src_list_url,
                                         headers=headers, verify=False)
         wf_client_obj.logger.info(response.json())
+        print(response.json())
         temp_src_ids = []
         if response.status_code == 200 and len(response.json().get("result", [])) > 0:
             result = response.json().get("result", [])
@@ -49,6 +50,7 @@ class Workflow:
         final_domain_id = None
         if domain_id is None and domain_name is None:
             wf_client_obj.logger.error('Either domainId or domain Name is required to create workflow.')
+            print('Either domainId or domain Name is required to create workflow.')
             sys.exit(-1)
         if domain_name is not None and domain_id is None:
             domains_url_base = list_domains_url(wf_client_obj.client_config)
@@ -71,18 +73,23 @@ class Workflow:
                 else:
                     wf_client_obj.logger.error('Can not find domain with given name {} '.format(domain_name))
                     wf_client_obj.logger.error('Unable to create workflow')
+                    print(f'Can not find domain with given name {domain_name} ')
+                    print('Unable to create workflow')
                     raise Exception("Unable to create workflow")
                     # wf_client_obj.logger.info('Creating a domain with given name {} '.format(domain_name))
                     # domain_id_new = domain_obj.create(wf_client_obj, domain_name)
                     # print('New domain id' + domain_id_new)
                     # final_domain_id = domain_id_new
             wf_client_obj.logger.info('domainId {}'.format(existing_domain_id))
+            print(f"domainId:{existing_domain_id}")
         else:
             final_domain_id = domain_id
 
         wf_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
+        print(f'Adding user {user_email} to domain {final_domain_id}')
         domain_obj.add_user_to_domain(wf_client_obj, final_domain_id, None, user_email)
         wf_client_obj.logger.info('Adding sources {} to domain {}'.format(sourceids_in_wfs, final_domain_id))
+        print(f'Adding sources {sourceids_in_wfs} to domain {final_domain_id}')
         domain_obj.add_sources_to_domain(wf_client_obj, final_domain_id, sourceids_in_wfs)
         url_for_creating_workflow = create_workflow_url(wf_client_obj.client_config, final_domain_id)
         workflow_json_object = {
@@ -112,7 +119,9 @@ class Workflow:
                 if result is None:
                     wf_client_obj.logger.info(
                         'Cant create workflow. {} {}'.format(response.get('message'), response.get('details')))
+                    print('Cant create workflow. {} {}'.format(response.get('message'), response.get('details')))
                     wf_client_obj.logger.info('Getting the existing workflow ID with given name.')
+                    print('Getting the existing workflow ID with given name.')
                     workflow_base_url = create_workflow_url(wf_client_obj.client_config, final_domain_id)
                     filter_condition = IWUtils.ejson_serialize({"name": workflow_name})
                     workflow_get_url = workflow_base_url + f"?filter={{filter_condition}}".format(
@@ -129,16 +138,19 @@ class Workflow:
                         headers = IWUtils.get_default_header_for_v3(wf_client_obj.client_config['bearer_token'])
                         response = requests.request("GET", workflow_get_url, headers=headers, verify=False)
                     wf_client_obj.logger.debug(response)
+                    print(response)
                     existing_workflow_id = None
                     if response.status_code == 200 and len(response.json().get("result", [])) > 0:
                         existing_workflow_id = response.json().get("result", [])[0]["id"]
                         wf_client_obj.logger.info("Workflow ID found {}".format(existing_workflow_id))
+                        print("Workflow ID found {}".format(existing_workflow_id))
                     if existing_workflow_id:
                         new_workflow_id = str(existing_workflow_id)
                 else:
                     new_workflow_id = result.get('id')
             except Exception as ex:
                 wf_client_obj.logger.error('Response from server: {}'.format(str(ex)))
+                print('Response from server: {}'.format(str(ex)))
 
         return new_workflow_id, final_domain_id
 
@@ -157,5 +169,7 @@ class Workflow:
             response = requests.put(url_for_importing_workflow, data=json_string, headers=headers, verify=False)
         response = IWUtils.ejson_deserialize(response.content)
         wf_client_obj.logger.info(response)
+        print(response)
         if response is not None:
             wf_client_obj.logger.info(response.get("message", "") + " Done")
+            print(response.get("message", "") + " Done")

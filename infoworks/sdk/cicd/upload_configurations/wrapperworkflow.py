@@ -46,6 +46,7 @@ class WrapperWorkflow(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=env_details)
         except Exception as e:
             self.logger.error("Error in getting environment details")
+            print("Error in getting environment details")
 
     def __wrapper_get_storage_details(self, environment_id, storage_id=None, params=None):
         if params is None and storage_id is None:
@@ -76,6 +77,7 @@ class WrapperWorkflow(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=storage_details)
         except Exception as e:
             self.logger.error("Error in getting storage details")
+            print("Error in getting storage details")
 
     def __wrapper_get_compute_template_details(self, environment_id, compute_id=None, is_interactive=False,
                                                params=None):
@@ -113,6 +115,7 @@ class WrapperWorkflow(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=compute_details)
         except Exception as e:
             self.logger.error("Error in getting compute template details")
+            print("Error in getting compute template details")
 
     def cicd_create_configure_workflow(self, configuration_file_path, domain_id=None, domain_name=None,
                                        replace_words=""):
@@ -133,6 +136,7 @@ class WrapperWorkflow(BaseClient):
                 status = wf_obj.configure(self, wf_id, domain_id)
         except Exception as e:
             self.logger.error(str(e))
+            print(str(e))
             traceback.print_stack()
 
     def __execute(self, thread_number, q):
