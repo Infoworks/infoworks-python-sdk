@@ -6,6 +6,8 @@ from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, c
     configure_source_url, get_environment_details, get_environment_storage_details, get_environment_compute_details, \
     get_environment_interactive_compute_details, get_source_configurations_url, get_pipeline_url, \
     get_data_connection, source_info, list_users_url
+from infoworks.sdk.cicd.cicd_response import CICDResponse
+import json
 
 
 class Utils:
@@ -126,6 +128,7 @@ class Utils:
         return final_obj
 
     def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path):
+        response_to_return = {}
         filename = None
         environment_id, environment_compute_template_id, environment_storage_id = None, None, None
         if entity_type == "pipeline":
@@ -138,11 +141,19 @@ class Utils:
             return None
         cicd_client.logger.info(
             "URL to get configurations of entity {} of type {} is {}".format(entity_id, entity_type, url_to_config))
-        response = IWUtils.ejson_deserialize(cicd_client.call_api("GET", url_to_config,
-                                                                  IWUtils.get_default_header_for_v3(
-                                                                      cicd_client.client_config[
-                                                                          'bearer_token'])).content)
-        configuration_obj = response.get('result', {})
+        response = cicd_client.call_api("GET", url_to_config, IWUtils.get_default_header_for_v3(
+            cicd_client.client_config[
+                'bearer_token']))
+
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        if response.status_code == 200:
+            status = "SUCCESS"
+        else:
+            status = "FAILED"
+        response_to_return["get_configuration_entity_response"] = CICDResponse.parse_result(status=status,
+                                                                                            entity_id=entity_id,
+                                                                                            response=parsed_response)
+        configuration_obj = parsed_response.get('result', {})
         # print(configuration_obj)
         if len(configuration_obj) > 0:
             if entity_type == "source":
@@ -151,6 +162,13 @@ class Utils:
                                                 IWUtils.get_default_header_for_v3(
                                                     cicd_client.client_config['bearer_token']))
                 parsed_response = IWUtils.ejson_deserialize(response.content)
+                if response.status_code == 200:
+                    status = "SUCCESS"
+                else:
+                    status = "FAILED"
+                response_to_return["get_source_details_response"] = CICDResponse.parse_result(status=status,
+                                                                                              entity_id=entity_id,
+                                                                                              response=parsed_response)
                 if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
                     result = parsed_response.get("result", [])
                     if len(result) > 0:
@@ -183,16 +201,30 @@ class Utils:
                                                     cicd_client.client_config['bearer_token']))
                 parsed_response = IWUtils.ejson_deserialize(response.content)
                 if response.status_code == 200:
+                    status = "SUCCESS"
                     result = parsed_response.get("result", None)
                     if result:
                         environment_id = result["environment_id"]
                         environment_storage_id = result["storage_id"]
+                else:
+                    status = "FAILED"
+                response_to_return["get_source_configurations_response"] = CICDResponse.parse_result(status=status,
+                                                                                                     entity_id=entity_id,
+                                                                                                     response=parsed_response)
             else:
                 if entity_type == "pipeline":
                     environment_id, environment_compute_template_id, environment_storage_id = self.get_env_details(
                         cicd_client, entity_id,
                         entity_type,
                         domain_id)
+                    if any([environment_id, environment_compute_template_id, environment_storage_id]):
+                        status = "SUCCESS"
+                    else:
+                        status = "FAILED"
+                    response = f"Found environment details: environment_id {environment_id}, environment_compute_template_id {environment_compute_template_id}, environment_storage_id {environment_storage_id}"
+                    response_to_return["get_env_details_response"] = CICDResponse.parse_result(status=status,
+                                                                                               entity_id=entity_id,
+                                                                                               response=response)
                     # Check if there are any data connections
                     list_of_dataconnections = [item for item in configuration_obj["configuration"]["iw_mappings"] if
                                                item["entity_type"].lower() == "data_connection"]
@@ -207,6 +239,14 @@ class Utils:
                                                             IWUtils.get_default_header_for_v3(
                                                                 cicd_client.client_config['bearer_token']))
                             parsed_response = IWUtils.ejson_deserialize(response.content)
+                            if response.status_code == 200:
+                                status = "SUCCESS"
+                            else:
+                                status = "FAILED"
+                            response_to_return["get_data_connection_details_response"] = CICDResponse.parse_result(
+                                status=status,
+                                entity_id=entity_id,
+                                response=parsed_response)
                             if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
                                 result = parsed_response.get("result", [])
                                 if len(result) > 0:
@@ -224,6 +264,13 @@ class Utils:
                                                 IWUtils.get_default_header_for_v3(
                                                     cicd_client.client_config['bearer_token']))
                 parsed_response = IWUtils.ejson_deserialize(response.content)
+                if response.status_code == 200:
+                    status = "SUCCESS"
+                else:
+                    status = "FAILED"
+                response_to_return["get_domain_details_response"] = CICDResponse.parse_result(status=status,
+                                                                                              entity_id=entity_id,
+                                                                                              response=parsed_response)
                 existing_domain_name = None
                 if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
                     result = parsed_response.get("result", [])
@@ -286,5 +333,6 @@ class Utils:
                 cicd_client.logger.error(str(e))
         else:
             cicd_client.logger.info("Unable to dump the configurations")
-
+        for item in response_to_return:
+            print(item, json.dumps(response_to_return[item]))
         return filename, configuration_obj
