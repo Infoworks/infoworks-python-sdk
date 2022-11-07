@@ -285,6 +285,7 @@ class Utils:
                                 contents_to_write = contents_to_write.replace(key, value)
                         file_ptr.write(contents_to_write)
                     cicd_client.logger.info("Configurations have been dumped")
+                    print("Configurations have been dumped")
             except Exception as e:
                 cicd_client.logger.error(str(e))
                 print(str(e))

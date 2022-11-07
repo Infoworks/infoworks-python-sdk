@@ -6,7 +6,8 @@ import yaml
 
 from infoworks.sdk.url_builder import get_source_details_url
 from infoworks.sdk.utils import IWUtils
-
+from infoworks.sdk.source_response import SourceResponse
+from infoworks.sdk.local_configurations import Response
 
 class RDBMSSource:
     def __init__(self):
@@ -40,13 +41,17 @@ class RDBMSSource:
             "storage_id": self.storage_id,
             "is_source_ingested": True
         }
+        if data.get("target_database_name",""):
+            create_rdbms_source_payload["target_database_name"] = data.get("target_database_name","")
         src_create_response = src_client_obj.create_source(source_config=create_rdbms_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
-            source_id_created = src_create_response["result"]["source_id"]
-            return source_id_created
+            return src_create_response
         else:
             src_client_obj.logger.info('Cant create source {} '.format(data["name"]))
+            print('Cant create source {} '.format(data["name"]))
+            print(src_create_response)
             src_client_obj.logger.info(f"Getting the existing SourceId with name {data['name']} if exists")
+            print(f"Getting the existing SourceId with name {data['name']} if exists")
             filter_condition = IWUtils.ejson_serialize({"name": data['name']})
             source_detail_url = get_source_details_url(
                 src_client_obj.client_config) + f"?filter={{filter_condition}}".format(
@@ -63,13 +68,17 @@ class RDBMSSource:
             if not response.get('result', None):
                 src_client_obj.logger.error("Failed to make an api call to get source details")
                 src_client_obj.logger.info(response)
+                print("Failed to make an api call to get source details")
+                print(response)
+                return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=None,response=response)
             else:
                 src_client_obj.logger.info(
                     f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
-                return response['result'][0]['id']
+                print(f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=response['result'][0]['id'],response=response)
 
     def configure_rdbms_source_connection(self, src_client_obj, source_id, override_config_file=None,
-                                          read_passwords_from_secrets=False, env_tag="", secret_type=""):
+                                          read_passwords_from_secrets=False, env_tag="", secret_type="",config_ini_path=None):
         source_configs = self.configuration_obj["configuration"]["source_configs"]
         src_name = str(source_configs["name"])
         connection_object = source_configs["connection"]
@@ -93,7 +102,7 @@ class RDBMSSource:
                     connection_object[key] = decrypt_value_dict[key]
         elif read_passwords_from_secrets and self.secrets["custom_secrets_read"] is False:
             encrypted_key_name = f"{env_tag}-" + src_name
-            decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name)
+            decrypt_value = src_client_obj.get_all_secrets(secret_type,keys=encrypted_key_name,ini_config_file_path=config_ini_path)
             if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
                 decrypt_value_dict = json.loads(decrypt_value[0])
                 for key in decrypt_value_dict.keys():
@@ -102,16 +111,19 @@ class RDBMSSource:
         response = src_client_obj.configure_source_connection(source_id, connection_object=connection_object)
         if response["result"]["status"].upper() != "SUCCESS":
             src_client_obj.logger.info(f"Failed to configure the source {source_id} connection")
-            src_client_obj.logger.info(response["result"])
-            return "FAILED"
+            print(f"Failed to configure the source {source_id} connection")
+            src_client_obj.logger.info(response)
+            print(response)
+            return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=source_id,response=response)
         else:
-            src_client_obj.logger.info(response["result"])
-            return "SUCCESS"
+            src_client_obj.logger.info(response)
+            print(response)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
 
     def test_source_connection(self, src_client_obj, source_id):
         response = src_client_obj.source_test_connection_job_poll(source_id, poll_timeout=300,
                                                                   polling_frequency=15, retries=1)
-        return response["result"]["status"].upper()
+        return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
 
     def browse_source_tables(self, src_client_obj, source_id):
         filter_tables_properties = self.configuration_obj["filter_tables_properties"]

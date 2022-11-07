@@ -352,7 +352,7 @@ class BaseClient(object):
                         self.secrets_config[key] = value
                     except Exception as e:
                         self.logger.error(str(e))
-        elif secret_type == "azure_keyvault":
+        elif secret_type == "azure_keyvault" and ini_config_file_path is not None:
             from azure.keyvault.secrets import SecretClient
             from azure.identity import ClientSecretCredential
             config = ConfigParser()
@@ -368,14 +368,19 @@ class BaseClient(object):
                 client_secret = config.get("azure_keyvault", "client_secret")
                 credential = ClientSecretCredential(tenant_id, client_id, client_secret)
                 client = SecretClient(vault_url=KVUri, credential=credential)
+                output_values=[]
                 if keys:
                     for key in keys.split(","):
                         retrieved_secret = client.get_secret(key)
                         self.secrets_config[key] = aes_encrypt(retrieved_secret.value)
+                        output_values.append(aes_encrypt(retrieved_secret.value))
                 else:
                     secret_properties = client.list_properties_of_secrets()
                     all_secrets = [i.name for i in secret_properties]
                     for key in all_secrets:
                         retrieved_secret = client.get_secret(key)
                         self.secrets_config[key] = aes_encrypt(retrieved_secret.value)
+                        output_values.append(retrieved_secret.value)
+                return output_values
+
         self.secrets_config["custom_secrets_read"] = True

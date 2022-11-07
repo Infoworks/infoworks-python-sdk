@@ -132,7 +132,6 @@ class Pipeline:
                     response = requests.post(url_for_creating_pipeline, data=json_string, headers=headers, verify=False)
 
                 response = IWUtils.ejson_deserialize(response.content)
-                print("response:",response)
                 result = response.get('result', None)
                 pipeline_client_obj.logger.info("result is: " + str(result))
                 if result is None:

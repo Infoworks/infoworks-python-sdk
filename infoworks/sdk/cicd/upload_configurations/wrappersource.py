@@ -82,7 +82,7 @@ class WrapperSource(BaseClient):
 
     def cicd_upload_source_configurations(self, configuration_file_path, override_configuration_file=None,
                                           export_lookup=False, replace_words="", read_passwords_from_secrets=False,
-                                          env_tag="", secret_type=""):
+                                          env_tag="", secret_type="",config_ini_path=None):
         """
         Function to create and configure source using the source configuration JSON file
         :param configuration_file_path: Path of the file with source configurations to be imported
@@ -129,7 +129,7 @@ class WrapperSource(BaseClient):
                     # Proceed to configure the source connection details
                     source_connection_configurations_response = source_obj.configure_csv_source(self, source_id, self.mappings,
                                                     read_passwords_from_secrets=read_passwords_from_secrets,
-                                                    env_tag=env_tag, secret_type=secret_type)
+                                                    env_tag=env_tag, secret_type=secret_type,config_ini_path=config_ini_path)
                     if source_connection_configurations_response["result"]["status"].upper() == "SUCCESS":
                         print("Successfully configured the connection details")
                         self.logger.info("Successfully configured the connection details")
@@ -143,10 +143,12 @@ class WrapperSource(BaseClient):
                         else:
                             self.logger.info("Failed to configure source")
                             print("Failed to configure source")
+                            print(source_import_configuration_response)
                         response_to_return[
                             "source_import_configuration_response"] = source_import_configuration_response
                     else:
                         print("Failed to configure the source connection details")
+                        print(source_connection_configurations_response)
                     response_to_return["source_connection_configurations_response"] = source_connection_configurations_response
 
                 else:
@@ -156,17 +158,21 @@ class WrapperSource(BaseClient):
                 source_obj = RDBMSSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
-                source_id = source_obj.create_rdbms_source(self)
+                source_creation_response = source_obj.create_rdbms_source(self)
+                source_id = source_creation_response["result"]["source_id"]
                 if source_id is not None:
                     # Proceed to configure the source connection details
-                    if source_obj.configure_rdbms_source_connection(self, source_id, override_configuration_file,
+                    source_connection_configurations_response = source_obj.configure_rdbms_source_connection(self, source_id, override_configuration_file,
                                                                     read_passwords_from_secrets=read_passwords_from_secrets,
                                                                     env_tag=env_tag,
-                                                                    secret_type=secret_type) == "SUCCESS":
-                        status = source_obj.test_source_connection(self, source_id)
-                        if status == "SUCCESS":
-                            status = source_obj.browse_source_tables(self, source_id)
-                            if status == "SUCCESS":
+                                                                    secret_type=secret_type,config_ini_path=config_ini_path)
+                    if source_connection_configurations_response["result"]["status"].upper() == "SUCCESS":
+                        print("Successfully configured the connection details")
+                        self.logger.info("Successfully configured the connection details")
+                        source_test_connection_response = source_obj.test_source_connection(self, source_id)
+                        if source_test_connection_response["result"]["status"].upper() == "SUCCESS":
+                            source_browse_source_tables_response = source_obj.browse_source_tables(self, source_id)
+                            if source_browse_source_tables_response["result"]["status"].upper() == "SUCCESS":
                                 status = source_obj.add_tables_to_source(self, source_id)
                                 if status == "SUCCESS":
                                     self.logger.info("Added tables to source successfully")

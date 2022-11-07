@@ -68,7 +68,7 @@ class CSVSource:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=response['result'][0]['id'],response=response)
 
     def configure_csv_source(self, src_client_obj, source_id, mappings, read_passwords_from_secrets=False, env_tag="",
-                             secret_type=""):
+                             secret_type="",config_ini_path=None):
         data = self.configuration_obj["configuration"]["source_configs"]["connection"]
         src_name = str(self.configuration_obj["configuration"]["source_configs"]["name"])
         storage_type = data["storage"]["storage_type"]
@@ -88,7 +88,7 @@ class CSVSource:
                     secret_key = decrypt_value_dict["secret_key"]
             elif read_passwords_from_secrets and self.secrets["custom_secrets_read"] is False:
                 encrypted_key_name = f"{env_tag}-" + src_name
-                decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name)
+                decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name,ini_config_file_path=config_ini_path)
                 if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
                     decrypt_value_dict = json.loads(decrypt_value[0])
                     access_id = decrypt_value_dict["access_id"]

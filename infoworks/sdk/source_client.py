@@ -171,6 +171,7 @@ class SourceClient(BaseClient):
             result = response.get('result', False)
             if not result:
                 self.logger.error(f"Failed to configure the source connection for {source_id} ")
+                print(f"Failed to configure the source connection for {source_id}")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                    error_desc=response, job_id=None, source_id=None)
             else:
