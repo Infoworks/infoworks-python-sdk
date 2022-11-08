@@ -339,6 +339,6 @@ class Utils:
         else:
             cicd_client.logger.info("Unable to dump the configurations")
             print("Unable to dump the configurations")
-        for item in response_to_return:
-            print(item, json.dumps(response_to_return[item]))
+        # for item in response_to_return:
+        #     print(item, json.dumps(response_to_return[item]))
         return filename, configuration_obj
