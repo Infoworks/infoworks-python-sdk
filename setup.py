@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="infoworkssdk",
-    version="1.0.14",
+    version="2.0.0",
     author="Abhishek",
     author_email="abhishek.raviprasad@infoworks.io",
-    description="A package to work with Infoworks via SDK",
+    description="A package to work with Infoworks via SDK. This library is compatible with Infoworks v5.3 onwards. Code can be found in https://github.com/Infoworks/InfoworksPythonSDK branch: release/sdk-2.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/abhr1994/infoworks_sdk",
+    url="https://github.com/Infoworks/InfoworksPythonSDK",
     packages=setuptools.find_packages(),
     install_requires=[
         'requests', 'bson', 'pycryptodomex>=3.13.0', 'cryptography==37.0.2', 'urllib3', 'pandas', 'networkx',

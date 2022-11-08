@@ -14,13 +14,19 @@ from infoworks.sdk.client import InfoworksClientSDK
 # # Connect to Prod environment
 refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 iwx_client_prd = InfoworksClientSDK()
-iwx_client_prd.initialize_client_with_defaults("http", "10.38.10.133", "3001", refresh_token)
-iwx_client_prd.get_environment_details("cfc879153b26323297758bf1")
-iwx_client_prd.get_mappings_from_config_file(ini_config_file_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/test_cases/config.ini")
-iwx_client_prd.cicd_upload_source_configurations(
-    configuration_file_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps/source/source_DEMO_ORACLE.json",
-    read_passwords_from_secrets=True,
-    env_tag="PRD", secret_type="aws_secrets")
+iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-pri.cs.infoworks.cloud", "443", refresh_token)
+iwx_client_prd.cicd_get_sourceconfig_dumps(source_ids=["4ff2a9c972418ff809ef0e6c"],
+                                           config_file_dump_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps",
+                                           files_overwrite=True)
+# iwx_client_prd.get_environment_details("cfc879153b26323297758bf1")
+# col_details = iwx_client_prd.get_table_columns_details("6208d41191d7193702fc2e39", "T86102_ACCESS_USAGE_STATISTICS", "PUBLIC", "ABHI_DATABASE").get("result")["response"]
+# print(col_details)
+
+# iwx_client_prd.get_mappings_from_config_file(ini_config_file_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/test_cases/config.ini")
+# iwx_client_prd.cicd_upload_source_configurations(
+#     configuration_file_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps/source/source_DEMO_ORACLE.json",
+#     read_passwords_from_secrets=True,
+#     env_tag="PRD", secret_type="aws_secrets")
 
 # iwx_client_prd.cicd_create_configure_workflow(configuration_file_path="",)
 # iwx_client_prd.cicd_create_configure_pipeline(
