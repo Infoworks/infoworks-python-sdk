@@ -95,8 +95,8 @@ class CSVSource:
                     secret_key = decrypt_value_dict["secret_key"]
 
             source_configure_payload = {
-                "source_base_path_relative": data["source_base_path_relative"],
-                "source_base_path": data["source_base_path"],
+                "source_base_path_relative": data.get("source_base_path_relative",""),
+                "source_base_path": data.get("source_base_path",""),
                 "storage": {
                     "storage_type": data["storage"]["storage_type"],
                     "cloud_type": data["storage"]["cloud_type"],
@@ -122,8 +122,8 @@ class CSVSource:
                                                                     server_path)
 
             source_configure_payload = {
-                "source_base_path_relative": data["source_base_path_relative"],
-                "source_base_path": data["source_base_path"],
+                "source_base_path_relative": data.get("source_base_path_relative",""),
+                "source_base_path": data.get("source_base_path",""),
                 "storage": {
                     "cloud_type": "gs",
                     "storage_type": data["storage"]["storage_type"],
@@ -138,6 +138,7 @@ class CSVSource:
             # SFTP Source
             data = self.configuration_obj["configuration"]["source_configs"]["connection"]
             source_configure_payload = data
+            source_configure_payload["source_base_path"]=""
         else:
             source_configure_payload = {}
 
