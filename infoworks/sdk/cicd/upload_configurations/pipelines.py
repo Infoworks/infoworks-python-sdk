@@ -67,10 +67,9 @@ class Pipeline:
         else:
             pipeline_json_object["compute_id"] = self.interactive_id
 
-        #todo warehouse
-
-
-        print(pipeline_json_object)
+        warehouse = self.configuration_obj["configuration"].get("entity",{}).get("warehouse","")
+        if warehouse:
+            pipeline_json_object["snowflake_warehouse"] = warehouse
         if domain_id is None and domain_name is None:
             pipeline_client_obj.logger.error('Either domainId or domain Name is required to create pipeline.')
             print('Either domainId or domain Name is required to create pipeline.')
