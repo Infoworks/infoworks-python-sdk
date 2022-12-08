@@ -188,7 +188,7 @@ class Domain:
             print("url {url}".format(url=url))
             response = requests.request("GET", url,
                                         headers={'Authorization': 'Bearer ' + client.client_config["bearer_token"],
-                                                 'Content-Type': 'application/json'})
+                                                 'Content-Type': 'application/json'}, verify=False)
             if response.status_code == 406:
                 client.client_config['bearer_token'] = get_bearer_token(client.client_config["protocol"],
                                                                         client.client_config["ip"],
