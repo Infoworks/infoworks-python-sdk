@@ -260,7 +260,7 @@ class WorkflowClient(BaseClient):
                 self.logger.error('Please pass the mandatory domain_id as parameter.')
                 raise WorkflowError('Please pass the mandatory domain_id as parameter.')
             if "childWorkflowIds" not in workflow_config:
-                workflow_config["childWorkflowIds"] = []
+                workflow_config["child_workflow_ids"] = []
             response = IWUtils.ejson_deserialize(self.call_api("PATCH", url_builder.create_workflow_url(
                 self.client_config, domain_id) + f"/{workflow_id}", IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token']), workflow_config).content)
