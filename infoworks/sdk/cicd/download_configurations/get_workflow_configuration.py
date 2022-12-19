@@ -33,6 +33,6 @@ class DownloadWorkflow(BaseClient):
                         f.write(filename)
                         f.write("\n")
             except Exception as e:
-                self.logger.error(f"Unable to dump configurations for workflow {workflow_id} due to {str(e)}")
-                print(f"Unable to dump configurations for workflow {workflow_id} due to {str(e)}")
+                self.logger.error(f"Unable to export configurations for workflow {workflow_id} due to {str(e)}")
+                print(f"Unable to export configurations for workflow {workflow_id} due to {str(e)}")
         f.close()

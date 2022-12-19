@@ -215,6 +215,8 @@ class BaseClient(object):
         if "kms" in config:
             kms = dict(config.items("kms"))
             self.mappings["kms"] = kms
+        for section in config.sections():
+            self.mappings[section] = dict(config.items(section))
 
     def _topological_sort_grouping(self, g):
         # copy the graph

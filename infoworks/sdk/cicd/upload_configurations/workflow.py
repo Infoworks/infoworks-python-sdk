@@ -1,10 +1,11 @@
 from infoworks.sdk.url_builder import list_sources_url, create_workflow_url, list_domains_url, configure_workflow_url
 from infoworks.sdk.utils import IWUtils
 import sys
+import configparser
 import requests
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
 from infoworks.core.iw_authentication import get_bearer_token
-
+from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 
 class Workflow:
     def __init__(self, workflow_configuration_path, replace_words=""):
@@ -14,6 +15,18 @@ class Workflow:
                 for key, value in [item.split("->") for item in replace_words.split(";")]:
                     json_string = json_string.replace(key, value)
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
+
+    def update_mappings_for_configurations(self, mappings):
+        config = configparser.ConfigParser()
+        config.read_dict(mappings)
+        d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
+        for section in config.sections():
+            if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
+                continue
+            print("section:", section)
+            final = d.setval(section.split("$"), dict(config.items(section)))
+            print(f"section replacement:{d.getval(section.split('$'))}")
+        self.configuration_obj = d.data
 
     def create(self, wf_client_obj, domain_id, domain_name):
         sources_in_wfs = []

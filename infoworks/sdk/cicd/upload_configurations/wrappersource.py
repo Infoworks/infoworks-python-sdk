@@ -123,6 +123,7 @@ class WrapperSource(BaseClient):
             source_sub_type = configuration_obj["configuration"]["source_configs"]["sub_type"]
             if source_type == "file" and source_sub_type == "structured":
                 source_obj = CSVSource(env_id, storage_id, configuration_file_path, self.secrets_config, replace_words)
+                source_obj.update_mappings_for_configurations(self.mappings)
                 create_source_response = source_obj.create_csv_source(self)
                 source_id=create_source_response["result"]["source_id"]
                 if source_id is not None:
@@ -156,6 +157,7 @@ class WrapperSource(BaseClient):
                 response_to_return["create_source_response"] = create_source_response
             elif source_type == "rdbms" and source_sub_type!="snowflake":
                 source_obj = RDBMSSource()
+                source_obj.update_mappings_for_configurations(self.mappings)
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
                 source_creation_response = source_obj.create_rdbms_source(self)
@@ -188,6 +190,7 @@ class WrapperSource(BaseClient):
                                     print("Configured source successfully")
             elif source_type == "crm" and source_sub_type == "salesforce":
                 source_obj = SalesforceSource()
+                source_obj.update_mappings_for_configurations(self.mappings)
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
                 source_id = source_obj.create_salesforce_source(self)
@@ -212,6 +215,7 @@ class WrapperSource(BaseClient):
                                     print("Configured source successfully")
             else:    #assumes to be cdata source
                 source_obj = CdataSource()
+                source_obj.update_mappings_for_configurations(self.mappings)
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
                 source_id = source_obj.create_cdata_source(self)

@@ -5,6 +5,8 @@ from infoworks.sdk.url_builder import get_source_details_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
+from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
+import configparser
 
 class CSVSource:
     def __init__(self, environment_id, storage_id, source_config_path, secrets=None, replace_words=""):
@@ -18,6 +20,18 @@ class CSVSource:
                 for key, value in [item.split("->") for item in replace_words.split(";")]:
                     json_string = json_string.replace(key, value)
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
+
+    def update_mappings_for_configurations(self, mappings):
+        config = configparser.ConfigParser()
+        config.read_dict(mappings)
+        d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
+        for section in config.sections():
+            if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
+                continue
+            print("section:", section)
+            final = d.setval(section.split("$"), dict(config.items(section)))
+            print(f"section replacement:{d.getval(section.split('$'))}")
+        self.configuration_obj = d.data
 
     def create_csv_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]

@@ -1,6 +1,6 @@
 import json
 import traceback
-
+import configparser
 import requests
 import yaml
 from infoworks.core.iw_authentication import get_bearer_token
@@ -8,7 +8,7 @@ from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create_pipeline_url, create_data_connection, \
     configure_pipeline_url
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
-
+from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 
 class Pipeline:
     def __init__(self, pipeline_config_path, environment_id, storage_id, interactive_id,
@@ -23,6 +23,18 @@ class Pipeline:
                 for key, value in [item.split("->") for item in replace_words.split(";")]:
                     json_string = json_string.replace(key, value)
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
+
+    def update_mappings_for_configurations(self, mappings):
+        config = configparser.ConfigParser()
+        config.read_dict(mappings)
+        d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
+        for section in config.sections():
+            if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
+                continue
+            print("section:", section)
+            final = d.setval(section.split("$"), dict(config.items(section)))
+            print(f"section replacement:{d.getval(section.split('$'))}")
+        self.configuration_obj = d.data
 
     def create(self, pipeline_client_obj, domain_id, domain_name):
         pipeline_name = self.configuration_obj["configuration"]["entity"]["entity_name"]
