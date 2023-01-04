@@ -324,21 +324,21 @@ class Utils:
             try:
                 if filename is not None and target_file_path is not None:
                     cicd_client.logger.info("{} {}".format(filename, target_file_path))
-                    print(f"Dumping file {target_file_path}")
+                    print(f"Exporting configurations file to {target_file_path}")
                     with open(target_file_path, 'w') as file_ptr:
                         contents_to_write = IWUtils.ejson_serialize(configuration_obj)
                         if replace_words != "":
                             for key, value in [item.split("->") for item in replace_words.split(";")]:
                                 contents_to_write = contents_to_write.replace(key, value)
                         file_ptr.write(contents_to_write)
-                    cicd_client.logger.info("Configurations have been dumped")
-                    print("Configurations have been dumped")
+                    cicd_client.logger.info("Configurations exported successfully")
+                    print("Configurations exported successfully")
             except Exception as e:
                 cicd_client.logger.error(str(e))
                 print(str(e))
         else:
-            cicd_client.logger.info("Unable to dump the configurations")
-            print("Unable to dump the configurations")
+            cicd_client.logger.info("Unable to export the configurations")
+            print("Unable to export the configurations")
         #for item in response_to_return:
         #    print(item, json.dumps(response_to_return[item]))
         return filename, configuration_obj
