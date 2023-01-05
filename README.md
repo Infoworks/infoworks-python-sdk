@@ -12,7 +12,7 @@ Supports Infoworks version 5.2 onwards
 
 # Documentation
 
-https://infoworks.github.io/InfoworksPythonSDK/
+https://infoworks.github.io/infoworks-python-sdk/
 
 # Installation
 
