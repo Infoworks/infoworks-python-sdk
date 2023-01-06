@@ -55,7 +55,7 @@ class SourceClient(BaseClient):
                                                                job_id=job_id)
                         else:
                             return SourceResponse.parse_result(status=job_status, source_id=source_id,
-                                                               job_id=job_id,response=response)
+                                                               job_id=job_id, response=response)
                 else:
                     self.logger.error(f"Error occurred during job {job_id} status poll")
                     if failed_count >= retries - 1:
@@ -112,7 +112,7 @@ class SourceClient(BaseClient):
 
             source_id = str(source_id)
             self.logger.info('Source {id} has been created.'.format(id=source_id))
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id, response=response)
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
@@ -175,7 +175,7 @@ class SourceClient(BaseClient):
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                    error_desc=response, job_id=None, source_id=None)
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=response)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             raise SourceError(f"Failed to configure the source connection for {source_id} " + str(e))
 
@@ -1640,3 +1640,49 @@ class SourceClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in listing tables under source")
             raise SourceError("Error in listing tables under source " + str(e))
+
+    def get_source_configurations(self, source_id):
+        """
+        Function to get source configurations
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        try:
+            src_configurations_url = url_builder.get_source_configurations_url(self.client_config, source_id)
+            response = IWUtils.ejson_deserialize(self.call_api("GET", src_configurations_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the table configurations for {source_id} ")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=response, job_id=None, source_id=None)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=result)
+        except Exception as e:
+            raise SourceError(f"Failed to get the table configurations for {source_id} " + str(e))
+
+    def list_tables_under_source(self, source_id):
+        """
+        Function to list tables under source
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        try:
+            table_list_url = url_builder.list_tables_under_source(self.client_config, source_id)
+            response = IWUtils.ejson_deserialize(self.call_api("GET", table_list_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the tables under {source_id} ")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=response, job_id=None, source_id=None)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=result)
+        except Exception as e:
+            raise SourceError(f"Failed to get the tables under {source_id} " + str(e))

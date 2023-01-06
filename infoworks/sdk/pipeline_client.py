@@ -656,3 +656,21 @@ class PipelineClient(BaseClient):
                 return result[0].get('id')
         except:
             raise PipelineError("Unable to get pipeline NAME")
+
+    def get_pipeline_lineage(self, domain_id, pipeline_id, pipeline_version_id, column_name, node):
+        url_to_get_pipeline_lineage = url_builder.get_pipeline_lineage_url(self.client_config,
+                                                                           domain_id,
+                                                                           pipeline_id,
+                                                                           pipeline_version_id,
+                                                                           column_name,
+                                                                           node)
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_pipeline_lineage,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                return result
+        except Exception as e:
+            raise PipelineError(f"Failed to get pipeline lineage for pipeline {pipeline_id} and column {column_name} " + str(e))
+
