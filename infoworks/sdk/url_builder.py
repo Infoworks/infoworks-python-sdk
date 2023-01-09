@@ -1114,3 +1114,63 @@ def get_jobs_url(config):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+def get_interactive_jobs_url(config,source_id):
+    """
+    returns URL to get interactive jobs details
+    :param config: client configurations
+    :type config: dict
+    :param source_id: Id of the source
+    :type source_id: String
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/interactive-jobs'.format(
+        source_id=source_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def get_admin_jobs_url(config):
+    """
+    returns URL to get jobs details
+    :param config: client configurations
+    :type config: dict
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/admin-jobs'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def get_pipeline_jobs_url(config,domain_id,pipeline_id):
+    """
+    returns URL to get jobs details
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Id of the domain for given pipeline
+    :type domain_id: String
+    :param pipeline_id: Id of the pipeline
+    :type pipeline_id: String
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/jobs'.format(
+        domain_id=domain_id,
+        pipeline_id=pipeline_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def get_cancel_job_url(config,job_id):
+    """
+    returns URL to get jobs details
+    :param config: client configurations
+    :type config: dict
+    :param job_id: Id of job to cancel
+    :type job_id: String
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/jobs/{job_id}/cancel'.format(
+        job_id=job_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request

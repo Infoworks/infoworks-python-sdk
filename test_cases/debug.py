@@ -14,13 +14,24 @@ from infoworks.sdk.client import InfoworksClientSDK
 # # Connect to Prod environment
 refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 iwx_client_prd = InfoworksClientSDK()
-iwx_client_prd.initialize_client_with_defaults("http", "10.18.1.32", "3001", refresh_token)
+iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
 # print(iwx_client_prd.get_pipeline("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c"))
 # print(iwx_client_prd.get_pipeline_version_details("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c","6298cb771086072f3633bdd9"))
 # print(iwx_client_prd.get_table_info("5053d4f29fd1730ec43a3c75","55712e35a92a2284acbe30d7"))
-print(iwx_client_prd.get_source_configurations("5053d4f29fd1730ec43a3c75"))
+#print(iwx_client_prd.get_source_configurations("5053d4f29fd1730ec43a3c75"))
 
-print(iwx_client_prd.get_job_details(job_id="2180ce8ca90844a6ca3f4c9a"))
+#print(iwx_client_prd.get_job_details(job_id="2180ce8ca90844a6ca3f4c9a"))
+#print(iwx_client_prd.resubmit_failed_tables_for_ingestion(job_id="63638ec7f9359a21f69a12ba"))
+#print(iwx_client_prd.get_job_logs_as_text_stream(job_id="63bbef6948ef1c7e0fa4bfa"))
+#print(iwx_client_prd.get_cluster_job_details(job_id="63bbef6948ef1c7e0fa4bfa"))
+#print(iwx_client_prd.get_admin_job_details())
+#print(iwx_client_prd.get_all_jobs_for_source(source_id="13ade36593776fccbd6a0aad"))
+#print(iwx_client_prd.submit_source_job(source_id="13ade36593776fccbd6a0aad",job_type="source_test_connection"))
+#print(iwx_client_prd.get_interactive_jobs_list(source_id="13ade36593776fccbd6a0aad",job_id="634d194804c66a1072428fde"))
+#print(iwx_client_prd.get_list_of_pipeline_jobs(domain_id="844e387bafda662359ad3f1e",pipeline_id="bd845ca0cc4c2b98fb959363"))
+#print(iwx_client_prd.submit_pipeline_job(domain_id="844e387bafda662359ad3f1e",pipeline_id="bd845ca0cc4c2b98fb959363",job_type="pipeline_metadata"))
+print(iwx_client_prd.cancel_job(job_id="20cadff6d52fbb56d2d555ff"))
+
 
 # get_table_configurations
 # iwx_client_prd.cicd_get_sourceconfig_dumps(source_ids=["4ff2a9c972418ff809ef0e6c"],
