@@ -32,3 +32,9 @@ class AdminError(Exception):
     def __init__(self, message):
         self.message = message
         super(AdminError, self).__init__(self.message)
+
+
+class JobsError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super(JobsError, self).__init__(self.message)

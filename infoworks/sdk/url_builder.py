@@ -1101,3 +1101,16 @@ def create_source_extension_url(config):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+
+def get_jobs_url(config):
+    """
+    returns URL to get jobs details
+    :param config: client configurations
+    :type config: dict
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/jobs'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request

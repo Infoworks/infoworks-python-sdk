@@ -20,6 +20,8 @@ iwx_client_prd.initialize_client_with_defaults("http", "10.18.1.32", "3001", ref
 # print(iwx_client_prd.get_table_info("5053d4f29fd1730ec43a3c75","55712e35a92a2284acbe30d7"))
 print(iwx_client_prd.get_source_configurations("5053d4f29fd1730ec43a3c75"))
 
+print(iwx_client_prd.get_job_details(job_id="2180ce8ca90844a6ca3f4c9a"))
+
 # get_table_configurations
 # iwx_client_prd.cicd_get_sourceconfig_dumps(source_ids=["4ff2a9c972418ff809ef0e6c"],
 #                                            config_file_dump_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps",
