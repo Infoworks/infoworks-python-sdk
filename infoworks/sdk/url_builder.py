@@ -584,6 +584,70 @@ def get_all_workflows_url(config):
         protocol=config['protocol'])
     return request
 
+def get_all_workflows_runs_url(config):
+    """
+    returns URL to fetch all workflows runs in Infoworks using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url fetch all workflows in Infoworks using v3 api
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/workflow_runs'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def get_all_workflow_run_jobs_url(config,run_id):
+    """
+    returns URL to fetch all workflows run jobs in Infoworks using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param run_id: Workflow run id to get the jobs under it
+    :type run_id: String
+    :return: url fetch all workflows in Infoworks using v3 api
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/workflow_runs/{run_id}/jobs'.format(
+        run_id=run_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def restart_multiple_workflows_url(config):
+    """
+    returns URL to restart multiple workflows using Infoworks using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url restart multiple workflows using Infoworks using v3 api
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/workflows/restart'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def cancel_multiple_workflows_url(config):
+    """
+    returns URL to cancel multiple workflows using Infoworks using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url cancel multiple workflows using Infoworks using v3 api
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/workflows/cancel'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def get_all_workflows_runs_url_with_domain_id(config,domain_id,workflow_id):
+    """
+    returns URL to fetch all workflows runs in Infoworks using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url fetch all workflows in Infoworks using v3 api
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/runs'.format(
+        domain_id= domain_id,
+        workflow_id=workflow_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
 
 def create_data_connection(config, domain_id):
     """
@@ -1174,3 +1238,4 @@ def get_cancel_job_url(config,job_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+

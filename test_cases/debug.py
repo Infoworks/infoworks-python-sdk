@@ -30,9 +30,13 @@ iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks
 #print(iwx_client_prd.get_interactive_jobs_list(source_id="13ade36593776fccbd6a0aad",job_id="634d194804c66a1072428fde"))
 #print(iwx_client_prd.get_list_of_pipeline_jobs(domain_id="844e387bafda662359ad3f1e",pipeline_id="bd845ca0cc4c2b98fb959363"))
 #print(iwx_client_prd.submit_pipeline_job(domain_id="844e387bafda662359ad3f1e",pipeline_id="bd845ca0cc4c2b98fb959363",job_type="pipeline_metadata"))
-print(iwx_client_prd.cancel_job(job_id="20cadff6d52fbb56d2d555ff"))
-
-
+#print(iwx_client_prd.cancel_job(job_id="20cadff6d52fbb56d2d555ff"))
+#response=iwx_client_prd.get_list_of_workflows_runs(api_body_for_filter={"date_range":{"type":"last","unit":"day","value":100}})
+#print(len(response["result"]))
+#print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id="6393148e48ef1c73e0fa4796"))
+#print(iwx_client_prd.restart_multiple_workflow(workflow_list_body={"ids":[{"workflow_id":"93d55b7b21a6d28b45f7a957","run_id":"634e97f562b7103be9008ffd"}]}))
+#print(iwx_client_prd.cancel_multiple_workflow(workflow_list_body={"ids":[{"workflow_id":"93d55b7b21a6d28b45f7a957","run_id":"634e97f562b7103be9008ffd"}]}))
+#print(iwx_client_prd.get_list_of_workflows())
 # get_table_configurations
 # iwx_client_prd.cicd_get_sourceconfig_dumps(source_ids=["4ff2a9c972418ff809ef0e6c"],
 #                                            config_file_dump_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps",

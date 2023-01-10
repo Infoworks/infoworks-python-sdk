@@ -12,8 +12,9 @@ from infoworks.core.iw_authentication import is_token_valid, get_bearer_token, a
 from infoworks.sdk import local_configurations
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
-
 from infoworks.sdk.utils import IWUtils
+import urllib3
+urllib3.disable_warnings()
 
 
 class TimeoutHTTPAdapter(HTTPAdapter):

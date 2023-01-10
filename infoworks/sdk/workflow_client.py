@@ -39,7 +39,7 @@ class WorkflowClient(BaseClient):
                     result = response.get("result", [])
                     while len(result) > 0:
                         workflows_list.extend(result)
-                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.json().get('links')['next'],
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
                                                                           protocol=self.client_config['protocol'],
@@ -324,6 +324,72 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to trigger workflow.')
             raise WorkflowError('Error occurred while trying to trigger workflow.')
 
+    def restart_multiple_workflow(self, workflow_list_body={}):
+        """
+        Triggers Infoworks Data workflow for given workflow id
+        :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
+        :type workflow_id: dict
+        :return: response dict
+        """
+        response = None
+        try:
+            if workflow_list_body == {}:
+                self.logger.error('Please pass the mandatory workflow_list_body as parameter.')
+                raise WorkflowError('Please pass the mandatory workflow_list_body as parameter.')
+            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.restart_multiple_workflows_url(
+                self.client_config), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']),data=workflow_list_body).content)
+
+            result = response.get('result', [])
+            if len(result)==0:
+                self.logger.error(f'Failed to restart the workflows')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_desc=f'Failed to restart the workflows',
+                                                     response=response)
+
+            self.logger.info(
+                'Successfully restarted the workflows.')
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while restarting the workflows.'+str(e))
+            raise WorkflowError('Error occurred while restarting the workflows.'+str(e))
+
+    def cancel_multiple_workflow(self, workflow_list_body={}):
+        """
+        Triggers Infoworks Data workflow for given workflow id
+        :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
+        :type workflow_id: dict
+        :return: response dict
+        """
+        response = None
+        try:
+            if workflow_list_body == {}:
+                self.logger.error('Please pass the mandatory workflow_list_body as parameter.')
+                raise WorkflowError('Please pass the mandatory workflow_list_body as parameter.')
+            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.cancel_multiple_workflows_url(
+                self.client_config), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']),data=workflow_list_body).content)
+
+            result = response.get('result', [])
+            if len(result)==0:
+                self.logger.error(f'Failed to cancel the workflows')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_desc=f'Failed to cancel the workflows',
+                                                     response=response)
+
+            self.logger.info(
+                'Successfully Submitted Cancel Job for Workflow Run.')
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while cancelled the workflows.'+str(e))
+            raise WorkflowError('Error occurred while cancelled the workflows.'+str(e))
+
     def get_status_of_workflow(self, workflow_run_id=None, workflow_id=None):
         """
         Fetches status of Infoworks Data workflow for given workflow id and run id
@@ -512,7 +578,6 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to update workflow configuration json.')
             raise WorkflowError('Error occurred while trying to update workflow configuration json.')
 
-
     def get_workflow_id(self, workflow_name, domain_id=None, domain_name=None):
         """
         Function to get workflow id
@@ -565,3 +630,104 @@ class WorkflowClient(BaseClient):
                 return result.get('name')
         except:
             raise WorkflowError("Unable to get workflow name")
+
+    def get_list_of_workflows_runs(self, domain_id=None, workflow_id=None, params=None, api_body_for_filter={}):
+        """
+        Gets List of Infoworks Data workflow runs details for given domain id and workflow id
+        :param domain_id: Domain id to which the workflows belongs to, if None all workflows in all domains will be fetched
+        :type domain_id: String
+        :param workflow_id: Workflow id,if None all workflow runs in all domains will be fetched
+        :type workflow_id: String
+        :param api_config: dict of API body
+        :type api_config: dict
+        :return: response dict
+        """
+        response = None
+        try:
+            if domain_id is None:
+                url_to_list_workflow_runs = url_builder.get_all_workflows_runs_url(
+                    self.client_config) + IWUtils.get_query_params_string_from_dict(params=params)
+                if not api_body_for_filter.get("limit",None):
+                    api_body_for_filter["limit"]=10000
+                api_body_for_filter["offset"] = 0
+                workflow_runs_list = []
+                response = IWUtils.ejson_deserialize(
+                    self.call_api("POST", url_to_list_workflow_runs,
+                                  IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data=api_body_for_filter).content)
+                if response is not None:
+                    result = response.get("result", [])
+                    while len(result) > 0:
+                        workflow_runs_list.extend(result)
+                        api_body_for_filter["offset"] = api_body_for_filter.get("limit")
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("POST", url_to_list_workflow_runs, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token']),data=api_body_for_filter).content)
+                        result = response.get("result", [])
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=workflow_runs_list)
+            else:
+                workflow_runs_list = []
+                response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_all_workflows_runs_url_with_domain_id(
+                    self.client_config, domain_id,workflow_id), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token'])).content)
+
+                result = response.get('result', {})
+
+                if response is not None:
+                    result = response.get("result", [])
+                    while len(result) > 0:
+                        workflow_runs_list.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=workflow_runs_list)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get workflow details.')
+            raise WorkflowError('Error occurred while trying to get workflow details.')
+
+    def get_list_of_workflow_runs_jobs(self, run_id=None, params=None):
+        """
+         Gets List of Infoworks Data workflow runs jobs details
+        :param run_id: Run id to which the workflows belongs to, if None all workflows
+        :type run_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if run_id is None:
+                self.logger.error("Please pass the mandatory parameter workflow run_id for this method")
+                raise WorkflowError("Please pass the mandatory parameter workflow run_id for this method")
+            else:
+                workflow_run_jobs_list = []
+                response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_all_workflow_run_jobs_url(
+                    self.client_config, run_id), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token'])).content)
+
+                result = response.get('result', {})
+
+                if response is not None:
+                    result = response.get("result", [])
+                    while len(result) > 0:
+                        workflow_run_jobs_list.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=workflow_run_jobs_list)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get jobs under workflow run.'+str(e))
+            raise WorkflowError('Error occurred while trying to get jobs under workflow run.'+str(e))
