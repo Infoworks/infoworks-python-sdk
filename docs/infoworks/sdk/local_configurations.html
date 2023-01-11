@@ -236,81 +236,7 @@
 <a href="./../../infoworks.html">infoworks</a><wbr>.<a href="./../sdk.html">sdk</a><wbr>.local_configurations    </h1>
 
                 
-                        <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="L-0"><a href="#L-0"><span class="linenos"> 0</span></a><span class="n">POLLING_FREQUENCY_IN_SEC</span> <span class="o">=</span> <span class="mi">15</span>
-</span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="n">NUM_POLLING_RETRIES</span> <span class="o">=</span> <span class="mi">3</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="n">POLLING_TIMEOUT</span> <span class="o">=</span> <span class="mi">1200</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="n">NUM_FAILURE_RETRIES</span> <span class="o">=</span> <span class="mi">5</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="n">RUNNING_JOB_LOGGING_COUNTER</span> <span class="o">=</span> <span class="mi">10</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="n">REQUEST_TIMEOUT_IN_SEC</span> <span class="o">=</span> <span class="mi">60</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="n">MAX_RETRIES</span> <span class="o">=</span> <span class="mi">1</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="n">LOG_LOCATION</span> <span class="o">=</span> <span class="s2">&quot;/tmp/iwx_sdk.log&quot;</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="k">class</span> <span class="nc">Response</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="k">class</span> <span class="nc">Code</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="n">OK</span> <span class="o">=</span> <span class="mi">200</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="n">FAILED</span> <span class="o">=</span> <span class="s1">&#39;failed&#39;</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>        <span class="n">SUCCESS</span> <span class="o">=</span> <span class="s1">&#39;success&#39;</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="n">ERROR</span> <span class="o">=</span> <span class="s1">&#39;error&#39;</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="n">PENDING</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>        <span class="n">RUNNING</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="k">class</span> <span class="nc">EntityType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="n">TABLE</span> <span class="o">=</span> <span class="s1">&#39;table&#39;</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="n">SOURCE</span> <span class="o">=</span> <span class="s1">&#39;source&#39;</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="n">PIPELINE</span> <span class="o">=</span> <span class="s1">&#39;pipeline&#39;</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="n">PIPELINE_TARGET</span> <span class="o">=</span> <span class="s1">&#39;pipeline_target&#39;</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>    <span class="n">JOB</span> <span class="o">=</span> <span class="s1">&#39;job&#39;</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>    <span class="n">CONFIG</span> <span class="o">=</span> <span class="s1">&#39;config&#39;</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>    <span class="n">TABLE_GROUP</span> <span class="o">=</span> <span class="s1">&#39;table_group&#39;</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="n">WORKFLOW</span> <span class="o">=</span> <span class="s1">&#39;workflow&#39;</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="k">class</span> <span class="nc">Job</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="n">PENDING</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>        <span class="n">RUNNING</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>        <span class="n">BLOCKED</span> <span class="o">=</span> <span class="s1">&#39;blocked&#39;</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>        <span class="n">FAILED</span> <span class="o">=</span> <span class="s1">&#39;failed&#39;</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>        <span class="n">COMPLETED</span> <span class="o">=</span> <span class="s1">&#39;completed&#39;</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>        <span class="n">CANCELED</span> <span class="o">=</span> <span class="s1">&#39;canceled&#39;</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>        <span class="n">ABORTED</span> <span class="o">=</span> <span class="s1">&#39;aborted&#39;</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>        <span class="n">SUCCESS</span> <span class="o">=</span> <span class="s1">&#39;success&#39;</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="k">class</span> <span class="nc">ErrorCode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="n">ENTITY_NOT_FOUND</span> <span class="o">=</span> <span class="mi">1400</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="n">DEPENDENT_ENTITY_NOT_FOUND</span> <span class="o">=</span> <span class="mi">1401</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="n">ENTITY_STATE_INCONSISTENT</span> <span class="o">=</span> <span class="mi">1402</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="n">DEPENDENT_ENTITY_STATE_INCONSISTENT</span> <span class="o">=</span> <span class="mi">1403</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>    <span class="n">ACTION_LOCKED_FOR_ENTITY</span> <span class="o">=</span> <span class="mi">1404</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="n">MANDATORY_PARAMETER_MISSING</span> <span class="o">=</span> <span class="mi">1405</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>    <span class="n">ENTITY_LOCKED</span> <span class="o">=</span> <span class="mi">1500</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>    <span class="n">DEPENDENT_ENTITY_LOCKED</span> <span class="o">=</span> <span class="mi">1501</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>    <span class="n">COMMUNICATION_FAILURE</span> <span class="o">=</span> <span class="mi">1600</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>    <span class="n">FSM_ERROR</span> <span class="o">=</span> <span class="mi">1601</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>    <span class="n">INTERNAL_SERVER_ERROR</span> <span class="o">=</span> <span class="mi">500</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>    <span class="n">RESOURCE_NOT_FOUND</span> <span class="o">=</span> <span class="mi">404</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>    <span class="n">USER_ERROR</span> <span class="o">=</span> <span class="mi">1406</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>    <span class="n">GENERIC_ERROR</span> <span class="o">=</span> <span class="mi">1407</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="k">class</span> <span class="nc">SourceMappings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>    <span class="n">oracle</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sub_type&quot;</span><span class="p">:</span> <span class="s2">&quot;oracle&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_name&quot;</span><span class="p">:</span> <span class="s2">&quot;oracle.jdbc.driver.OracleDriver&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2&quot;</span><span class="p">,</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>              <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="s2">&quot;ORACLE&quot;</span><span class="p">}</span>
-</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>    <span class="n">teradata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sub_type&quot;</span><span class="p">:</span> <span class="s2">&quot;teradata&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_name&quot;</span><span class="p">:</span> <span class="s2">&quot;com.teradata.jdbc.TeraDriver&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2&quot;</span><span class="p">,</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>                <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="s2">&quot;TERADATA&quot;</span><span class="p">}</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>    <span class="n">netezza</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sub_type&quot;</span><span class="p">:</span> <span class="s2">&quot;netezza&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_name&quot;</span><span class="p">:</span> <span class="s2">&quot;org.netezza.Driver&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2&quot;</span><span class="p">,</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>               <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="s2">&quot;NETEZZA&quot;</span><span class="p">}</span>
-</span></pre></div>
-
-        </details>
-
+                
             </section>
                 <section id="Response">
                                 <div class="attr class">
@@ -321,22 +247,7 @@
         <span class="name">Response</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Response-11"><a href="#Response-11"><span class="linenos">11</span></a><span class="k">class</span> <span class="nc">Response</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Response-12"><a href="#Response-12"><span class="linenos">12</span></a>    <span class="k">class</span> <span class="nc">Code</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Response-13"><a href="#Response-13"><span class="linenos">13</span></a>        <span class="n">OK</span> <span class="o">=</span> <span class="mi">200</span>
-</span><span id="Response-14"><a href="#Response-14"><span class="linenos">14</span></a>
-</span><span id="Response-15"><a href="#Response-15"><span class="linenos">15</span></a>    <span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Response-16"><a href="#Response-16"><span class="linenos">16</span></a>        <span class="n">FAILED</span> <span class="o">=</span> <span class="s1">&#39;failed&#39;</span>
-</span><span id="Response-17"><a href="#Response-17"><span class="linenos">17</span></a>        <span class="n">SUCCESS</span> <span class="o">=</span> <span class="s1">&#39;success&#39;</span>
-</span><span id="Response-18"><a href="#Response-18"><span class="linenos">18</span></a>        <span class="n">ERROR</span> <span class="o">=</span> <span class="s1">&#39;error&#39;</span>
-</span><span id="Response-19"><a href="#Response-19"><span class="linenos">19</span></a>        <span class="n">PENDING</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span>
-</span><span id="Response-20"><a href="#Response-20"><span class="linenos">20</span></a>        <span class="n">RUNNING</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="Response.__init__" class="classattr">
@@ -360,14 +271,7 @@
         <span class="name">Response.Code</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Response.Code-12"><a href="#Response.Code-12"><span class="linenos">12</span></a>    <span class="k">class</span> <span class="nc">Code</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Response.Code-13"><a href="#Response.Code-13"><span class="linenos">13</span></a>        <span class="n">OK</span> <span class="o">=</span> <span class="mi">200</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="Response.Code.__init__" class="classattr">
@@ -401,18 +305,7 @@
         <span class="name">Response.Status</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Response.Status-15"><a href="#Response.Status-15"><span class="linenos">15</span></a>    <span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Response.Status-16"><a href="#Response.Status-16"><span class="linenos">16</span></a>        <span class="n">FAILED</span> <span class="o">=</span> <span class="s1">&#39;failed&#39;</span>
-</span><span id="Response.Status-17"><a href="#Response.Status-17"><span class="linenos">17</span></a>        <span class="n">SUCCESS</span> <span class="o">=</span> <span class="s1">&#39;success&#39;</span>
-</span><span id="Response.Status-18"><a href="#Response.Status-18"><span class="linenos">18</span></a>        <span class="n">ERROR</span> <span class="o">=</span> <span class="s1">&#39;error&#39;</span>
-</span><span id="Response.Status-19"><a href="#Response.Status-19"><span class="linenos">19</span></a>        <span class="n">PENDING</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span>
-</span><span id="Response.Status-20"><a href="#Response.Status-20"><span class="linenos">20</span></a>        <span class="n">RUNNING</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="Response.Status.__init__" class="classattr">
@@ -486,21 +379,7 @@
         <span class="name">EntityType</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="EntityType-23"><a href="#EntityType-23"><span class="linenos">23</span></a><span class="k">class</span> <span class="nc">EntityType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="EntityType-24"><a href="#EntityType-24"><span class="linenos">24</span></a>    <span class="n">TABLE</span> <span class="o">=</span> <span class="s1">&#39;table&#39;</span>
-</span><span id="EntityType-25"><a href="#EntityType-25"><span class="linenos">25</span></a>    <span class="n">SOURCE</span> <span class="o">=</span> <span class="s1">&#39;source&#39;</span>
-</span><span id="EntityType-26"><a href="#EntityType-26"><span class="linenos">26</span></a>    <span class="n">PIPELINE</span> <span class="o">=</span> <span class="s1">&#39;pipeline&#39;</span>
-</span><span id="EntityType-27"><a href="#EntityType-27"><span class="linenos">27</span></a>    <span class="n">PIPELINE_TARGET</span> <span class="o">=</span> <span class="s1">&#39;pipeline_target&#39;</span>
-</span><span id="EntityType-28"><a href="#EntityType-28"><span class="linenos">28</span></a>    <span class="n">JOB</span> <span class="o">=</span> <span class="s1">&#39;job&#39;</span>
-</span><span id="EntityType-29"><a href="#EntityType-29"><span class="linenos">29</span></a>    <span class="n">CONFIG</span> <span class="o">=</span> <span class="s1">&#39;config&#39;</span>
-</span><span id="EntityType-30"><a href="#EntityType-30"><span class="linenos">30</span></a>    <span class="n">TABLE_GROUP</span> <span class="o">=</span> <span class="s1">&#39;table_group&#39;</span>
-</span><span id="EntityType-31"><a href="#EntityType-31"><span class="linenos">31</span></a>    <span class="n">WORKFLOW</span> <span class="o">=</span> <span class="s1">&#39;workflow&#39;</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="EntityType.__init__" class="classattr">
@@ -604,22 +483,7 @@
         <span class="name">Job</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Job-34"><a href="#Job-34"><span class="linenos">34</span></a><span class="k">class</span> <span class="nc">Job</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Job-35"><a href="#Job-35"><span class="linenos">35</span></a>    <span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Job-36"><a href="#Job-36"><span class="linenos">36</span></a>        <span class="n">PENDING</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span>
-</span><span id="Job-37"><a href="#Job-37"><span class="linenos">37</span></a>        <span class="n">RUNNING</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span>
-</span><span id="Job-38"><a href="#Job-38"><span class="linenos">38</span></a>        <span class="n">BLOCKED</span> <span class="o">=</span> <span class="s1">&#39;blocked&#39;</span>
-</span><span id="Job-39"><a href="#Job-39"><span class="linenos">39</span></a>        <span class="n">FAILED</span> <span class="o">=</span> <span class="s1">&#39;failed&#39;</span>
-</span><span id="Job-40"><a href="#Job-40"><span class="linenos">40</span></a>        <span class="n">COMPLETED</span> <span class="o">=</span> <span class="s1">&#39;completed&#39;</span>
-</span><span id="Job-41"><a href="#Job-41"><span class="linenos">41</span></a>        <span class="n">CANCELED</span> <span class="o">=</span> <span class="s1">&#39;canceled&#39;</span>
-</span><span id="Job-42"><a href="#Job-42"><span class="linenos">42</span></a>        <span class="n">ABORTED</span> <span class="o">=</span> <span class="s1">&#39;aborted&#39;</span>
-</span><span id="Job-43"><a href="#Job-43"><span class="linenos">43</span></a>        <span class="n">SUCCESS</span> <span class="o">=</span> <span class="s1">&#39;success&#39;</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="Job.__init__" class="classattr">
@@ -643,21 +507,7 @@
         <span class="name">Job.Status</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Job.Status-35"><a href="#Job.Status-35"><span class="linenos">35</span></a>    <span class="k">class</span> <span class="nc">Status</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="Job.Status-36"><a href="#Job.Status-36"><span class="linenos">36</span></a>        <span class="n">PENDING</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span>
-</span><span id="Job.Status-37"><a href="#Job.Status-37"><span class="linenos">37</span></a>        <span class="n">RUNNING</span> <span class="o">=</span> <span class="s1">&#39;running&#39;</span>
-</span><span id="Job.Status-38"><a href="#Job.Status-38"><span class="linenos">38</span></a>        <span class="n">BLOCKED</span> <span class="o">=</span> <span class="s1">&#39;blocked&#39;</span>
-</span><span id="Job.Status-39"><a href="#Job.Status-39"><span class="linenos">39</span></a>        <span class="n">FAILED</span> <span class="o">=</span> <span class="s1">&#39;failed&#39;</span>
-</span><span id="Job.Status-40"><a href="#Job.Status-40"><span class="linenos">40</span></a>        <span class="n">COMPLETED</span> <span class="o">=</span> <span class="s1">&#39;completed&#39;</span>
-</span><span id="Job.Status-41"><a href="#Job.Status-41"><span class="linenos">41</span></a>        <span class="n">CANCELED</span> <span class="o">=</span> <span class="s1">&#39;canceled&#39;</span>
-</span><span id="Job.Status-42"><a href="#Job.Status-42"><span class="linenos">42</span></a>        <span class="n">ABORTED</span> <span class="o">=</span> <span class="s1">&#39;aborted&#39;</span>
-</span><span id="Job.Status-43"><a href="#Job.Status-43"><span class="linenos">43</span></a>        <span class="n">SUCCESS</span> <span class="o">=</span> <span class="s1">&#39;success&#39;</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="Job.Status.__init__" class="classattr">
@@ -761,27 +611,7 @@
         <span class="name">ErrorCode</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="ErrorCode-46"><a href="#ErrorCode-46"><span class="linenos">46</span></a><span class="k">class</span> <span class="nc">ErrorCode</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="ErrorCode-47"><a href="#ErrorCode-47"><span class="linenos">47</span></a>    <span class="n">ENTITY_NOT_FOUND</span> <span class="o">=</span> <span class="mi">1400</span>
-</span><span id="ErrorCode-48"><a href="#ErrorCode-48"><span class="linenos">48</span></a>    <span class="n">DEPENDENT_ENTITY_NOT_FOUND</span> <span class="o">=</span> <span class="mi">1401</span>
-</span><span id="ErrorCode-49"><a href="#ErrorCode-49"><span class="linenos">49</span></a>    <span class="n">ENTITY_STATE_INCONSISTENT</span> <span class="o">=</span> <span class="mi">1402</span>
-</span><span id="ErrorCode-50"><a href="#ErrorCode-50"><span class="linenos">50</span></a>    <span class="n">DEPENDENT_ENTITY_STATE_INCONSISTENT</span> <span class="o">=</span> <span class="mi">1403</span>
-</span><span id="ErrorCode-51"><a href="#ErrorCode-51"><span class="linenos">51</span></a>    <span class="n">ACTION_LOCKED_FOR_ENTITY</span> <span class="o">=</span> <span class="mi">1404</span>
-</span><span id="ErrorCode-52"><a href="#ErrorCode-52"><span class="linenos">52</span></a>    <span class="n">MANDATORY_PARAMETER_MISSING</span> <span class="o">=</span> <span class="mi">1405</span>
-</span><span id="ErrorCode-53"><a href="#ErrorCode-53"><span class="linenos">53</span></a>    <span class="n">ENTITY_LOCKED</span> <span class="o">=</span> <span class="mi">1500</span>
-</span><span id="ErrorCode-54"><a href="#ErrorCode-54"><span class="linenos">54</span></a>    <span class="n">DEPENDENT_ENTITY_LOCKED</span> <span class="o">=</span> <span class="mi">1501</span>
-</span><span id="ErrorCode-55"><a href="#ErrorCode-55"><span class="linenos">55</span></a>    <span class="n">COMMUNICATION_FAILURE</span> <span class="o">=</span> <span class="mi">1600</span>
-</span><span id="ErrorCode-56"><a href="#ErrorCode-56"><span class="linenos">56</span></a>    <span class="n">FSM_ERROR</span> <span class="o">=</span> <span class="mi">1601</span>
-</span><span id="ErrorCode-57"><a href="#ErrorCode-57"><span class="linenos">57</span></a>    <span class="n">INTERNAL_SERVER_ERROR</span> <span class="o">=</span> <span class="mi">500</span>
-</span><span id="ErrorCode-58"><a href="#ErrorCode-58"><span class="linenos">58</span></a>    <span class="n">RESOURCE_NOT_FOUND</span> <span class="o">=</span> <span class="mi">404</span>
-</span><span id="ErrorCode-59"><a href="#ErrorCode-59"><span class="linenos">59</span></a>    <span class="n">USER_ERROR</span> <span class="o">=</span> <span class="mi">1406</span>
-</span><span id="ErrorCode-60"><a href="#ErrorCode-60"><span class="linenos">60</span></a>    <span class="n">GENERIC_ERROR</span> <span class="o">=</span> <span class="mi">1407</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="ErrorCode.__init__" class="classattr">
@@ -945,19 +775,7 @@
         <span class="name">SourceMappings</span>:
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SourceMappings-63"><a href="#SourceMappings-63"><span class="linenos">63</span></a><span class="k">class</span> <span class="nc">SourceMappings</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-</span><span id="SourceMappings-64"><a href="#SourceMappings-64"><span class="linenos">64</span></a>    <span class="n">oracle</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sub_type&quot;</span><span class="p">:</span> <span class="s2">&quot;oracle&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_name&quot;</span><span class="p">:</span> <span class="s2">&quot;oracle.jdbc.driver.OracleDriver&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2&quot;</span><span class="p">,</span>
-</span><span id="SourceMappings-65"><a href="#SourceMappings-65"><span class="linenos">65</span></a>              <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="s2">&quot;ORACLE&quot;</span><span class="p">}</span>
-</span><span id="SourceMappings-66"><a href="#SourceMappings-66"><span class="linenos">66</span></a>    <span class="n">teradata</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sub_type&quot;</span><span class="p">:</span> <span class="s2">&quot;teradata&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_name&quot;</span><span class="p">:</span> <span class="s2">&quot;com.teradata.jdbc.TeraDriver&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2&quot;</span><span class="p">,</span>
-</span><span id="SourceMappings-67"><a href="#SourceMappings-67"><span class="linenos">67</span></a>                <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="s2">&quot;TERADATA&quot;</span><span class="p">}</span>
-</span><span id="SourceMappings-68"><a href="#SourceMappings-68"><span class="linenos">68</span></a>    <span class="n">netezza</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;sub_type&quot;</span><span class="p">:</span> <span class="s2">&quot;netezza&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_name&quot;</span><span class="p">:</span> <span class="s2">&quot;org.netezza.Driver&quot;</span><span class="p">,</span> <span class="s2">&quot;driver_version&quot;</span><span class="p">:</span> <span class="s2">&quot;v2&quot;</span><span class="p">,</span>
-</span><span id="SourceMappings-69"><a href="#SourceMappings-69"><span class="linenos">69</span></a>               <span class="s2">&quot;database&quot;</span><span class="p">:</span> <span class="s2">&quot;NETEZZA&quot;</span><span class="p">}</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="SourceMappings.__init__" class="classattr">

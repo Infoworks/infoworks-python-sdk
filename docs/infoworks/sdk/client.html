@@ -56,33 +56,7 @@
 <a href="./../../infoworks.html">infoworks</a><wbr>.<a href="./../sdk.html">sdk</a><wbr>.client    </h1>
 
                 
-                        <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="L-0"><a href="#L-0"><span class="linenos"> 0</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.download_configurations.get_source_configuration</span> <span class="kn">import</span> <span class="n">DownloadSource</span>
-</span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.download_configurations.get_pipeline_configuration</span> <span class="kn">import</span> <span class="n">DownloadPipeline</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.download_configurations.get_workflow_configuration</span> <span class="kn">import</span> <span class="n">DownloadWorkflow</span>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.download_configurations.get_entity_configuration_lineage</span> <span class="kn">import</span> <span class="n">DownloadEntityWithLineage</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.download_configurations.get_all_configs_from_domain</span> <span class="kn">import</span> <span class="n">DownloadAllEntitiesFromDomain</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.upload_configurations.wrappersource</span> <span class="kn">import</span> <span class="n">WrapperSource</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.upload_configurations.wrapperpipeline</span> <span class="kn">import</span> <span class="n">WrapperPipeline</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.cicd.upload_configurations.wrapperworkflow</span> <span class="kn">import</span> <span class="n">WrapperWorkflow</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.source_client</span> <span class="kn">import</span> <span class="n">SourceClient</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.pipeline_client</span> <span class="kn">import</span> <span class="n">PipelineClient</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.workflow_client</span> <span class="kn">import</span> <span class="n">WorkflowClient</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.domain_client</span> <span class="kn">import</span> <span class="n">DomainClient</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.jobmetrics</span> <span class="kn">import</span> <span class="n">JobMetricsClient</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="kn">from</span> <span class="nn">infoworks.sdk.admin_client</span> <span class="kn">import</span> <span class="n">AdminClient</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="k">class</span> <span class="nc">InfoworksClientSDK</span><span class="p">(</span><span class="n">SourceClient</span><span class="p">,</span> <span class="n">PipelineClient</span><span class="p">,</span> <span class="n">WorkflowClient</span><span class="p">,</span> <span class="n">DomainClient</span><span class="p">,</span> <span class="n">AdminClient</span><span class="p">,</span> <span class="n">JobMetricsClient</span><span class="p">,</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>                         <span class="n">DownloadSource</span><span class="p">,</span> <span class="n">DownloadPipeline</span><span class="p">,</span> <span class="n">DownloadWorkflow</span><span class="p">,</span> <span class="n">DownloadEntityWithLineage</span><span class="p">,</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>                         <span class="n">DownloadAllEntitiesFromDomain</span><span class="p">,</span> <span class="n">WrapperSource</span><span class="p">,</span> <span class="n">WrapperPipeline</span><span class="p">,</span> <span class="n">WrapperWorkflow</span><span class="p">):</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span></pre></div>
-
-        </details>
-
+                
             </section>
                 <section id="InfoworksClientSDK">
                                 <div class="attr class">
@@ -90,20 +64,10 @@
 
         
         <span class="def">class</span>
-        <span class="name">InfoworksClientSDK</span><wbr>(<span class="base"><a href="source_client.html#SourceClient">infoworks.sdk.source_client.SourceClient</a></span>, <span class="base"><a href="pipeline_client.html#PipelineClient">infoworks.sdk.pipeline_client.PipelineClient</a></span>, <span class="base"><a href="workflow_client.html#WorkflowClient">infoworks.sdk.workflow_client.WorkflowClient</a></span>, <span class="base"><a href="domain_client.html#DomainClient">infoworks.sdk.domain_client.DomainClient</a></span>, <span class="base"><a href="admin_client.html#AdminClient">infoworks.sdk.admin_client.AdminClient</a></span>, <span class="base"><a href="jobmetrics.html#JobMetricsClient">infoworks.sdk.jobmetrics.JobMetricsClient</a></span>, <span class="base"><a href="cicd/download_configurations/get_source_configuration.html#DownloadSource">infoworks.sdk.cicd.download_configurations.get_source_configuration.DownloadSource</a></span>, <span class="base"><a href="cicd/download_configurations/get_pipeline_configuration.html#DownloadPipeline">infoworks.sdk.cicd.download_configurations.get_pipeline_configuration.DownloadPipeline</a></span>, <span class="base"><a href="cicd/download_configurations/get_workflow_configuration.html#DownloadWorkflow">infoworks.sdk.cicd.download_configurations.get_workflow_configuration.DownloadWorkflow</a></span>, <span class="base"><a href="cicd/download_configurations/get_entity_configuration_lineage.html#DownloadEntityWithLineage">infoworks.sdk.cicd.download_configurations.get_entity_configuration_lineage.DownloadEntityWithLineage</a></span>, <span class="base"><a href="cicd/download_configurations/get_all_configs_from_domain.html#DownloadAllEntitiesFromDomain">infoworks.sdk.cicd.download_configurations.get_all_configs_from_domain.DownloadAllEntitiesFromDomain</a></span>, <span class="base"><a href="cicd/upload_configurations/wrappersource.html#WrapperSource">infoworks.sdk.cicd.upload_configurations.wrappersource.WrapperSource</a></span>, <span class="base"><a href="cicd/upload_configurations/wrapperpipeline.html#WrapperPipeline">infoworks.sdk.cicd.upload_configurations.wrapperpipeline.WrapperPipeline</a></span>, <span class="base"><a href="cicd/upload_configurations/wrapperworkflow.html#WrapperWorkflow">infoworks.sdk.cicd.upload_configurations.wrapperworkflow.WrapperWorkflow</a></span>):
+        <span class="name">InfoworksClientSDK</span><wbr>(<span class="base"><a href="source_client.html#SourceClient">infoworks.sdk.source_client.SourceClient</a></span>, <span class="base"><a href="pipeline_client.html#PipelineClient">infoworks.sdk.pipeline_client.PipelineClient</a></span>, <span class="base"><a href="workflow_client.html#WorkflowClient">infoworks.sdk.workflow_client.WorkflowClient</a></span>, <span class="base"><a href="domain_client.html#DomainClient">infoworks.sdk.domain_client.DomainClient</a></span>, <span class="base"><a href="admin_client.html#AdminClient">infoworks.sdk.admin_client.AdminClient</a></span>, <span class="base"><a href="jobmetrics.html#JobMetricsClient">infoworks.sdk.jobmetrics.JobMetricsClient</a></span>, <span class="base"><a href="cicd/download_configurations/get_source_configuration.html#DownloadSource">infoworks.sdk.cicd.download_configurations.get_source_configuration.DownloadSource</a></span>, <span class="base"><a href="cicd/download_configurations/get_pipeline_configuration.html#DownloadPipeline">infoworks.sdk.cicd.download_configurations.get_pipeline_configuration.DownloadPipeline</a></span>, <span class="base"><a href="cicd/download_configurations/get_workflow_configuration.html#DownloadWorkflow">infoworks.sdk.cicd.download_configurations.get_workflow_configuration.DownloadWorkflow</a></span>, <span class="base"><a href="cicd/download_configurations/get_entity_configuration_lineage.html#DownloadEntityWithLineage">infoworks.sdk.cicd.download_configurations.get_entity_configuration_lineage.DownloadEntityWithLineage</a></span>, <span class="base"><a href="cicd/download_configurations/get_all_configs_from_domain.html#DownloadAllEntitiesFromDomain">infoworks.sdk.cicd.download_configurations.get_all_configs_from_domain.DownloadAllEntitiesFromDomain</a></span>, <span class="base"><a href="cicd/upload_configurations/wrappersource.html#WrapperSource">infoworks.sdk.cicd.upload_configurations.wrappersource.WrapperSource</a></span>, <span class="base"><a href="cicd/upload_configurations/wrapperpipeline.html#WrapperPipeline">infoworks.sdk.cicd.upload_configurations.wrapperpipeline.WrapperPipeline</a></span>, <span class="base"><a href="cicd/upload_configurations/wrapperworkflow.html#WrapperWorkflow">infoworks.sdk.cicd.upload_configurations.wrapperworkflow.WrapperWorkflow</a></span>, <span class="base"><a href="jobs_client.html#JobsClient">infoworks.sdk.jobs_client.JobsClient</a></span>):
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="InfoworksClientSDK-17"><a href="#InfoworksClientSDK-17"><span class="linenos">17</span></a><span class="k">class</span> <span class="nc">InfoworksClientSDK</span><span class="p">(</span><span class="n">SourceClient</span><span class="p">,</span> <span class="n">PipelineClient</span><span class="p">,</span> <span class="n">WorkflowClient</span><span class="p">,</span> <span class="n">DomainClient</span><span class="p">,</span> <span class="n">AdminClient</span><span class="p">,</span> <span class="n">JobMetricsClient</span><span class="p">,</span>
-</span><span id="InfoworksClientSDK-18"><a href="#InfoworksClientSDK-18"><span class="linenos">18</span></a>                         <span class="n">DownloadSource</span><span class="p">,</span> <span class="n">DownloadPipeline</span><span class="p">,</span> <span class="n">DownloadWorkflow</span><span class="p">,</span> <span class="n">DownloadEntityWithLineage</span><span class="p">,</span>
-</span><span id="InfoworksClientSDK-19"><a href="#InfoworksClientSDK-19"><span class="linenos">19</span></a>                         <span class="n">DownloadAllEntitiesFromDomain</span><span class="p">,</span> <span class="n">WrapperSource</span><span class="p">,</span> <span class="n">WrapperPipeline</span><span class="p">,</span> <span class="n">WrapperWorkflow</span><span class="p">):</span>
-</span><span id="InfoworksClientSDK-20"><a href="#InfoworksClientSDK-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="InfoworksClientSDK-21"><a href="#InfoworksClientSDK-21"><span class="linenos">21</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             <div id="InfoworksClientSDK.__init__" class="classattr">
@@ -113,14 +77,7 @@
             <span class="name">InfoworksClientSDK</span><span class="signature">()</span>
     </div>
 
-            <details>
-            <summary>View Source</summary>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="InfoworksClientSDK.__init__-20"><a href="#InfoworksClientSDK.__init__-20"><span class="linenos">20</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="InfoworksClientSDK.__init__-21"><a href="#InfoworksClientSDK.__init__-21"><span class="linenos">21</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span></pre></div>
-
-        </details>
-
+    
     
 
                             </div>
@@ -165,9 +122,12 @@
                 <dd id="InfoworksClientSDK.get_sourceid_from_name" class="function"><a href="source_client.html#SourceClient.get_sourceid_from_name">get_sourceid_from_name</a></dd>
                 <dd id="InfoworksClientSDK.get_sourcename_from_id" class="function"><a href="source_client.html#SourceClient.get_sourcename_from_id">get_sourcename_from_id</a></dd>
                 <dd id="InfoworksClientSDK.create_onboard_rdbms_source" class="function"><a href="source_client.html#SourceClient.create_onboard_rdbms_source">create_onboard_rdbms_source</a></dd>
-                <dd id="InfoworksClientSDK.configure_table" class="function"><a href="source_client.html#SourceClient.configure_table">configure_table</a></dd>
+                <dd id="InfoworksClientSDK.configure_table_ingestion_properties" class="function"><a href="source_client.html#SourceClient.configure_table_ingestion_properties">configure_table_ingestion_properties</a></dd>
+                <dd id="InfoworksClientSDK.configure_table_ingestion_properties_with_payload" class="function"><a href="source_client.html#SourceClient.configure_table_ingestion_properties_with_payload">configure_table_ingestion_properties_with_payload</a></dd>
                 <dd id="InfoworksClientSDK.get_tableid_from_name" class="function"><a href="source_client.html#SourceClient.get_tableid_from_name">get_tableid_from_name</a></dd>
                 <dd id="InfoworksClientSDK.get_tablename_from_id" class="function"><a href="source_client.html#SourceClient.get_tablename_from_id">get_tablename_from_id</a></dd>
+                <dd id="InfoworksClientSDK.get_source_configurations" class="function"><a href="source_client.html#SourceClient.get_source_configurations">get_source_configurations</a></dd>
+                <dd id="InfoworksClientSDK.list_tables_under_source" class="function"><a href="source_client.html#SourceClient.list_tables_under_source">list_tables_under_source</a></dd>
 
             </div>
             <div><dt><a href="pipeline_client.html#PipelineClient">infoworks.sdk.pipeline_client.PipelineClient</a></dt>
@@ -183,6 +143,7 @@
                 <dd id="InfoworksClientSDK.update_pipeline_configuration_json_export" class="function"><a href="pipeline_client.html#PipelineClient.update_pipeline_configuration_json_export">update_pipeline_configuration_json_export</a></dd>
                 <dd id="InfoworksClientSDK.trigger_pipeline_job" class="function"><a href="pipeline_client.html#PipelineClient.trigger_pipeline_job">trigger_pipeline_job</a></dd>
                 <dd id="InfoworksClientSDK.get_pipeline_id" class="function"><a href="pipeline_client.html#PipelineClient.get_pipeline_id">get_pipeline_id</a></dd>
+                <dd id="InfoworksClientSDK.get_pipeline_lineage" class="function"><a href="pipeline_client.html#PipelineClient.get_pipeline_lineage">get_pipeline_lineage</a></dd>
 
             </div>
             <div><dt><a href="workflow_client.html#WorkflowClient">infoworks.sdk.workflow_client.WorkflowClient</a></dt>
@@ -192,12 +153,16 @@
                 <dd id="InfoworksClientSDK.delete_workflow" class="function"><a href="workflow_client.html#WorkflowClient.delete_workflow">delete_workflow</a></dd>
                 <dd id="InfoworksClientSDK.update_workflow" class="function"><a href="workflow_client.html#WorkflowClient.update_workflow">update_workflow</a></dd>
                 <dd id="InfoworksClientSDK.trigger_workflow" class="function"><a href="workflow_client.html#WorkflowClient.trigger_workflow">trigger_workflow</a></dd>
+                <dd id="InfoworksClientSDK.restart_multiple_workflow" class="function"><a href="workflow_client.html#WorkflowClient.restart_multiple_workflow">restart_multiple_workflow</a></dd>
+                <dd id="InfoworksClientSDK.cancel_multiple_workflow" class="function"><a href="workflow_client.html#WorkflowClient.cancel_multiple_workflow">cancel_multiple_workflow</a></dd>
                 <dd id="InfoworksClientSDK.get_status_of_workflow" class="function"><a href="workflow_client.html#WorkflowClient.get_status_of_workflow">get_status_of_workflow</a></dd>
                 <dd id="InfoworksClientSDK.poll_workflow_run_till_completion" class="function"><a href="workflow_client.html#WorkflowClient.poll_workflow_run_till_completion">poll_workflow_run_till_completion</a></dd>
                 <dd id="InfoworksClientSDK.get_workflow_configuration_json_export" class="function"><a href="workflow_client.html#WorkflowClient.get_workflow_configuration_json_export">get_workflow_configuration_json_export</a></dd>
                 <dd id="InfoworksClientSDK.update_workflow_configuration_json_import" class="function"><a href="workflow_client.html#WorkflowClient.update_workflow_configuration_json_import">update_workflow_configuration_json_import</a></dd>
                 <dd id="InfoworksClientSDK.get_workflow_id" class="function"><a href="workflow_client.html#WorkflowClient.get_workflow_id">get_workflow_id</a></dd>
                 <dd id="InfoworksClientSDK.get_workflow_name" class="function"><a href="workflow_client.html#WorkflowClient.get_workflow_name">get_workflow_name</a></dd>
+                <dd id="InfoworksClientSDK.get_list_of_workflows_runs" class="function"><a href="workflow_client.html#WorkflowClient.get_list_of_workflows_runs">get_list_of_workflows_runs</a></dd>
+                <dd id="InfoworksClientSDK.get_list_of_workflow_runs_jobs" class="function"><a href="workflow_client.html#WorkflowClient.get_list_of_workflow_runs_jobs">get_list_of_workflow_runs_jobs</a></dd>
 
             </div>
             <div><dt><a href="domain_client.html#DomainClient">infoworks.sdk.domain_client.DomainClient</a></dt>
@@ -209,6 +174,7 @@
                 <dd id="InfoworksClientSDK.get_sources_associated_with_domain" class="function"><a href="domain_client.html#DomainClient.get_sources_associated_with_domain">get_sources_associated_with_domain</a></dd>
                 <dd id="InfoworksClientSDK.add_source_to_domain" class="function"><a href="domain_client.html#DomainClient.add_source_to_domain">add_source_to_domain</a></dd>
                 <dd id="InfoworksClientSDK.remove_source_from_domain" class="function"><a href="domain_client.html#DomainClient.remove_source_from_domain">remove_source_from_domain</a></dd>
+                <dd id="InfoworksClientSDK.get_data_connection" class="function"><a href="domain_client.html#DomainClient.get_data_connection">get_data_connection</a></dd>
                 <dd id="InfoworksClientSDK.create_data_connection" class="function"><a href="domain_client.html#DomainClient.create_data_connection">create_data_connection</a></dd>
                 <dd id="InfoworksClientSDK.delete_data_connection" class="function"><a href="domain_client.html#DomainClient.delete_data_connection">delete_data_connection</a></dd>
                 <dd id="InfoworksClientSDK.get_parent_entity_id" class="function"><a href="domain_client.html#DomainClient.get_parent_entity_id">get_parent_entity_id</a></dd>
@@ -287,6 +253,20 @@
             <div><dt><a href="cicd/upload_configurations/wrapperworkflow.html#WrapperWorkflow">infoworks.sdk.cicd.upload_configurations.wrapperworkflow.WrapperWorkflow</a></dt>
                                 <dd id="InfoworksClientSDK.cicd_create_configure_workflow" class="function"><a href="cicd/upload_configurations/wrapperworkflow.html#WrapperWorkflow.cicd_create_configure_workflow">cicd_create_configure_workflow</a></dd>
                 <dd id="InfoworksClientSDK.cicd_create_workflowartifacts_in_bulk" class="function"><a href="cicd/upload_configurations/wrapperworkflow.html#WrapperWorkflow.cicd_create_workflowartifacts_in_bulk">cicd_create_workflowartifacts_in_bulk</a></dd>
+
+            </div>
+            <div><dt><a href="jobs_client.html#JobsClient">infoworks.sdk.jobs_client.JobsClient</a></dt>
+                                <dd id="InfoworksClientSDK.get_job_details" class="function"><a href="jobs_client.html#JobsClient.get_job_details">get_job_details</a></dd>
+                <dd id="InfoworksClientSDK.resubmit_failed_tables_for_ingestion" class="function"><a href="jobs_client.html#JobsClient.resubmit_failed_tables_for_ingestion">resubmit_failed_tables_for_ingestion</a></dd>
+                <dd id="InfoworksClientSDK.get_job_logs_as_text_stream" class="function"><a href="jobs_client.html#JobsClient.get_job_logs_as_text_stream">get_job_logs_as_text_stream</a></dd>
+                <dd id="InfoworksClientSDK.get_cluster_job_details" class="function"><a href="jobs_client.html#JobsClient.get_cluster_job_details">get_cluster_job_details</a></dd>
+                <dd id="InfoworksClientSDK.get_admin_job_details" class="function"><a href="jobs_client.html#JobsClient.get_admin_job_details">get_admin_job_details</a></dd>
+                <dd id="InfoworksClientSDK.get_all_jobs_for_source" class="function"><a href="jobs_client.html#JobsClient.get_all_jobs_for_source">get_all_jobs_for_source</a></dd>
+                <dd id="InfoworksClientSDK.get_crawl_job_summary" class="function"><a href="jobs_client.html#JobsClient.get_crawl_job_summary">get_crawl_job_summary</a></dd>
+                <dd id="InfoworksClientSDK.get_interactive_jobs_list" class="function"><a href="jobs_client.html#JobsClient.get_interactive_jobs_list">get_interactive_jobs_list</a></dd>
+                <dd id="InfoworksClientSDK.get_list_of_pipeline_jobs" class="function"><a href="jobs_client.html#JobsClient.get_list_of_pipeline_jobs">get_list_of_pipeline_jobs</a></dd>
+                <dd id="InfoworksClientSDK.submit_pipeline_job" class="function"><a href="jobs_client.html#JobsClient.submit_pipeline_job">submit_pipeline_job</a></dd>
+                <dd id="InfoworksClientSDK.cancel_job" class="function"><a href="jobs_client.html#JobsClient.cancel_job">cancel_job</a></dd>
 
             </div>
             <div><dt><a href="base_client.html#BaseClient">infoworks.sdk.base_client.BaseClient</a></dt>
