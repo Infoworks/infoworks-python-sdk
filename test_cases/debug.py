@@ -33,7 +33,7 @@ iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks
 #print(iwx_client_prd.cancel_job(job_id="20cadff6d52fbb56d2d555ff"))
 #response=iwx_client_prd.get_list_of_workflows_runs(api_body_for_filter={"date_range":{"type":"last","unit":"day","value":100}})
 #print(len(response["result"]))
-#print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id="6393148e48ef1c73e0fa4796"))
+print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id="6393148e48ef1c73e0fa4796"))
 #print(iwx_client_prd.restart_multiple_workflow(workflow_list_body={"ids":[{"workflow_id":"93d55b7b21a6d28b45f7a957","run_id":"634e97f562b7103be9008ffd"}]}))
 #print(iwx_client_prd.cancel_multiple_workflow(workflow_list_body={"ids":[{"workflow_id":"93d55b7b21a6d28b45f7a957","run_id":"634e97f562b7103be9008ffd"}]}))
 #print(iwx_client_prd.get_list_of_workflows())

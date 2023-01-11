@@ -707,7 +707,7 @@ class WorkflowClient(BaseClient):
             else:
                 workflow_run_jobs_list = []
                 response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_all_workflow_run_jobs_url(
-                    self.client_config, run_id), IWUtils.get_default_header_for_v3(
+                    self.client_config, run_id)+"?fetch_summary=true&recursive_job_search=true", IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
 
                 result = response.get('result', {})
