@@ -12,10 +12,14 @@ class AdminClient(BaseClient):
         self._datalineage = {"path": [], "dataflow_objects": [], "master_pipeline_ids": [],
                              "master_sourcetable_ids": []}
 
-    def create_new_user(self, data):
+    def create_new_user(self, data=None, name=None, email=None, roles=None, password=None):
         """
         Function to create new user in Infoworks
         :param data: JSON Payload with user details
+        :param name: Name of the user
+        :param email: Email Id of the user
+        :param roles: Comma seperated list of roles
+        :param password: Password of the user
 
         example_data = {
             "profile": {
@@ -29,6 +33,22 @@ class AdminClient(BaseClient):
 
         :return: response dict
         """
+        if roles is None:
+            roles = "modeller"
+        if data is None:
+            if None in {name, email, roles, password}:
+                raise Exception(
+                    f"User creation body (data) or all of the name, email, roles, password has to be passed")
+            else:
+                data = {
+                    "profile": {
+                        "name": name,
+                        "email": email,
+                        "needs_password_reset": False
+                    },
+                    "roles": roles.split(","),
+                    "password": password
+                }
         try:
             response = self.call_api("POST",
                                      url_builder.list_users_url(self.client_config),
@@ -41,11 +61,12 @@ class AdminClient(BaseClient):
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
                                                     error_desc=parsed_response.get("details",
                                                                                    "Error in creating user ")
                                                     )
         except Exception as e:
-            self.logger.error("Error in creating user")
+            self.logger.error("Error in creating user " + str(e))
             raise AdminError("Error in creating user " + str(e))
 
     def update_the_user(self, user_id, data):
@@ -63,15 +84,16 @@ class AdminClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
                                                     error_desc=parsed_response.get("details",
                                                                                    "Error in updating user ")
                                                     )
         except Exception as e:
-            self.logger.error("Error in updating user")
+            self.logger.error("Error in updating user " + str(e))
             raise AdminError("Error in updating user " + str(e))
 
     def get_user_details(self, user_id=None, params=None):
@@ -109,7 +131,13 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=users_list)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=users_list)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response=response
+                                                    )
+
         except Exception as e:
             self.logger.error("Error in listing user information")
             raise AdminError("Error in listing user information" + str(e))
@@ -141,12 +169,13 @@ class AdminClient(BaseClient):
                             user_id = result[0]["id"]
                 except Exception as e:
                     self.logger.error('Couldnt get result for the user {}'.format(user_email))
+                    self.logger.error(str(e))
                     raise AdminError('Couldnt get result for the user {}'.format(user_email))
                 finally:
                     if user_id is None:
                         self.logger.error('Couldnt get result for the user {}'.format(user_email))
                         raise AdminError('Couldnt get result for the user {}'.format(user_email))
-
+        response = ""
         if user_id is not None:
             url_for_adding_user_to_domain = url_builder.add_user_to_domain_url(self.client_config, user_id)
             self.logger.info('url for adding user to domain - ' + url_for_adding_user_to_domain)
@@ -167,11 +196,13 @@ class AdminClient(BaseClient):
                         self.logger.error('Error in adding user to domain - {}'.format(response))
                 except Exception as e:
                     self.logger.error('Response from server while adding user to domain: {}'.format(user_id))
+                    self.logger.error(str(e))
                     raise AdminError('Response from server while adding user to domain: {}'.format(user_id))
         if status_flag == "success":
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         else:
-            return GenericResponse.parse_result(status=Response.Status.FAILED)
+            return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                response=response)
 
     def alation_compatible_lineage_for_source(self, src_id, table_id):
         """
@@ -337,7 +368,7 @@ class AdminClient(BaseClient):
         Function to get environment details
         :param environment_id: Entity identifier of the environment
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
-        :return: response dict
+        :return: Response Dict
         """
         if params is None and environment_id is None:
             params = {"limit": 20, "offset": 0}
@@ -364,9 +395,14 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=env_details)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=env_details)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response=response
+                                                    )
         except Exception as e:
-            self.logger.error("Error in getting environment details")
+            self.logger.error("Error in getting environment details " + str(e))
             raise AdminError("Error in getting environment details" + str(e))
 
     def get_storage_details(self, environment_id, storage_id=None, params=None):
@@ -375,7 +411,7 @@ class AdminClient(BaseClient):
         :param environment_id: Entity identifier of the environment
         :param storage_id: Entity identifier of the storage
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
-        :return: response dict
+        :return: Response Dict
         """
         if params is None and storage_id is None:
             params = {"limit": 20, "offset": 0}
@@ -402,9 +438,14 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=storage_details)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=storage_details)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response=response
+                                                    )
         except Exception as e:
-            self.logger.error("Error in getting storage details")
+            self.logger.error("Error in getting storage details " + str(e))
             raise AdminError("Error in getting storage details" + str(e))
 
     def get_compute_template_details(self, environment_id, compute_id=None, is_interactive=False, params=None):
@@ -414,7 +455,7 @@ class AdminClient(BaseClient):
          :param compute_id: Entity identifier of compute cluster
          :param is_interactive: True/False. If True only the details of interactive clusters is fetched
          :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
-         :return: response dict
+         :return: Response Dict
          """
         if params is None and compute_id is None:
             params = {"limit": 20, "offset": 0}
@@ -447,85 +488,135 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=compute_details)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=compute_details)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response=response
+                                                    )
         except Exception as e:
-            self.logger.error("Error in getting compute template details")
+            self.logger.error("Error in getting compute template details " + str(e))
             raise AdminError("Error in getting compute template details" + str(e))
 
     def get_environment_id_from_name(self, environment_name):
         """
-                Function to return environment Id from name
-                :param environment_name: Infoworks Environment Name
-                :type environment_name: String
-                :return: Environment Identifier
+        Function to return environment Id from name
+        :param environment_name: Infoworks Environment Name
+        :type environment_name: String
+        :return: Response Dict
         """
-        result = \
-        self.get_environment_details(environment_id=None, params={"filter": {"name": environment_name}})["result"][
-            "response"]
-        if len(result) > 0:
-            return result[0]["id"]
+        response = self.get_environment_details(environment_id=None, params={"filter": {"name": environment_name}})
+        if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
+            result = response.get("result", {}).get("response", {})
+            if len(result) > 0:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response={"environment_id": result[0]["id"]})
+            else:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response=result
+                                                    )
         else:
-            return None
+            return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                error_code=ErrorCode.USER_ERROR,
+                                                response=response.get("result", {}).get("response", {})
+                                                )
 
     def get_environment_default_warehouse(self, environment_id):
         """
-            Function to return default warehouse name
-            :param environment_id: Infoworks Environment Id
-            :type environment_id: String
-            :return: Environment Name
+        Function to return default warehouse name
+        :param environment_id: Infoworks Environment Id
+        :type environment_id: String
+        :return: Response Dict
         """
-        result = self.get_environment_details(environment_id=environment_id, params=None)["result"]["response"]
-        if len(result) > 0:
-            for item in result[0]["data_warehouse_configuration"]["warehouse"]:
-                if item["is_default_warehouse"]:
-                    return item["name"]
+        response = self.get_environment_details(environment_id=environment_id, params=None)
+        if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
+            result = response.get("result", {}).get("response", {})
+            if len(result) > 0:
+                for item in result[0]["data_warehouse_configuration"]["warehouse"]:
+                    if item["is_default_warehouse"]:
+                        return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                            response={"default_warehouse": item["name"]})
+                else:
+                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                        response={"default_warehouse":
+                                                                      result[0]["data_warehouse_configuration"][
+                                                                          "warehouse"][0]["name"]})
             else:
-                return result[0]["data_warehouse_configuration"]["warehouse"][0]["name"]
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response=result
+                                                    )
         else:
-            return None
+            return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                error_code=ErrorCode.USER_ERROR,
+                                                response=response.get("result", {}).get("response", {})
+                                                )
 
     def get_compute_id_from_name(self, environment_id, compute_name):
         """
-                Function to return Environment Compute Id from name
-                :param environment_id: Environment identifier
-                :type environment_id: String
-                :param compute_name: Environment Compute Name
-                :type compute_name: String
-                :return: Table name
+        Function to return Environment Compute Id from name
+        :param environment_id: Environment identifier
+        :type environment_id: String
+        :param compute_name: Environment Compute Name
+        :type compute_name: String
+        :return: Response Dict
         """
-        result = self.get_compute_template_details(environment_id, compute_id=None, is_interactive=True,
-                                                   params={"filter": {"name": compute_name}})["result"]["response"]
-        if len(result) > 0:
-            return result[0]["id"]
-        else:
-            result = self.get_compute_template_details(environment_id, compute_id=None, is_interactive=False,
-                                                       params={"filter": {"name": compute_name}})["result"]["response"]
+        response = self.get_compute_template_details(environment_id, compute_id=None, is_interactive=True,
+                                                     params={"filter": {"name": compute_name}})
+        if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
+            result = response.get("result", {}).get("response", {})
             if len(result) > 0:
-                return result[0]["id"]
-        return None
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response={"compute_id": result[0]["id"]})
+            else:
+                response_non_interactive = self.get_compute_template_details(environment_id, compute_id=None,
+                                                                             is_interactive=False,
+                                                                             params={"filter": {"name": compute_name}})
+                result_non_interactive = response_non_interactive.get("result", {}).get("response", {})
+                if len(result_non_interactive) > 0:
+                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                        response={"compute_id": result_non_interactive[0]["id"]})
+                else:
+                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                        response=result_non_interactive
+                                                        )
+        else:
+            return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                error_code=ErrorCode.USER_ERROR,
+                                                response=response.get("result", {}).get("response", {})
+                                                )
 
     def get_storage_id_from_name(self, environment_id, storage_name):
         """
-                Function to return Environment Storage Id from name
-                :param environment_id: Environment identifier
-                :type environment_id: String
-                :param storage_name: Environment Storage Name
-                :type storage_name: String
-                :return: Table name
+        Function to return Environment Storage Id from name
+        :param environment_id: Environment identifier
+        :type environment_id: String
+        :param storage_name: Environment Storage Name
+        :type storage_name: String
+        :return: Response Dict
         """
-        result = self.get_storage_details(environment_id=environment_id,
-                                          params={"filter": {"name": storage_name}})["result"]["response"]
-        if len(result) > 0:
-            return result[0]["id"]
+        response = self.get_storage_details(environment_id=environment_id,
+                                          params={"filter": {"name": storage_name}})
+        if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
+            result = response.get("result", {}).get("response", {})
+            if len(result) > 0:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response={"storage_id": result[0]["id"]})
+            else:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response=result
+                                                    )
         else:
-            return None
+            return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                error_code=ErrorCode.USER_ERROR,
+                                                response=response.get("result", {}).get("response", {})
+                                                )
 
     def create_source_extension(self, data):
         """
-            Function to create a source extension
-            :param data: Source extension details body
-            :type data: String
-            :return: response dict
+        Function to create a source extension
+        :param data: Source extension details body
+        :type data: String
+        :return: Response Dict
         """
         try:
             response = self.call_api("POST",
@@ -544,4 +635,5 @@ class AdminClient(BaseClient):
                                                     )
         except Exception as e:
             self.logger.error(f"Error creating source extension {data['name']}.Please do it by yourself from UI.")
-            raise AdminError(f"Error creating source extension  {data['name']}.Please do it by yourself from UI." + str(e))
+            raise AdminError(
+                f"Error creating source extension  {data['name']}.Please do it by yourself from UI." + str(e))
