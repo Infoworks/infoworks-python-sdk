@@ -131,11 +131,13 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=users_list)
+                response["result"] = users_list
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
+                self.logger.error("Failed to get user details")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.USER_ERROR,
-                                                    response=response
+                                                    response="Failed to get user details"
                                                     )
 
         except Exception as e:
@@ -395,11 +397,13 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=env_details)
+                response["result"] = env_details
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
+                self.logger.error("Failed to get environment details")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.USER_ERROR,
-                                                    response=response
+                                                    response="Failed to get environment details"
                                                     )
         except Exception as e:
             self.logger.error("Error in getting environment details " + str(e))
@@ -438,11 +442,13 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=storage_details)
+                response["result"] = storage_details
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
+                self.logger.error("Failed to get storage details")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.USER_ERROR,
-                                                    response=response
+                                                    response="Failed to get storage details"
                                                     )
         except Exception as e:
             self.logger.error("Error in getting storage details " + str(e))
@@ -488,11 +494,13 @@ class AdminClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=compute_details)
+                response["result"] = compute_details
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
+                self.logger.error("Failed to get compute template details")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.USER_ERROR,
-                                                    response=response
+                                                    response="Failed to get compute template details"
                                                     )
         except Exception as e:
             self.logger.error("Error in getting compute template details " + str(e))
