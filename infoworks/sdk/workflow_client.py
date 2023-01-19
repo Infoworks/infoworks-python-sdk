@@ -8,6 +8,7 @@ from infoworks.sdk.local_configurations import Response
 from infoworks.sdk.workflow_response import WorkflowResponse
 from infoworks.sdk.utils import IWUtils
 import time
+from infoworks.sdk.local_configurations import Response, ErrorCode
 from infoworks.sdk.cicd.upload_configurations.workflow import Workflow
 from pathlib import Path
 
@@ -34,7 +35,6 @@ class WorkflowClient(BaseClient):
                 response = IWUtils.ejson_deserialize(
                     self.call_api("GET", url_to_list_workflows,
                                   IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
-                print(response)
                 if response is not None:
                     result = response.get("result", [])
                     while len(result) > 0:
@@ -90,15 +90,11 @@ class WorkflowClient(BaseClient):
         }
         :return: response dict
         """
+        if None in (domain_id,workflow_config):
+            self.logger.error("domain id or workflow_config cannot be None")
+            raise Exception("domain_id id or workflow_config cannot be None")
         response = None
         try:
-            if domain_id is None:
-                self.logger.error('Please pass the mandatory domain_id as parameter.')
-                raise WorkflowError('Please pass the mandatory domain_id as parameter.')
-
-            if workflow_config is None:
-                self.logger.error('Invalid workflow configuration. Cannot create a new workflow.')
-                raise WorkflowError('Please pass the valid workflow_config as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.create_workflow_url(
                 self.client_config, domain_id), IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                                                                workflow_config).content)
@@ -109,6 +105,7 @@ class WorkflowClient(BaseClient):
             if workflow_id is None:
                 self.logger.error('Workflow failed to create.')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc='Workflow failed to create.', response=response)
 
             workflow_id = str(workflow_id)
@@ -131,6 +128,9 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
+        if None in (domain_id,workflow_id):
+            self.logger.error("domain id or workflow_id cannot be None")
+            raise Exception("domain_id id or workflow_id cannot be None")
         response = None
         try:
             if workflow_id is None:
@@ -148,6 +148,7 @@ class WorkflowClient(BaseClient):
             if result.get('id', None) is None:
                 self.logger.error('Failed to find the workflow details')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc='Failed to find the workflow details',
                                                      response=response)
 
@@ -171,6 +172,9 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
+        if None in (domain_id,workflow_id):
+            self.logger.error("domain id or workflow_id cannot be None")
+            raise Exception("domain_id id or workflow_id cannot be None")
         response = None
         try:
             if workflow_id is None:
@@ -188,6 +192,7 @@ class WorkflowClient(BaseClient):
             if result.get('id', None) is None:
                 self.logger.error(f'Failed to delete the workflow {workflow_id}')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc=f'Failed to delete the workflow {workflow_id}',
                                                      response=response)
 
@@ -248,17 +253,11 @@ class WorkflowClient(BaseClient):
         }
         :return: response dict
         """
+        if None in (domain_id,workflow_id,workflow_config):
+            self.logger.error("domain id or workflow_id or workflow_config cannot be None")
+            raise Exception("domain_id or workflow_id or workflow_config cannot be None")
         response = None
         try:
-            if workflow_config is None:
-                self.logger.error('Please pass the mandatory workflow_config as parameter.')
-                raise WorkflowError('Please pass valid workflow_config parameter.')
-            if workflow_id is None:
-                self.logger.error('Please pass the mandatory workflow id as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_id as parameter.')
-            if domain_id is None:
-                self.logger.error('Please pass the mandatory domain_id as parameter.')
-                raise WorkflowError('Please pass the mandatory domain_id as parameter.')
             if "childWorkflowIds" not in workflow_config:
                 workflow_config["child_workflow_ids"] = []
             response = IWUtils.ejson_deserialize(self.call_api("PATCH", url_builder.create_workflow_url(
@@ -270,6 +269,7 @@ class WorkflowClient(BaseClient):
             if result.get('id', None) is None:
                 self.logger.error(f'Failed to update the workflow {workflow_id}')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc=f'Failed to update the workflow {workflow_id}',
                                                      response=response)
 
@@ -293,14 +293,11 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
+        if None in (domain_id,workflow_id):
+            self.logger.error("domain id or workflow_id cannot be None")
+            raise Exception("domain_id or workflow_id cannot be None")
         response = None
         try:
-            if workflow_id is None:
-                self.logger.error('Please pass the mandatory workflow id as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_id as parameter.')
-            if domain_id is None:
-                self.logger.error('Please pass the mandatory domain_id as parameter.')
-                raise WorkflowError('Please pass the mandatory domain_id as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.trigger_workflow_url(
                 self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
@@ -310,6 +307,7 @@ class WorkflowClient(BaseClient):
             if result.get('id', None) is None:
                 self.logger.error(f'Failed to trigger the workflow {workflow_id}')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc=f'Failed to trigger the workflow {workflow_id}',
                                                      response=response)
 
@@ -324,26 +322,27 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to trigger workflow.')
             raise WorkflowError('Error occurred while trying to trigger workflow.')
 
-    def restart_multiple_workflow(self, workflow_list_body={}):
+    def restart_multiple_workflow(self, workflow_list_body=None):
         """
         Triggers Infoworks Data workflow for given workflow id
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
         :type workflow_id: dict
         :return: response dict
         """
+        if None in (workflow_list_body):
+            self.logger.error("workflow_list_body cannot be None")
+            raise Exception("workflow_list_body cannot be None")
         response = None
         try:
-            if workflow_list_body == {}:
-                self.logger.error('Please pass the mandatory workflow_list_body as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_list_body as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.restart_multiple_workflows_url(
                 self.client_config), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token']),data=workflow_list_body).content)
 
-            result = response.get('result', [])
-            if len(result)==0:
+            result = response.get('result', None)
+            if result is None:
                 self.logger.error(f'Failed to restart the workflows')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc=f'Failed to restart the workflows',
                                                      response=response)
 
@@ -357,7 +356,7 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while restarting the workflows.'+str(e))
             raise WorkflowError('Error occurred while restarting the workflows.'+str(e))
 
-    def cancel_multiple_workflow(self, workflow_list_body={}):
+    def cancel_multiple_workflow(self, workflow_list_body=None):
         """
         Triggers Infoworks Data workflow for given workflow id
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
@@ -365,18 +364,19 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
+        if None in (workflow_list_body):
+            self.logger.error("workflow_list_body cannot be None")
+            raise Exception("workflow_list_body cannot be None")
         try:
-            if workflow_list_body == {}:
-                self.logger.error('Please pass the mandatory workflow_list_body as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_list_body as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.cancel_multiple_workflows_url(
                 self.client_config), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token']),data=workflow_list_body).content)
 
-            result = response.get('result', [])
-            if len(result)==0:
+            result = response.get('result', None)
+            if result is None:
                 self.logger.error(f'Failed to cancel the workflows')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc=f'Failed to cancel the workflows',
                                                      response=response)
 
@@ -399,26 +399,23 @@ class WorkflowClient(BaseClient):
         :type workflow_id: String
         :return: response dict
         """
+        if None in (workflow_id,workflow_run_id):
+            self.logger.error("workflow_id or workflow_run_id cannot be None")
+            raise Exception("workflow_id or workflow_run_id cannot be None")
         response = None
         try:
-            if workflow_run_id is None:
-                self.logger.error('Please pass the mandatory workflow_run_id as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_run_id as parameter.')
-            if workflow_id is None:
-                self.logger.error('Please pass the mandatory workflow id as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_id as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_status_url(
                 self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
 
-            result = response.get('result', {})
-            run_id = result.get('id', None)
-            if result.get('id', None) is None:
-                self.logger.error(f'Failed to fetch status of the workflow {workflow_id}')
+            result = response.get('result', None)
+            if result is None:
+                self.logger.error('Failed to get the status of workflow')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_desc=f'Failed to fetch status of the workflow {workflow_id}',
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Failed to get the configuration json of workflow',
                                                      response=response)
-
+            run_id = result.get('id', None)
             workflow_id = str(workflow_id)
             self.logger.info(
                 'Successfully got status of the workflow {id} with run id {run_id}.'.format(id=workflow_id,
@@ -443,13 +440,10 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
+        if None in (workflow_id,workflow_run_id):
+            self.logger.error("workflow_id or workflow_run_id cannot be None")
+            raise Exception("workflow_id or workflow_run_id cannot be None")
         try:
-            if workflow_run_id is None:
-                self.logger.error('Please pass the mandatory workflow_run_id as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_run_id as parameter.')
-            if workflow_id is None:
-                self.logger.error('Please pass the mandatory workflow id as parameter.')
-                raise WorkflowError('Please pass the mandatory workflow_id as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_status_url(
                 self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
@@ -468,6 +462,7 @@ class WorkflowClient(BaseClient):
             if result.get('id', None) is None:
                 self.logger.error(f'Failed to poll status of the workflow {workflow_id}')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc=f'Failed to poll status of the workflow {workflow_id}',
                                                      response=response)
 
@@ -476,7 +471,7 @@ class WorkflowClient(BaseClient):
                 'Successfully polled status of the workflow {id} with run id {run_id}.'.format(id=workflow_id,
                                                                                                run_id=run_id))
             return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
-                                                 response=result)
+                                                 response=response)
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
@@ -493,26 +488,20 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
+        if None in (workflow_id,domain_id):
+            self.logger.error("workflow_id or domain_id cannot be None")
+            raise Exception("workflow_id or domain_id cannot be None")
         try:
-            if workflow_id is None:
-                self.logger.error('Please pass the mandatory workflow id as parameter.')
-                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_desc='Invalid workflow configuration. '
-                                                                'Please pass the mandatory workflow id as parameter.')
-            if domain_id is None:
-                self.logger.error('Please pass the mandatory domain id as parameter.')
-                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_desc='Invalid worlflow configuration. '
-                                                                'Please pass the mandatory domain id as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.configure_workflow_url(
                 self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
 
-            result = response.get('result', {})
+            result = response.get('result', None)
 
-            if result is {}:
+            if result is None:
                 self.logger.error('Failed to get the configuration json of workflow')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc='Failed to get the configuration json of workflow',
                                                      response=response)
 
@@ -538,32 +527,21 @@ class WorkflowClient(BaseClient):
         :type workflow_config: JSON Object
         :return: response dict
         """
+        if None in (workflow_id,domain_id,workflow_config):
+            self.logger.error("workflow_id or domain_id or workflow_config cannot be None")
+            raise Exception("workflow_id or domain_id or workflow_config cannot be None")
         response = None
         try:
-            if workflow_config is None:
-                self.logger.error('Please pass the mandatory workflow_config as parameter.')
-                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_desc='Invalid workflow configuration. '
-                                                                'Please pass the mandatory workflow_config as parameter.')
-            if workflow_id is None:
-                self.logger.error('Please pass the mandatory workflow id as parameter.')
-                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_desc='Invalid workflow configuration. '
-                                                                'Please pass the mandatory workflow id as parameter.')
-            if domain_id is None:
-                self.logger.error('Please pass the mandatory domain id as parameter.')
-                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_desc='Invalid workflow configuration. '
-                                                                'Please pass the mandatory domain id as parameter.')
             response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.configure_workflow_url(
                 self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token']), workflow_config).content)
 
-            result = response.get('result', [])
+            result = response.get('result', None)
 
-            if len(result) == 0:
+            if result is None:
                 self.logger.error('Failed to update the configuration json of workflow')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
                                                      error_desc='Failed to update the configuration json of workflow',
                                                      response=response)
 
@@ -578,7 +556,7 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to update workflow configuration json.')
             raise WorkflowError('Error occurred while trying to update workflow configuration json.')
 
-    def get_workflow_id(self, workflow_name, domain_id=None, domain_name=None):
+    def get_workflow_id(self, workflow_name=None, domain_id=None, domain_name=None):
         """
         Function to get workflow id
         :param workflow_name: Name of the workflow
@@ -586,8 +564,11 @@ class WorkflowClient(BaseClient):
         :param domain_name: Entity name of the domain
         :return: Workflow ID
         """
+        if None in (workflow_name):
+            self.logger.error("workflow_name cannot be None")
+            raise Exception("workflow_name cannot be None")
         if domain_id is None and domain_name is None:
-            raise Exception(f"Either domain name or domain id has to be passed to get the pipeline id")
+            raise Exception(f"Either domain name or domain id has to be passed")
         if domain_name is not None and domain_id is None:
             # Find the domain_id
             params = {"filter": {"name": domain_name}}
@@ -616,9 +597,12 @@ class WorkflowClient(BaseClient):
                 result = response.get("result", None)
                 return result[0].get('id')
         except:
-            raise WorkflowError("Unable to get pipeline NAME")
+            raise WorkflowError("Unable to get workflow id from name")
 
-    def get_workflow_name(self, domain_id, workflow_id):
+    def get_workflow_name(self, domain_id=None, workflow_id=None):
+        if None in (workflow_id,domain_id):
+            self.logger.error("workflow_id or domain_id cannot be None")
+            raise Exception("workflow_id or domain_id cannot be None")
         try:
             url_to_get_wf_info = url_builder.create_workflow_url(self.client_config, domain_id)+f"/{workflow_id}"
             response = IWUtils.ejson_deserialize(
@@ -643,6 +627,9 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
+        if None in (workflow_id,domain_id):
+            self.logger.error("workflow_id or domain_id cannot be None")
+            raise Exception("workflow_id or domain_id cannot be None")
         try:
             if domain_id is None:
                 url_to_list_workflow_runs = url_builder.get_all_workflows_runs_url(
@@ -656,6 +643,12 @@ class WorkflowClient(BaseClient):
                                   IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data=api_body_for_filter).content)
                 if response is not None:
                     result = response.get("result", [])
+                    if len(result) == 0:
+                        self.logger.error('Failed to update the configuration json of workflow')
+                        return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                             error_code=ErrorCode.USER_ERROR,
+                                                             error_desc='Failed to get the workflow run id jobs',
+                                                             response=response)
                     while len(result) > 0:
                         workflow_runs_list.extend(result)
                         api_body_for_filter["offset"] = api_body_for_filter.get("limit")
@@ -670,8 +663,13 @@ class WorkflowClient(BaseClient):
                     self.client_config, domain_id,workflow_id), IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
 
-                result = response.get('result', {})
-
+                result = response.get('result', None)
+                if result is None:
+                    self.logger.error('Failed to get the list of workflow runs')
+                    return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                         error_code=ErrorCode.USER_ERROR,
+                                                         error_desc='Failed to get the workflow run id jobs',
+                                                         response=response)
                 if response is not None:
                     result = response.get("result", [])
                     while len(result) > 0:
@@ -685,7 +683,8 @@ class WorkflowClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=workflow_runs_list)
+                    response["result"]=workflow_runs_list
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
@@ -699,33 +698,45 @@ class WorkflowClient(BaseClient):
         :type run_id: String
         :return: response dict
         """
+        if None in (run_id):
+            self.logger.error("run_id cannot be None")
+            raise Exception("run_id cannot be None")
         response = None
         try:
-            if run_id is None:
-                self.logger.error("Please pass the mandatory parameter workflow run_id for this method")
-                raise WorkflowError("Please pass the mandatory parameter workflow run_id for this method")
+            workflow_run_jobs_list = []
+            get_all_workflow_run_jobs_url=url_builder.get_all_workflow_run_jobs_url(self.client_config, run_id)
+            if params is None:
+                get_all_workflow_run_jobs_url=get_all_workflow_run_jobs_url+"?fetch_summary=true&recursive_job_search=true"
             else:
-                workflow_run_jobs_list = []
-                response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_all_workflow_run_jobs_url(
-                    self.client_config, run_id)+"?fetch_summary=true&recursive_job_search=true", IWUtils.get_default_header_for_v3(
+                get_all_workflow_run_jobs_url = get_all_workflow_run_jobs_url +\
+                                                    IWUtils.get_query_params_string_from_dict(params=params) + \
+                                                    "&fetch_summary=true&recursive_job_search=true"
+            response = IWUtils.ejson_deserialize(self.call_api("GET", get_all_workflow_run_jobs_url, IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
 
-                result = response.get('result', {})
+            result = response.get('result', None)
+            if result is None:
+                self.logger.error('Failed to get list of workflow runs jobs')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                         error_code=ErrorCode.USER_ERROR,
+                                                         error_desc='Failed to get the workflow run id jobs',
+                                                         response=response)
 
-                if response is not None:
-                    result = response.get("result", [])
-                    while len(result) > 0:
-                        workflow_run_jobs_list.extend(result)
-                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    workflow_run_jobs_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
                                                                           protocol=self.client_config['protocol'],
                                                                           )
-                        response = IWUtils.ejson_deserialize(
+                    response = IWUtils.ejson_deserialize(
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
-                        result = response.get("result", [])
-                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=workflow_run_jobs_list)
+                    result = response.get("result", [])
+            response["result"]=workflow_run_jobs_list
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
