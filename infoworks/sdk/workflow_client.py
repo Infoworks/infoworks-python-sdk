@@ -595,7 +595,8 @@ class WorkflowClient(BaseClient):
                               ).content)
             if response is not None and "result" in response:
                 result = response.get("result", None)
-                return result[0].get('id')
+                if result is not None:
+                    return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response={"id":result[0].get('id')})
         except:
             raise WorkflowError("Unable to get workflow id from name")
 
@@ -611,7 +612,8 @@ class WorkflowClient(BaseClient):
                               ).content)
             if response is not None and "result" in response:
                 result = response.get("result", None)
-                return result.get('name')
+                if result is not None:
+                    return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response={"name":result.get("name")})
         except:
             raise WorkflowError("Unable to get workflow name")
 
@@ -656,7 +658,8 @@ class WorkflowClient(BaseClient):
                             self.call_api("POST", url_to_list_workflow_runs, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token']),data=api_body_for_filter).content)
                         result = response.get("result", [])
-                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=workflow_runs_list)
+                response["result"]=workflow_runs_list
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 workflow_runs_list = []
                 response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_all_workflows_runs_url_with_domain_id(

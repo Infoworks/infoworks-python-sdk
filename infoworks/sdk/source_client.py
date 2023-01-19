@@ -1527,7 +1527,7 @@ class SourceClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 if len(result) > 0:
-                    return result[0]["id"]
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response={"id":result[0]["id"]})
                 else:
                     raise Exception("Could not get the source details")
         except Exception as e:
@@ -1552,7 +1552,7 @@ class SourceClient(BaseClient):
             result=response.get("result",None)
             if result is not None:
                 result = response.get("result", {})
-                return result["name"]
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response={"name":result["name"]})
             else:
                 raise Exception("Could not get the source name")
         except Exception as e:
