@@ -39,6 +39,7 @@ class DomainClient(BaseClient):
                                                     error_code=ErrorCode.GENERIC_ERROR,
                                                     error_desc=parsed_response, job_id=None)
         except Exception as e:
+            self.logger.error(f"Failed to create domain" + str(e))
             raise DomainError(f"Failed to create domain" + str(e))
 
     def list_domains(self, params=None):
@@ -69,7 +70,13 @@ class DomainClient(BaseClient):
                         self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                             self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=domains_list)
+                response["result"] = domains_list
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response="Failed to get list of domains"
+                                                    )
         except Exception as e:
             self.logger.error("Error in listing domains")
             raise DomainError("Error in listing domains" + str(e))
@@ -90,10 +97,12 @@ class DomainClient(BaseClient):
             if not result:
                 self.logger.error(f"Failed to get the domain details for {domain_id} ")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                    error_desc=response, job_id=None)
+                                                    error_desc=f"Failed to get the domain details for {domain_id} ",
+                                                    job_id=None, response=response)
             else:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=result)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
+            self.logger.error(f"Failed to get the domain details for {domain_id} " + str(e))
             raise DomainError(f"Failed to get the domain details for {domain_id} " + str(e))
 
     def update_domain(self, domain_id, config_body):
@@ -111,12 +120,14 @@ class DomainClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
+                self.logger.error(f"{parsed_response}")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
-                                                    error_desc=parsed_response, job_id=None)
+                                                    response=parsed_response, job_id=None)
         except Exception as e:
+            self.logger.error(f"Failed to update the domain {domain_id}" + str(e))
             raise DomainError(f"Failed to update the domain {domain_id}" + str(e))
 
     def delete_domain(self, domain_id):
@@ -134,12 +145,14 @@ class DomainClient(BaseClient):
                 response.content,
             )
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
+                self.logger.error(f"Error in deleting the domain {domain_id}")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
                                                     error_desc=parsed_response.get("details",
-                                                                                   "Error in deleting domain")
+                                                                                   "Error in deleting domain"),
+                                                    response=parsed_response
                                                     )
         except Exception as e:
             self.logger.error(f"Error in deleting the domain {domain_id}")
@@ -175,7 +188,13 @@ class DomainClient(BaseClient):
                         self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                             self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=src_under_domain_list)
+                response["result"] = src_under_domain_list
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response="Failed to get sources associated with the domain"
+                                                    )
         except Exception as e:
             self.logger.error("Error in listing sources under domain")
             raise DomainError("Error in listing sources under domain" + str(e))
@@ -199,11 +218,14 @@ class DomainClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
+                self.logger.error(f"Failed to add source to the domain {domain_id}")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
-                                                    error_desc=parsed_response)
+                                                    error_desc=parsed_response.get('details',
+                                                                                   "Failed to add source to the domain"),
+                                                    response=parsed_response)
         except Exception as e:
             raise DomainError(f"Failed to add source to the domain {domain_id}" + str(e))
 
@@ -227,11 +249,14 @@ class DomainClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
+                self.logger.error(f"Failed to remove source from the domain {domain_id}")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
-                                                    error_desc=parsed_response)
+                                                    error_desc=parsed_response.get('details',
+                                                                                   "Failed to remove source from the domain"),
+                                                    response=parsed_response)
         except Exception as e:
             raise DomainError(f"Failed to remove source from the domain {domain_id}" + str(e))
 
@@ -256,7 +281,8 @@ class DomainClient(BaseClient):
         dataconnection_list = []
         try:
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_get_data_connection,
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
                 if data_connection_id is not None:
@@ -273,7 +299,14 @@ class DomainClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=dataconnection_list)
+                response["result"] = dataconnection_list
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                self.logger.error("Failed to get data connection details")
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response="Failed to get data connection details"
+                                                    )
         except Exception as e:
             raise DomainError(f"Failed to get data connection details" + str(e))
 
@@ -294,9 +327,12 @@ class DomainClient(BaseClient):
             if response.status_code == 200:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
+                self.logger.error("Failed to create data connection")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
-                                                    error_desc=parsed_response, job_id=None)
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Failed to create data connection"),
+                                                    job_id=None, response=parsed_response)
         except Exception as e:
             raise DomainError(f"Failed to create data connection" + str(e))
 
@@ -316,11 +352,14 @@ class DomainClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
+                self.logger.error("Failed to delete data connection")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
-                                                    error_desc=parsed_response, job_id=None)
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Failed to delete data connection"),
+                                                    response=parsed_response)
         except Exception as e:
             raise DomainError(f"Failed in deleting data connection" + str(e))
 
@@ -337,10 +376,13 @@ class DomainClient(BaseClient):
             if len(result) > 0:
                 domain_id = result[0]["entity_id"]
                 self.logger.info("Domain ID is {} ".format(domain_id))
-                return domain_id
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response={"parent_entity_id": domain_id})
             else:
+                self.logger.error("Failed to get parent entity id")
                 self.logger.info("Domain ID is {} ".format(None))
-                return None
+                return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.GENERIC_ERROR,
+                                                    response={"parent_entity_id": None})
 
     def get_domain_id(self, domain_name):
         """
@@ -358,7 +400,12 @@ class DomainClient(BaseClient):
             if response is not None:
                 result = response.get("result", [])
                 domain_id = result[0]["id"]
-                return domain_id
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response={"domain_id": domain_id})
+            else:
+                self.logger.error("Failed to get domain id")
+                return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.GENERIC_ERROR,
+                                                    response={"domain_id": None})
         except Exception as e:
             self.logger.error("Error in finding domain id")
             raise DomainError("Error in finding domain id" + str(e))
