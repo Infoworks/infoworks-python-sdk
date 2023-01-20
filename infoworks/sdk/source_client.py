@@ -782,7 +782,8 @@ class SourceClient(BaseClient):
                 self.logger.error("Failed to submit get list of sources")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                             error_desc="Failed to submit get list of sources", response=response)
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=source_list)
+            response["result"]=source_list
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
 
         except Exception as e:
             self.logger.error("Error in listing sources")
@@ -1101,9 +1102,10 @@ class SourceClient(BaseClient):
                                                            error_desc="Error in listing tables under the source",
                                                            response=response
                                                            )
-                    response["result"]=tables_list
 
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=tables_list)
+                response["result"]=tables_list
+
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in listing tables under source")
             raise SourceError("Error in listing tables under source" + str(e))
