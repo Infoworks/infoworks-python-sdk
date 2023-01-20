@@ -77,7 +77,7 @@ class JobsClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_resubmit_job_for_failed_tables = url_builder.get_jobs_url(self.client_config)+ f"/{job_id}/resubmit"
-
+        url_to_resubmit_job_for_failed_tables = url_to_resubmit_job_for_failed_tables + IWUtils.get_query_params_string_from_dict(params=params)
         response = None
         try:
             response = IWUtils.ejson_deserialize(
@@ -120,6 +120,7 @@ class JobsClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_get_job_logs_text = url_builder.get_jobs_url(self.client_config)+ f"/{job_id}/logs"
+        url_to_get_job_logs_text = url_to_get_job_logs_text + IWUtils.get_query_params_string_from_dict(params=params)
         response = None
         try:
             headers=IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
@@ -162,6 +163,7 @@ class JobsClient(BaseClient):
             url_to_get_cluster_job_details = url_builder.get_jobs_url(self.client_config) + f"/{job_id}/runs"
             if run_id:
                 url_to_get_cluster_job_details=url_to_get_cluster_job_details+f"/{run_id}"
+            url_to_get_cluster_job_details=url_to_get_cluster_job_details+IWUtils.get_query_params_string_from_dict(params=params)
             response = None
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_get_cluster_job_details,
                                                                IWUtils.get_default_header_for_v3(
@@ -288,6 +290,7 @@ class JobsClient(BaseClient):
             if params is None:
                 params = {"limit": 20, "offset": 0}
             url_to_get_cluster_job_details = url_builder.get_source_details_url(self.client_config) + f"/{source_id}/jobs/{job_id}/summary"
+            url_to_get_cluster_job_details = url_to_get_cluster_job_details + IWUtils.get_query_params_string_from_dict(params=params)
             response = None
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_get_cluster_job_details,
                                                                IWUtils.get_default_header_for_v3(
@@ -424,6 +427,7 @@ class JobsClient(BaseClient):
             if params is None:
                 params = {"limit": 20, "offset": 0}
             url_to_initiate_pipeline_job = url_builder.get_pipeline_jobs_url(self.client_config,domain_id=domain_id,pipeline_id=pipeline_id)
+            url_to_initiate_pipeline_job = url_to_initiate_pipeline_job + IWUtils.get_query_params_string_from_dict(params=params)
             response = None
             api_payload = {}
             if version_id:
@@ -463,6 +467,7 @@ class JobsClient(BaseClient):
                 self.logger.error("Pass the mandatory parameter job_id for this method")
                 raise JobsError("Pass the mandatory parameter job_id for this method")
             url_to_cancel_job = url_builder.get_cancel_job_url(self.client_config,job_id=job_id)
+            url_to_cancel_job = url_to_cancel_job + IWUtils.get_query_params_string_from_dict(params=params)
             response = None
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_cancel_job,
                                                                IWUtils.get_default_header_for_v3(

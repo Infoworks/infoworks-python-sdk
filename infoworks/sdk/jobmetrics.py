@@ -325,6 +325,16 @@ class JobMetricsClient(BaseClient):
             raise AdminError("Unable to get pipeline NAME")
 
     def get_source_jobs_metrics_results(self, date_string, source, workflow_id=None, workflow_run_id=None):
+        """
+        Gets the Infoworks source job metrics
+        :param date_string: date string to fetch the data till that date
+        :type date_string: String
+        :param workflow_id: Workflow id to get the jobs
+        :type workflow_id: String
+        :param workflow_run_id: Workflow run id to get the jobs
+        :type workflow_run_id: String
+        :return: response dict
+        """
         src_name = source["name"]
         list_of_jobs_obj = self.get_jobs_of_single_source(source["id"], date_string)
         try:
@@ -581,7 +591,20 @@ class JobMetricsClient(BaseClient):
             print(str(e))
             traceback.print_exc()
 
-    def get_pipeline_build_metrics_results(self, job, workflow_id=None, workflow_run_id=None):
+    def get_pipeline_build_metrics_results(self, job=None, workflow_id=None, workflow_run_id=None):
+        """
+        Gets the Infoworks pipeline build metrics
+        :param job: job object to get the pipeline build metrics details
+        :type job: JSON Object
+        :param workflow_id: Workflow id to get the jobs
+        :type workflow_id: String
+        :param workflow_run_id: Workflow run id to get the jobs
+        :type workflow_run_id: String
+        :return: response dict
+        """
+        if job is None:
+            self.logger.error("job is a mandatory parameter")
+            raise Exception("job is a mandatory parameter")
         temp = []
         job_id = job['id']
         job_type = job['type']
@@ -671,7 +694,17 @@ class JobMetricsClient(BaseClient):
                     temp.append(od)
             self.job_metrics_final.extend(temp)
 
-    def get_abc_job_metrics(self, time_range_for_jobs_in_mins, workflow_id=None, workflow_run_id=None):
+    def get_abc_job_metrics(self, time_range_for_jobs_in_mins=5, workflow_id=None, workflow_run_id=None):
+        """
+        Gets the Infoworks Job metrics
+        :param time_range_for_jobs_in_mins: time range to look out for Infoworks jobs (default 5mins)
+        :type time_range_for_jobs_in_mins: Integer
+        :param workflow_id: Workflow id to get the jobs
+        :type workflow_id: String
+        :param workflow_run_id: Workflow run id to get the jobs
+        :type workflow_run_id: String
+        :return: response dict
+        """
         try:
             sources_info = self.get_source_info()
             delay = int(time_range_for_jobs_in_mins)

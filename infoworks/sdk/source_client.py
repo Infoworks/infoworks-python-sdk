@@ -902,8 +902,9 @@ class SourceClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content
             )
-            if response.status_code == 200:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS)
+            result = parsed_response.get("result",None)
+            if result is not None:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
             else:
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                    error_code=ErrorCode.GENERIC_ERROR,
@@ -1805,7 +1806,7 @@ class SourceClient(BaseClient):
             self.logger.error("Error in listing tables under source")
             raise SourceError("Error in listing tables under source " + str(e))
 
-    def get_tablename_from_id(self, source_id, table_id):
+    def get_tablename_from_id(self, source_id=None, table_id=None):
         """
                 Function to return table name from id
                 :param source_id: Source identifier
@@ -1834,7 +1835,7 @@ class SourceClient(BaseClient):
             self.logger.error("Error in listing tables under source")
             raise SourceError("Error in listing tables under source " + str(e))
 
-    def get_source_configurations(self, source_id):
+    def get_source_configurations(self, source_id=None):
         """
         Function to get source configurations
         :param source_id: Entity identifier for source
@@ -1861,18 +1862,23 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to get the table configurations for {source_id} " + str(e))
 
-    def list_tables_under_source(self, source_id):
+    def list_tables_under_source(self, source_id=None,params=None):
         """
         Function to list tables under source
         :param source_id: Entity identifier for source
         :type source_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :return: response dict
         """
         if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
         try:
             table_list_url = url_builder.list_tables_under_source(self.client_config, source_id)
+            table_list_url = table_list_url + IWUtils.get_query_params_string_from_dict(params=params)
             response = IWUtils.ejson_deserialize(self.call_api("GET", table_list_url,
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token']),
