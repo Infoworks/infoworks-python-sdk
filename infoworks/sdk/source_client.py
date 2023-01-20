@@ -31,6 +31,9 @@ class SourceClient(BaseClient):
                 :type retries: Integer
                 :return: response Object with Job status
         """
+        if None in {source_id}:
+            self.logger.error("source id is mandatory parameters for this method")
+            raise Exception("source id cannot be None")
         failed_count = 0
         response = {}
         timeout = time.time() + poll_timeout
@@ -92,12 +95,10 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         response = None
+        if None in {source_config}:
+            self.logger.error("source config cannot be None")
+            raise Exception("source cnfig cannot be None")
         try:
-            if source_config is None:
-                self.logger.error('Invalid source configuration. Cannot create a new source.')
-                return SourceResponse.parse_result(status=Response.Status.FAILED,
-                                                   error_desc='Invalid source configuration. '
-                                                              'Cannot create a new source.',response={})
             response = IWUtils.ejson_deserialize(
                 self.call_api("POST", url_builder.create_source_url(self.client_config),
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
@@ -154,7 +155,7 @@ class SourceClient(BaseClient):
             }
         :return: response dict
         """
-        if None in (source_id,connection_object):
+        if None in {source_id,connection_object}:
             self.logger.error("Both source id and connection object are mandatory parameters for this method")
             raise Exception("source id and connection object cannot be None")
         if read_passwords_from_secrets:
@@ -195,7 +196,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
 
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         url_for_test_connection = url_builder.get_test_connection_url(self.client_config, source_id)
@@ -234,7 +235,7 @@ class SourceClient(BaseClient):
         :type retries: integer
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         url_for_metacrawl = url_builder.get_test_connection_url(self.client_config, source_id)
@@ -287,7 +288,7 @@ class SourceClient(BaseClient):
         :type poll: Boolean
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         try:
@@ -388,7 +389,7 @@ class SourceClient(BaseClient):
         :type poll: Boolean
         :return: response dict
         """
-        if None in (source_id,tables_to_add_config):
+        if None in {source_id,tables_to_add_config}:
             self.logger.error("source id or tables_to_add_config cannot be None")
             raise Exception("source id or tables_to_add_config cannot be None")
         try:
@@ -435,7 +436,7 @@ class SourceClient(BaseClient):
         :return:  response dict
         """
         try:
-            if None in (source_id, configuration_obj):
+            if None in {source_id, configuration_obj}:
                 self.logger.error("source id or configuration_obj cannot be None")
                 raise Exception("source id or configuration_obj cannot be None")
             configure_tables_tg_url = url_builder.configure_tables_and_tablegroups_url(self.client_config, source_id)
@@ -503,7 +504,7 @@ class SourceClient(BaseClient):
         :return:  response dict
         """
         try:
-            if None in (source_id, table_group_obj):
+            if None in {source_id, table_group_obj}:
                 self.logger.error("source id or table_group_obj cannot be None")
                 raise Exception("source id or table_group_obj cannot be None")
             create_tg_url = url_builder.create_table_group_url(self.client_config, source_id)
@@ -543,7 +544,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id, table_group_id,table_group_obj):
+            if None in {source_id, table_group_id,table_group_obj}:
                 self.logger.error("source id or table_group_id or table_group_obj cannot be None")
                 raise Exception("source id or table_group_id or table_group_obj cannot be None")
             create_tg_url = url_builder.create_table_group_url(self.client_config, source_id) + f"/{table_group_id}"
@@ -573,7 +574,7 @@ class SourceClient(BaseClient):
         :type: JSON dict
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         if params is None:
@@ -627,7 +628,7 @@ class SourceClient(BaseClient):
         :type tg_id: String
         :return: response dict
         """
-        if None in (source_id,tg_id):
+        if None in {source_id,tg_id}:
             self.logger.error("source id or tg_id cannot be None")
             raise Exception("source id or tg_id cannot be None")
         url_to_delete_tg = url_builder.create_table_group_url(self.client_config, source_id).strip("/") + f"/{tg_id}"
@@ -684,7 +685,7 @@ class SourceClient(BaseClient):
         :return:  response dict
         """
         try:
-            if None in (source_id,body):
+            if None in {source_id,body}:
                 self.logger.error("source id or body cannot be None")
                 raise Exception("source id or body cannot be None")
             response = IWUtils.ejson_deserialize(
@@ -725,7 +726,7 @@ class SourceClient(BaseClient):
         :return:  response dict
         """
         try:
-            if None in (job_id):
+            if None in {job_id}:
                 self.logger.error("job id cannot be None")
                 raise Exception("job id cannot be None")
             response = IWUtils.ejson_deserialize(
@@ -797,7 +798,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id,update_body):
+            if None in {source_id,update_body}:
                 self.logger.error("source id or update_body cannot be None")
                 raise Exception("source id or update body cannot be None")
             response = self.call_api("PATCH", url_builder.source_info(self.client_config, source_id),
@@ -829,7 +830,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id):
+            if None in {source_id}:
                 self.logger.error("source id cannot be None")
                 raise Exception("source id cannot be None")
             source_connection_configuration_url = url_builder.get_source_connection_details_url(self.client_config,
@@ -858,7 +859,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id,config_body):
+            if None in {source_id,config_body}:
                 self.logger.error("source id or config_body cannot be None")
                 raise Exception("source id or config_body cannot be None")
             response = self.call_api("POST", url_builder.get_advanced_config_url(self.client_config, source_id),
@@ -890,7 +891,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id,key,config_body):
+            if None in {source_id,key,config_body}:
                 self.logger.error("source id or key or config_body cannot be None")
                 raise Exception("source id or key or config_body cannot be None")
             response = self.call_api("PUT",
@@ -924,7 +925,7 @@ class SourceClient(BaseClient):
         :type: JSON dict
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         if params is None:
@@ -978,7 +979,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id,key):
+            if None in {source_id,key}:
                 self.logger.error("source id or key cannot be None")
                 raise Exception("source id or key cannot be None")
             response = IWUtils.ejson_deserialize(self.call_api("DELETE",
@@ -1007,7 +1008,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id):
+            if None in {source_id}:
                 self.logger.error("source id cannot be None")
                 raise Exception("source id cannot be None")
             source_configuration_url = url_builder.configure_source_url(self.client_config, source_id)
@@ -1034,7 +1035,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in (source_id,config_body):
+        if None in {source_id,config_body}:
             self.logger.error("source id or config_body cannot be None")
             raise Exception("source id or config_body cannot be None")
         source_configuration_url = url_builder.configure_source_url(self.client_config, source_id)
@@ -1067,7 +1068,7 @@ class SourceClient(BaseClient):
         :type: JSON dict
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         if params is None:
@@ -1119,7 +1120,7 @@ class SourceClient(BaseClient):
         :type database_name: String
         :return: response dict
         """
-        if None in (source_id,table_name,schema_name,database_name):
+        if None in {source_id,table_name,schema_name,database_name}:
             self.logger.error("source id or table_name or schema_name or database_name cannot be None")
             raise Exception("source id or table_name or schema_name or database_name cannot be None")
         url_to_list_tables = url_builder.list_tables_under_source(self.client_config, source_id)
@@ -1160,7 +1161,7 @@ class SourceClient(BaseClient):
         :type ingestion_config_only: Boolean
         :return: response dict
         """
-        if None in (source_id,table_id):
+        if None in {source_id,table_id}:
             self.logger.error("source id or table_id cannot be None")
             raise Exception("source id or table_id cannot be None")
         try:
@@ -1193,7 +1194,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in (source_id,table_id,config_body):
+        if None in {source_id,table_id,config_body}:
             self.logger.error("source id or table_id or config_body cannot be None")
             raise Exception("source id or table_id or config_body cannot be None")
         try:
@@ -1231,7 +1232,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in (source_id,table_id,config_body):
+        if None in {source_id,table_id,config_body}:
             self.logger.error("source id or table_id or config_body cannot be None")
             raise Exception("source id or table_id or config_body cannot be None")
         try:
@@ -1270,7 +1271,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in (source_id,table_id,config_body,key):
+        if None in {source_id,table_id,config_body,key}:
             self.logger.error("source id or table_id or config_body or key cannot be None")
             raise Exception("source id or table_id or config_body or key cannot be None")
         try:
@@ -1308,7 +1309,7 @@ class SourceClient(BaseClient):
         :type key: String
         :return: response dict
         """
-        if None in (source_id,table_id,key):
+        if None in {source_id,table_id,key}:
             self.logger.error("source id or table_id or config_body cannot be None")
             raise Exception("source id or table_id or config_body cannot be None")
         try:
@@ -1342,7 +1343,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :return: response dict
         """
-        if None in (source_id,table_id):
+        if None in {source_id,table_id}:
             self.logger.error("source id or table_id  cannot be None")
             raise Exception("source id or table_id cannot be None")
         try:
@@ -1379,7 +1380,7 @@ class SourceClient(BaseClient):
         :param connection_only: Get export configuration connection details only
         :return: response dict
         """
-        if None in (source_id,table_id):
+        if None in {source_id,table_id}:
             self.logger.error("source id or table_id  cannot be None")
             raise Exception("source id or table_id cannot be None")
         if connection_only:
@@ -1418,7 +1419,7 @@ class SourceClient(BaseClient):
         :type table_id: String
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         if table_id is None:
@@ -1488,7 +1489,7 @@ class SourceClient(BaseClient):
             }
         :return: response dict
         """
-        if None in (source_id,file_mappings_config):
+        if None in {source_id,file_mappings_config}:
             self.logger.error("source id or file_mappings_config  cannot be None")
             raise Exception("source id or file_mappings_config cannot be None")
         try:
@@ -1514,7 +1515,7 @@ class SourceClient(BaseClient):
         :param source_name: Source name
         :return: Source Identifier
         """
-        if None in (source_name):
+        if None in {source_name}:
             self.logger.error("source name  cannot be None")
             raise Exception("source name cannot be None")
         params = {"filter": {"name": source_name}}
@@ -1540,7 +1541,7 @@ class SourceClient(BaseClient):
         :param src_id: Source identifier
         :return: Source name
         """
-        if None in (src_id):
+        if None in {src_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         url_to_list_sources = url_builder.list_sources_url(
@@ -1574,7 +1575,7 @@ class SourceClient(BaseClient):
         :param schemas_filter: Filter the schemas to browse
         :param tables_filter: Filter the tables to browse
         """
-        if None in (src_name,src_type,data_lake_path,connection_url,username,password):
+        if None in {src_name,src_type,data_lake_path,connection_url,username,password}:
             self.logger.error("src_name or src_type or data_lake_path or connection_url or username or password cannot be None")
             raise Exception("src_name or src_type or data_lake_path or connection_url or username or password cannot be None")
         if src_type.lower() not in ["oracle", "mysql", "sqlserver", "teradata", "netezza"]:
@@ -1672,7 +1673,7 @@ class SourceClient(BaseClient):
         :type storage_format: String
         :return: response dict
         """
-        if None in (source_id,table_id):
+        if None in {source_id,table_id}:
             self.logger.error("source id or table_id cannot be None")
             raise Exception("source id or table_id cannot be None")
         if natural_keys is None:
@@ -1753,7 +1754,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in (source_id, table_id,table_payload):
+            if None in {source_id, table_id,table_payload}:
                 self.logger.error("source id or table_id or table_payload cannot be None")
                 raise Exception("source id or table_id or table_payload cannot be None")
             response = IWUtils.ejson_deserialize(
@@ -1784,7 +1785,7 @@ class SourceClient(BaseClient):
                 :type table_name: String
                 :return: Table id
         """
-        if None in (source_id, table_name):
+        if None in {source_id, table_name}:
             self.logger.error("source id or table_name cannot be None")
             raise Exception("source id or table_name cannot be None")
         params = {"filter": {"source": source_id, "table": table_name}}
@@ -1813,7 +1814,7 @@ class SourceClient(BaseClient):
                 :type table_id: String
                 :return: Table name
         """
-        if None in (source_id, table_id):
+        if None in {source_id, table_id}:
             self.logger.error("source id or table_id  cannot be None")
             raise Exception("source id or table_id cannot be None")
         params = {"filter": {"source": source_id, "_id": table_id}}
@@ -1840,7 +1841,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         try:
@@ -1867,7 +1868,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :return: response dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
         try:

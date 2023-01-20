@@ -90,7 +90,7 @@ class WorkflowClient(BaseClient):
         }
         :return: response dict
         """
-        if None in (domain_id,workflow_config):
+        if None in {domain_id,workflow_config}:
             self.logger.error("domain id or workflow_config cannot be None")
             raise Exception("domain_id id or workflow_config cannot be None")
         response = None
@@ -128,7 +128,7 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
-        if None in (domain_id,workflow_id):
+        if None in {domain_id,workflow_id}:
             self.logger.error("domain id or workflow_id cannot be None")
             raise Exception("domain_id id or workflow_id cannot be None")
         response = None
@@ -172,7 +172,7 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
-        if None in (domain_id,workflow_id):
+        if None in {domain_id,workflow_id}:
             self.logger.error("domain id or workflow_id cannot be None")
             raise Exception("domain_id id or workflow_id cannot be None")
         response = None
@@ -253,7 +253,7 @@ class WorkflowClient(BaseClient):
         }
         :return: response dict
         """
-        if None in (domain_id,workflow_id,workflow_config):
+        if None in {domain_id,workflow_id,workflow_config}:
             self.logger.error("domain id or workflow_id or workflow_config cannot be None")
             raise Exception("domain_id or workflow_id or workflow_config cannot be None")
         response = None
@@ -293,7 +293,7 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
-        if None in (domain_id,workflow_id):
+        if None in {domain_id,workflow_id}:
             self.logger.error("domain id or workflow_id cannot be None")
             raise Exception("domain_id or workflow_id cannot be None")
         response = None
@@ -329,7 +329,7 @@ class WorkflowClient(BaseClient):
         :type workflow_id: dict
         :return: response dict
         """
-        if None in (workflow_list_body):
+        if None in {workflow_list_body}:
             self.logger.error("workflow_list_body cannot be None")
             raise Exception("workflow_list_body cannot be None")
         response = None
@@ -364,7 +364,7 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
-        if None in (workflow_list_body):
+        if None in {workflow_list_body}:
             self.logger.error("workflow_list_body cannot be None")
             raise Exception("workflow_list_body cannot be None")
         try:
@@ -399,7 +399,7 @@ class WorkflowClient(BaseClient):
         :type workflow_id: String
         :return: response dict
         """
-        if None in (workflow_id,workflow_run_id):
+        if None in {workflow_id,workflow_run_id}:
             self.logger.error("workflow_id or workflow_run_id cannot be None")
             raise Exception("workflow_id or workflow_run_id cannot be None")
         response = None
@@ -440,7 +440,7 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
-        if None in (workflow_id,workflow_run_id):
+        if None in {workflow_id,workflow_run_id}:
             self.logger.error("workflow_id or workflow_run_id cannot be None")
             raise Exception("workflow_id or workflow_run_id cannot be None")
         try:
@@ -488,7 +488,7 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
-        if None in (workflow_id,domain_id):
+        if None in {workflow_id,domain_id}:
             self.logger.error("workflow_id or domain_id cannot be None")
             raise Exception("workflow_id or domain_id cannot be None")
         try:
@@ -527,7 +527,7 @@ class WorkflowClient(BaseClient):
         :type workflow_config: JSON Object
         :return: response dict
         """
-        if None in (workflow_id,domain_id,workflow_config):
+        if None in {workflow_id,domain_id,workflow_config}:
             self.logger.error("workflow_id or domain_id or workflow_config cannot be None")
             raise Exception("workflow_id or domain_id or workflow_config cannot be None")
         response = None
@@ -564,7 +564,7 @@ class WorkflowClient(BaseClient):
         :param domain_name: Entity name of the domain
         :return: Workflow ID
         """
-        if None in (workflow_name):
+        if None in {workflow_name}:
             self.logger.error("workflow_name cannot be None")
             raise Exception("workflow_name cannot be None")
         if domain_id is None and domain_name is None:
@@ -601,7 +601,7 @@ class WorkflowClient(BaseClient):
             raise WorkflowError("Unable to get workflow id from name")
 
     def get_workflow_name(self, domain_id=None, workflow_id=None):
-        if None in (workflow_id,domain_id):
+        if None in {workflow_id,domain_id}:
             self.logger.error("workflow_id or domain_id cannot be None")
             raise Exception("workflow_id or domain_id cannot be None")
         try:
@@ -629,7 +629,7 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
-        if None in (workflow_id,domain_id):
+        if None in {workflow_id,domain_id}:
             self.logger.error("workflow_id or domain_id cannot be None")
             raise Exception("workflow_id or domain_id cannot be None")
         try:
@@ -701,7 +701,7 @@ class WorkflowClient(BaseClient):
         :type run_id: String
         :return: response dict
         """
-        if None in (run_id):
+        if None in {run_id}:
             self.logger.error("run_id cannot be None")
             raise Exception("run_id cannot be None")
         response = None

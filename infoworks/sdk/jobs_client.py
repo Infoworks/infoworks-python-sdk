@@ -22,7 +22,7 @@ class JobsClient(BaseClient):
         :type: JSON dict
         :return: response list of dict
         """
-        if None in (job_id):
+        if None in {job_id}:
             self.logger.error("job_id cannot be None")
             raise Exception("job_id cannot be None")
         if params is None:
@@ -71,7 +71,7 @@ class JobsClient(BaseClient):
         :type job_id: String
         :return: response dict
         """
-        if None in (job_id):
+        if None in {job_id}:
             self.logger.error("job_id cannot be None")
             raise Exception("job_id cannot be None")
         if params is None:
@@ -114,7 +114,7 @@ class JobsClient(BaseClient):
         :type job_id: String
         :return: response dict
         """
-        if None in (job_id):
+        if None in {job_id}:
             self.logger.error("job_id cannot be None")
             raise Exception("job_id cannot be None")
         if params is None:
@@ -153,15 +153,12 @@ class JobsClient(BaseClient):
         :type run_id: String
         :return: response dict
         """
-        if None in (job_id):
+        if None in {job_id}:
             self.logger.error("job_id cannot be None")
             raise Exception("job_id cannot be None")
         try:
             if params is None:
                 params = {"limit": 20, "offset": 0}
-            if job_id is None:
-                self.logger.error("Pass the mandatory parameter job_id for this method")
-                raise JobsError("Pass the mandatory parameter job_id for this method")
             url_to_get_cluster_job_details = url_builder.get_jobs_url(self.client_config) + f"/{job_id}/runs"
             if run_id:
                 url_to_get_cluster_job_details=url_to_get_cluster_job_details+f"/{run_id}"
@@ -230,7 +227,7 @@ class JobsClient(BaseClient):
         :type: JSON dict
         :return: response list of dict
         """
-        if None in (source_id):
+        if None in {source_id}:
             self.logger.error("source_id cannot be None")
             raise Exception("source_id cannot be None")
         if params is None:
@@ -284,7 +281,7 @@ class JobsClient(BaseClient):
         :type job_id: String
         :return: response dict
         """
-        if None in (job_id,source_id):
+        if None in {job_id,source_id}:
             self.logger.error("job_id or source_id cannot be None")
             raise Exception("job_id or source_id cannot be None")
         try:
@@ -315,7 +312,7 @@ class JobsClient(BaseClient):
         :type: JSON dict
         :return: response list of dict
         """
-        if None in (job_id,source_id):
+        if None in {job_id,source_id}:
             self.logger.error("source_id or job_id cannot be None")
             raise Exception("source_id or job_id cannot be None")
         if params is None:
@@ -372,7 +369,7 @@ class JobsClient(BaseClient):
         :type: JSON dict
         :return: response list of dict
         """
-        if None in (domain_id,pipeline_id):
+        if None in {domain_id,pipeline_id}:
             self.logger.error("domain_id or pipeline_id cannot be None")
             raise Exception("domain_id or pipeline_id cannot be None")
         if params is None:
@@ -420,7 +417,7 @@ class JobsClient(BaseClient):
         :type job_type: String
         :return: response dict
         """
-        if None in (domain_id,pipeline_id):
+        if None in {domain_id,pipeline_id}:
             self.logger.error("domain_id or pipeline_id cannot be None")
             raise Exception("domain_id or pipeline_id cannot be None")
         try:
@@ -456,7 +453,7 @@ class JobsClient(BaseClient):
         :type job_id: String
         :return: response dict
         """
-        if None in (job_id):
+        if None in {job_id}:
             self.logger.error("job_id cannot be None")
             raise Exception("job_id cannot be None")
         try:
