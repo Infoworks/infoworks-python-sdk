@@ -59,6 +59,7 @@ class DomainClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
+                initial_msg = response.get("message", "")
                 while len(result) > 0:
                     domains_list.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
@@ -71,6 +72,7 @@ class DomainClient(BaseClient):
                             self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
                 response["result"] = domains_list
+                response["message"] = initial_msg
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
@@ -177,6 +179,7 @@ class DomainClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
+                initial_msg = response.get("message", "")
                 while len(result) > 0:
                     src_under_domain_list.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
@@ -189,6 +192,7 @@ class DomainClient(BaseClient):
                             self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
                 response["result"] = src_under_domain_list
+                response["message"] = initial_msg
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
@@ -285,8 +289,9 @@ class DomainClient(BaseClient):
                                                                    self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
+                initial_msg = response.get("message", "")
                 if data_connection_id is not None:
-                    dataconnection_list.extend([result])
+                    dataconnection_list.extend(result)
                 else:
                     while len(result) > 0:
                         dataconnection_list.extend(result)
@@ -300,6 +305,7 @@ class DomainClient(BaseClient):
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
                 response["result"] = dataconnection_list
+                response["message"] = initial_msg
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 self.logger.error("Failed to get data connection details")
