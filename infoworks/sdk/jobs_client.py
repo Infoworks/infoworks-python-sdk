@@ -38,7 +38,9 @@ class JobsClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            initial_msg=""
             if response is not None:
+                initial_msg = response.get("message","")
                 result = response.get("result", None)
                 if result is None:
                     self.logger.error('Failed to get job details')
@@ -46,7 +48,7 @@ class JobsClient(BaseClient):
                                                          error_desc='Failed to get job details',
                                                          response=response)
                 if job_id is not None:
-                    job_details.extend([result])
+                    job_details.extend(result)
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
@@ -59,7 +61,9 @@ class JobsClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            return GenericResponse.parse_result(job_id=job_id, status=Response.Status.SUCCESS, response=job_details)
+            response["result"]=job_details
+            response["message"]=initial_msg
+            return GenericResponse.parse_result(job_id=job_id, status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
@@ -197,7 +201,9 @@ class JobsClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            initial_msg=""
             if response is not None:
+                initial_msg = response.get("message","")
                 result = response.get("result", [])
                 if len(result) == 0:
                     self.logger.error(f"Failed to get the admin job details.")
@@ -215,6 +221,8 @@ class JobsClient(BaseClient):
                     self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
+            response["result"]=job_details
+            response["message"]=initial_msg
             return GenericResponse.parse_result(job_id=None, status=Response.Status.SUCCESS, response=job_details)
         except Exception as e:
             self.logger.error("Error in getting job details")
@@ -243,12 +251,13 @@ class JobsClient(BaseClient):
             raise JobsError("Pass the mandatory parameter source_id for this method")
         url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
         job_details = []
-
+        initial_msg=""
         try:
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
+                initial_msg = response.get("message","")
                 result = response.get("result", [])
                 if len(result) == 0:
                     self.logger.error(f"Failed to get the source jobs details.")
@@ -256,7 +265,7 @@ class JobsClient(BaseClient):
                                                         error_desc=f"Failed to get the source jobs details.",
                                                         response=response)
                 if source_id is not None:
-                    job_details.extend([result])
+                    job_details.extend(result)
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
@@ -269,7 +278,9 @@ class JobsClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=job_details)
+            response["message"]=initial_msg
+            response["result"]=job_details
+            return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
@@ -331,10 +342,12 @@ class JobsClient(BaseClient):
         job_details = []
 
         try:
+            initial_msg=""
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
+                initial_msg = response.get("message","")
                 result = response.get("result", None)
                 if result is None:
                     self.logger.error(f"Failed to get the interactive jobs list.")
@@ -342,7 +355,7 @@ class JobsClient(BaseClient):
                                                         error_desc=f"Failed to get the interactive jobs list.",
                                                         response=response)
                 if job_id is not None:
-                    job_details.extend([result])
+                    job_details.extend(result)
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
@@ -356,6 +369,7 @@ class JobsClient(BaseClient):
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
             response["result"]=job_details
+            response["message"]=initial_msg
             return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
@@ -381,12 +395,13 @@ class JobsClient(BaseClient):
         url_to_list_jobs = url_builder.get_pipeline_jobs_url(self.client_config,domain_id=domain_id,pipeline_id=pipeline_id)
         url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
         job_details = []
-
+        initial_msg=""
         try:
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
+                initial_msg = response.get("message","")
                 result = response.get("result", [])
                 while len(result) > 0:
                     job_details.extend(result)
@@ -400,6 +415,7 @@ class JobsClient(BaseClient):
                     self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
             response["result"]=job_details
+            response["message"]=initial_msg
             return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")

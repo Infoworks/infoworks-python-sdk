@@ -600,7 +600,7 @@ class SourceClient(BaseClient):
                                                          error_desc=f'Failed to list the table groups under source {source_id}',
                                                          response=response)
                 if tg_id is not None:
-                    tg_list.extend([result])
+                    tg_list.extend(result)
                 else:
                     while len(result) > 0:
                         tg_list.extend(result)
@@ -765,10 +765,12 @@ class SourceClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_sources,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            initial_msg = ""
             if response is not None:
+                initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 while len(result) > 0:
-                    source_list.extend([result])
+                    source_list.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -783,6 +785,7 @@ class SourceClient(BaseClient):
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                             error_desc="Failed to submit get list of sources", response=response)
             response["result"]=source_list
+            response["message"]=initial_msg
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
 
         except Exception as e:
@@ -943,7 +946,9 @@ class SourceClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_adv_config,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            initial_msg=""
             if response is not None:
+                initial_msg = response.get("message","")
                 result = response.get("result", None)
                 if result is None:
                     return SourceResponse.parse_result(status=Response.Status.FAILED,
@@ -952,7 +957,7 @@ class SourceClient(BaseClient):
                                                        response=response
                                                        )
                 if key is not None:
-                    adv_config_list.extend([result])
+                    adv_config_list.extend(result)
                 else:
                     while len(result) > 0:
                         adv_config_list.extend(result)
@@ -966,6 +971,7 @@ class SourceClient(BaseClient):
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
             response["result"]=adv_config_list
+            response["message"]=initial_msg
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in listing advanced configurations")
@@ -1525,10 +1531,13 @@ class SourceClient(BaseClient):
         url_to_list_sources = url_builder.list_sources_url(
             self.client_config) + IWUtils.get_query_params_string_from_dict(params=params)
         try:
+
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_sources,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            initial_msg=""
             if response is not None:
+                initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 if len(result) > 0:
                     return SourceResponse.parse_result(status=Response.Status.SUCCESS, response={"id":result[0]["id"]})
@@ -1855,14 +1864,14 @@ class SourceClient(BaseClient):
                                                                ).content)
             result = response.get('result', False)
             if not result:
-                self.logger.error(f"Failed to get the table configurations for {source_id} ")
+                self.logger.error(f"Failed to get the source configurations for {source_id} ")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                    error_desc=f"Failed to get the table configurations for {source_id} ",
                                                    response=response, job_id=None, source_id=None)
             else:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
-            raise SourceError(f"Failed to get the table configurations for {source_id} " + str(e))
+            raise SourceError(f"Failed to get the source configurations for {source_id} " + str(e))
 
     def list_tables_under_source(self, source_id=None,params=None):
         """
@@ -1873,6 +1882,7 @@ class SourceClient(BaseClient):
         :type: JSON dict
         :return: response dict
         """
+        tables_list=[]
         if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
@@ -1885,13 +1895,28 @@ class SourceClient(BaseClient):
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token']),
                                                                ).content)
-            result = response.get('result', None)
-            if not result:
-                self.logger.error(f"Failed to get the tables under {source_id} ")
-                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc=f"Failed to get the tables under {source_id} ",
-                                                   response=response, job_id=None, source_id=None)
+            initial_msg=""
+            if response is not None:
+                initial_msg = response.get("message", "")
+                result = response.get("result", [])
+                while len(result) > 0:
+                    tables_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+                self.logger.error("Failed to get list of tables")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc="Failed to submit get list of tables", response=response)
+            response["result"] = tables_list
+            response["message"] = initial_msg
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
+            self.logger.error(f"Failed to get the tables under {source_id} " + str(e))
             raise SourceError(f"Failed to get the tables under {source_id} " + str(e))
