@@ -116,9 +116,10 @@ class AdminClient(BaseClient):
                 self.call_api("GET", url_to_list_user_details,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
+                initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 if user_id is not None:
-                    users_list.extend([result])
+                    users_list.extend(result)
                 else:
                     while len(result) > 0:
                         users_list.extend(result)
@@ -132,6 +133,7 @@ class AdminClient(BaseClient):
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
                 response["result"] = users_list
+                response["message"] = initial_msg
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 self.logger.error("Failed to get user details")
@@ -383,8 +385,9 @@ class AdminClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
+                initial_msg = response.get("message", "")
                 if environment_id is not None:
-                    env_details.extend([result])
+                    env_details.extend(result)
                 else:
                     while len(result) > 0:
                         env_details.extend(result)
@@ -398,6 +401,7 @@ class AdminClient(BaseClient):
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
                 response["result"] = env_details
+                response["message"] = initial_msg
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 self.logger.error("Failed to get environment details")
@@ -428,8 +432,9 @@ class AdminClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
+                initial_msg = response.get("message", "")
                 if storage_id is not None:
-                    storage_details.extend([result])
+                    storage_details.extend(result)
                 else:
                     while len(result) > 0:
                         storage_details.extend(result)
@@ -443,6 +448,7 @@ class AdminClient(BaseClient):
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
                 response["result"] = storage_details
+                response["message"] = initial_msg
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 self.logger.error("Failed to get storage details")
@@ -480,8 +486,9 @@ class AdminClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None and "result" in response:
                 result = response.get("result", [])
+                initial_msg = response.get("message", "")
                 if compute_id is not None:
-                    compute_details.extend([result])
+                    compute_details.extend(result)
                 else:
                     while len(result) > 0:
                         compute_details.extend(result)
@@ -495,6 +502,7 @@ class AdminClient(BaseClient):
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
                 response["result"] = compute_details
+                response["message"] = initial_msg
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 self.logger.error("Failed to get compute template details")
