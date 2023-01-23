@@ -15,6 +15,7 @@ from infoworks.sdk.client import InfoworksClientSDK
 refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 iwx_client_prd = InfoworksClientSDK()
 iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
+#iwx_client_prd.initialize_client_with_defaults("http", "10.18.1.32", "3000", refresh_token)
 # print(iwx_client_prd.get_pipeline("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c"))
 # print(iwx_client_prd.get_pipeline_version_details("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c","6298cb771086072f3633bdd9"))
 # print(iwx_client_prd.get_table_info("5053d4f29fd1730ec43a3c75","55712e35a92a2284acbe30d7"))
@@ -23,20 +24,32 @@ iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks
 #print(iwx_client_prd.get_job_details(job_id="2180ce8ca90844a6ca3f4c9a"))
 #print(iwx_client_prd.resubmit_failed_tables_for_ingestion(job_id="63638ec7f9359a21f69a12ba"))
 #print(iwx_client_prd.get_job_logs_as_text_stream(job_id="63bbef6948ef1c7e0fa4bfa"))
-#print(iwx_client_prd.get_cluster_job_details(job_id="63bbef6948ef1c7e0fa4bfa"))
+#print(iwx_client_prd.get_cluster_job_details(job_id="63bfffea48ef1c73e0fa5191"))
 #print(iwx_client_prd.get_admin_job_details())
 #print(iwx_client_prd.get_all_jobs_for_source(source_id="13ade36593776fccbd6a0aad"))
-#print(iwx_client_prd.submit_source_job(source_id="13ade36593776fccbd6a0aad",job_type="source_test_connection"))
+#print(iwx_client_prd.submit_source_job(source_id="0af04695ab81119d1fc15345",body={"job_type":"source_test_connection"},poll=True))
 #print(iwx_client_prd.get_interactive_jobs_list(source_id="13ade36593776fccbd6a0aad",job_id="634d194804c66a1072428fde"))
 #print(iwx_client_prd.get_list_of_pipeline_jobs(domain_id="844e387bafda662359ad3f1e",pipeline_id="bd845ca0cc4c2b98fb959363"))
 #print(iwx_client_prd.submit_pipeline_job(domain_id="844e387bafda662359ad3f1e",pipeline_id="bd845ca0cc4c2b98fb959363",job_type="pipeline_metadata"))
 #print(iwx_client_prd.cancel_job(job_id="20cadff6d52fbb56d2d555ff"))
-#response=iwx_client_prd.get_list_of_workflows_runs(api_body_for_filter={"date_range":{"type":"last","unit":"day","value":100}})
-#print(len(response["result"]))
-print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id="6393148e48ef1c73e0fa4796"))
+#print(iwx_client_prd.get_list_of_workflows_runs(api_body_for_filter={"date_range":{"type":"last","unit":"day","value":100}}))
+#print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id="63bfffea48ef1c73e0fa5191",params={'filter': {'status': 'completed'}}))
+##print(iwx_client_prd.get_environment_details(environment_id="c6dc737fe494cb7959147779"))
+#print(iwx_client_prd.delete_table_advanced_configuration(source_id="13ade36593776fccbd6a0aad",table_id="187021f5a8bf6b1064bffbd5",key="test"))
+#print(iwx_client_prd.delete_table_group(source_id="abcd",tg_id="hgfd"))
+#print(iwx_client_prd.delete_source_advanced_configuration(source_id="abcd",key="test"))
+#print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id='0123'))
+#print(iwx_client_prd.get_cluster_job_details(job_id='63c0e1799e231b03aee3cb10'))
+#print(iwx_client_prd.trigger_workflow(workflow_id='0123', domain_id='0123'))
+#print(iwx_client_prd.get_status_of_workflow(workflow_id='0123', workflow_run_id='0123'))
+#print(iwx_client_prd.get_list_of_sources(params={'filter': {"_id": 'abc'}}))
+#print(iwx_client_prd.get_pipeline(domain_id='0123', pipeline_id='0123'))
+#print(iwx_client_prd.get_environment_details(environment_id='0123'))
+#print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id="63bf8ebedaafb05fdeb4f66f"))
 #print(iwx_client_prd.restart_multiple_workflow(workflow_list_body={"ids":[{"workflow_id":"93d55b7b21a6d28b45f7a957","run_id":"634e97f562b7103be9008ffd"}]}))
 #print(iwx_client_prd.cancel_multiple_workflow(workflow_list_body={"ids":[{"workflow_id":"93d55b7b21a6d28b45f7a957","run_id":"634e97f562b7103be9008ffd"}]}))
 #print(iwx_client_prd.get_list_of_workflows())
+#print(iwx_client_prd.get_status_of_workflow(workflow_id="abcd",workflow_run_id="acd"))
 # get_table_configurations
 # iwx_client_prd.cicd_get_sourceconfig_dumps(source_ids=["4ff2a9c972418ff809ef0e6c"],
 #                                            config_file_dump_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps",
@@ -107,3 +120,11 @@ print(iwx_client_prd.get_list_of_workflow_runs_jobs(run_id="6393148e48ef1c73e0fa
 # cicd_client.get_all_configuration_dumps_from_domain(domain_ids=["8b54662f856ad024b2bb22c4"],
 #                                      config_file_dump_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps",
 #                                      files_overwrite=True)
+
+
+
+#source config test
+#print(iwx_client_prd.get_source_configurations(source_id="0af04695ab81119d1fc15345"))
+
+#print(iwx_client_prd.get_list_of_sources(params={'filter': {"_id": '458cb6f2532161efd214cabb'}}))
+print(iwx_client_prd.list_tables_under_source(source_id= '458cb6f2532161efd214cabb'))

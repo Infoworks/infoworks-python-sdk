@@ -130,4 +130,4 @@ dmypy.json
 
 .idea/
 .dumps/
-test_cases/
+.test_cases/
