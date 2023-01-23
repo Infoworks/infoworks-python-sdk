@@ -77,7 +77,7 @@ class PipelineClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {pipeline_config}:
+            if pipeline_config is None:
                 raise Exception(f"pipeline_config cannot be None")
             domain_id = pipeline_config["domain_id"]
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.create_pipeline_url(
@@ -192,7 +192,7 @@ class PipelineClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {pipeline_config, pipeline_id, domain_id}:
+            if None in {pipeline_id, domain_id} or pipeline_config is None:
                 raise Exception(f"pipeline_config, pipeline_id, domain_id cannot be None")
             response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.update_pipeline_url(
                 self.client_config, domain_id, pipeline_id), IWUtils.get_default_header_for_v3(
@@ -353,7 +353,7 @@ class PipelineClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {pipeline_version_config, pipeline_id, pipeline_version_id, domain_id}:
+            if None in {pipeline_id, pipeline_version_id, domain_id} or pipeline_version_config is None:
                 raise Exception(f"pipeline_version_config, pipeline_id, pipeline_version_id, domain_id cannot be None")
             response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.update_pipeline_version_url(
                 self.client_config, domain_id, pipeline_id, pipeline_version_id), IWUtils.get_default_header_for_v3(
@@ -422,7 +422,7 @@ class PipelineClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {pipeline_config, pipeline_id, domain_id}:
+            if None in {pipeline_id, domain_id} or pipeline_config is None:
                 raise Exception(f"pipeline_config, pipeline_id, domain_id cannot be None")
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.configure_pipeline_url(
                 self.client_config, domain_id, pipeline_id), IWUtils.get_default_header_for_v3(

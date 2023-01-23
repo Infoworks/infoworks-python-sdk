@@ -405,9 +405,15 @@ class DomainClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
-                domain_id = result[0]["id"]
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                    response={"domain_id": domain_id})
+                if len(result) > 0:
+                    domain_id = result[0]["id"]
+                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                        response={"domain_id": domain_id})
+                else:
+                    self.logger.error(f"Failed to get domain id with name {domain_name}")
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.GENERIC_ERROR,
+                                                        response={"domain_id": None})
             else:
                 self.logger.error("Failed to get domain id")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.GENERIC_ERROR,
