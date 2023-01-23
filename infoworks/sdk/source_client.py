@@ -95,7 +95,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         response = None
-        if None in {source_config}:
+        if source_config is None:
             self.logger.error("source config cannot be None")
             raise Exception("source cnfig cannot be None")
         try:

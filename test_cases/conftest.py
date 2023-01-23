@@ -1,6 +1,6 @@
 class ValueStorage:
-    env_id = "09b14e517f9d22faf593b982"
-    storage_id = "0e42b346a101a81e37155fbe"
+    env_id = "884236e85b9b1a69b2907e4c"
+    storage_id = "30b7db33231c6c1890eae9ab"
     cluster_id = "03e08fb415447fd56df9d888"
     source_id = "629780b61086072f3633ba40"
     table_ids = ["629780ec1086072f3633ba4a"]
