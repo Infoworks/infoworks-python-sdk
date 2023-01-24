@@ -122,9 +122,7 @@ iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks
 #                                      files_overwrite=True)
 
 
-
 #source config test
 #print(iwx_client_prd.get_source_configurations(source_id="0af04695ab81119d1fc15345"))
 
 #print(iwx_client_prd.get_list_of_sources(params={'filter': {"_id": '458cb6f2532161efd214cabb'}}))
-print(iwx_client_prd.list_tables_under_source(source_id= '458cb6f2532161efd214cabb'))
