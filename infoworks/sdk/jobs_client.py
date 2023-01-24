@@ -1,5 +1,4 @@
 import traceback
-
 from infoworks.error import JobsError
 from infoworks.sdk import url_builder, local_configurations
 from infoworks.sdk.base_client import BaseClient
@@ -258,8 +257,8 @@ class JobsClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
                 initial_msg = response.get("message","")
-                result = response.get("result", [])
-                if len(result) == 0:
+                result = response.get("result", None)
+                if result is None:
                     self.logger.error(f"Failed to get the source jobs details.")
                     return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                         error_desc=f"Failed to get the source jobs details.",
@@ -326,16 +325,13 @@ class JobsClient(BaseClient):
         :type: JSON dict
         :return: response list of dict
         """
-        if None in {job_id,source_id}:
-            self.logger.error("source_id or job_id cannot be None")
-            raise Exception("source_id or job_id cannot be None")
+        if None in {source_id}:
+            self.logger.error("source_id cannot be None")
+            raise Exception("source_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
 
         url_to_list_jobs = url_builder.get_interactive_jobs_url(self.client_config,source_id)
-        if not source_id:
-            self.logger.error("Pass the mandatory parameter source_id for this method")
-            raise JobsError("Pass the mandatory parameter source_id for this method")
         if job_id:
             url_to_list_jobs = url_to_list_jobs + f"/{job_id}"
         url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
@@ -432,7 +428,7 @@ class JobsClient(BaseClient):
         :type version_id: String
         :param updated_pipeline_parameters: list of pipeline parameters(Key Value pairs)
         :type updated_pipeline_parameters: Array
-        :param job_type: type of job to run on the given source
+        :param job_type: type of job to run on the given pipeline(pipeline_build,pipeline_metadata)
         :type job_type: String
         :return: response dict
         """
@@ -479,9 +475,6 @@ class JobsClient(BaseClient):
         try:
             if params is None:
                 params = {"limit": 20, "offset": 0}
-            if job_id is None:
-                self.logger.error("Pass the mandatory parameter job_id for this method")
-                raise JobsError("Pass the mandatory parameter job_id for this method")
             url_to_cancel_job = url_builder.get_cancel_job_url(self.client_config,job_id=job_id)
             url_to_cancel_job = url_to_cancel_job + IWUtils.get_query_params_string_from_dict(params=params)
             response = None
@@ -489,8 +482,8 @@ class JobsClient(BaseClient):
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token'])
                                                                ).content)
-            result = response.get("result",None)
-            if result is None:
+            result = response.get("message","")
+            if result != 'Requested Job Cancellation':
                 self.logger.error(f"Failed to cancel job {job_id}.")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                     error_desc=response)

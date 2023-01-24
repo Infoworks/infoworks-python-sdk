@@ -7,7 +7,7 @@ import uuid
 
 refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("http", "10.18.1.28", "3001", refresh_token)
+iwx_client.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
 uuid_val = uuid.uuid4()
 cwd = os.getcwd()
 

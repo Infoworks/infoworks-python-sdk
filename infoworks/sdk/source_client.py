@@ -155,7 +155,7 @@ class SourceClient(BaseClient):
             }
         :return: response dict
         """
-        if None in {source_id,connection_object}:
+        if None in {source_id} or connection_object is None:
             self.logger.error("Both source id and connection object are mandatory parameters for this method")
             raise Exception("source id and connection object cannot be None")
         if read_passwords_from_secrets:
@@ -222,7 +222,7 @@ class SourceClient(BaseClient):
                                  polling_frequency=polling_frequency,
                                  retries=retries)
 
-    def source_metacrawl_job_poll(self, source_id=None, poll_timeout=300, polling_frequency=15, retries=3):
+    def source_metacrawl_job_poll(self, source_id=None,poll_timeout=300, polling_frequency=15, retries=3):
         """
         Function to do meta crawl connection
         :param source_id: source identifier entity id
@@ -240,7 +240,8 @@ class SourceClient(BaseClient):
             raise Exception("source id cannot be None")
         url_for_metacrawl = url_builder.get_test_connection_url(self.client_config, source_id)
         test_connection_dict = {
-            "job_type": "source_fetch_metadata"
+            "job_type": "source_fetch_metadata",
+            "overwrite":True
         }
         try:
             response = IWUtils.ejson_deserialize(
@@ -389,7 +390,7 @@ class SourceClient(BaseClient):
         :type poll: Boolean
         :return: response dict
         """
-        if None in {source_id,tables_to_add_config}:
+        if None in {source_id} or tables_to_add_config is None:
             self.logger.error("source id or tables_to_add_config cannot be None")
             raise Exception("source id or tables_to_add_config cannot be None")
         try:
@@ -436,7 +437,7 @@ class SourceClient(BaseClient):
         :return:  response dict
         """
         try:
-            if None in {source_id, configuration_obj}:
+            if None in {source_id} or configuration_obj is None:
                 self.logger.error("source id or configuration_obj cannot be None")
                 raise Exception("source id or configuration_obj cannot be None")
             configure_tables_tg_url = url_builder.configure_tables_and_tablegroups_url(self.client_config, source_id)
@@ -504,7 +505,7 @@ class SourceClient(BaseClient):
         :return:  response dict
         """
         try:
-            if None in {source_id, table_group_obj}:
+            if None in {source_id} or table_group_obj is None:
                 self.logger.error("source id or table_group_obj cannot be None")
                 raise Exception("source id or table_group_obj cannot be None")
             create_tg_url = url_builder.create_table_group_url(self.client_config, source_id)
@@ -544,7 +545,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {source_id, table_group_id,table_group_obj}:
+            if None in {source_id, table_group_id} or table_group_obj is None:
                 self.logger.error("source id or table_group_id or table_group_obj cannot be None")
                 raise Exception("source id or table_group_id or table_group_obj cannot be None")
             create_tg_url = url_builder.create_table_group_url(self.client_config, source_id) + f"/{table_group_id}"
@@ -685,7 +686,7 @@ class SourceClient(BaseClient):
         :return:  response dict
         """
         try:
-            if None in {source_id,body}:
+            if None in {source_id} or body is None:
                 self.logger.error("source id or body cannot be None")
                 raise Exception("source id or body cannot be None")
             response = IWUtils.ejson_deserialize(
@@ -802,7 +803,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {source_id,update_body}:
+            if None in {source_id} or update_body is None:
                 self.logger.error("source id or update_body cannot be None")
                 raise Exception("source id or update body cannot be None")
             response = self.call_api("PATCH", url_builder.source_info(self.client_config, source_id),
@@ -863,7 +864,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {source_id,config_body}:
+            if None in {source_id} or config_body is None:
                 self.logger.error("source id or config_body cannot be None")
                 raise Exception("source id or config_body cannot be None")
             response = self.call_api("POST", url_builder.get_advanced_config_url(self.client_config, source_id),
@@ -895,7 +896,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {source_id,key,config_body}:
+            if None in {source_id,key} or config_body is None:
                 self.logger.error("source id or key or config_body cannot be None")
                 raise Exception("source id or key or config_body cannot be None")
             response = self.call_api("PUT",
@@ -907,7 +908,7 @@ class SourceClient(BaseClient):
                 response.content
             )
             result = parsed_response.get("result",None)
-            if result is not None:
+            if response.status_code == 200:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
             else:
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
@@ -994,9 +995,8 @@ class SourceClient(BaseClient):
                                      url_builder.get_advanced_config_url(self.client_config, source_id).strip(
                                          "/") + f"/{key}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
-            result=response.get("result",None)
-            if result is not None:
-                self.logger.info("Successfully deleted the source advance confguration")
+            if response.get("message","") == "Successfully removed Advance configuration":
+                self.logger.info("Successfully deleted the source advance configuration")
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=response)
             else:
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
@@ -1028,7 +1028,7 @@ class SourceClient(BaseClient):
             if not result:
                 self.logger.error(f"Failed to get the source configurations for {source_id} ")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc=f"Faled to get the source configurations for {source_id}",response=response, job_id=None, source_id=None)
+                                                   error_desc=f"Failed to get the source configurations for {source_id}",response=response, job_id=None, source_id=None)
             else:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
@@ -1043,7 +1043,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in {source_id,config_body}:
+        if None in {source_id} or config_body is None:
             self.logger.error("source id or config_body cannot be None")
             raise Exception("source id or config_body cannot be None")
         source_configuration_url = url_builder.configure_source_url(self.client_config, source_id)
@@ -1121,11 +1121,11 @@ class SourceClient(BaseClient):
         Function to get the table column details
         :param source_id: Entity identifier for source
         :type source_id: String
-        :param table_name: Snowflake Table Name
+        :param table_name: table name at source
         :type table_name: String
-        :param schema_name: Snowflake Schema Name
+        :param schema_name: Schema name at source
         :type schema_name: String
-        :param database_name: Snowflake Database Name
+        :param database_name: Catalog name at source
         :type database_name: String
         :return: response dict
         """
@@ -1203,7 +1203,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in {source_id,table_id,config_body}:
+        if None in {source_id,table_id} or config_body is None:
             self.logger.error("source id or table_id or config_body cannot be None")
             raise Exception("source id or table_id or config_body cannot be None")
         try:
@@ -1241,7 +1241,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in {source_id,table_id,config_body}:
+        if None in {source_id,table_id} or config_body is None:
             self.logger.error("source id or table_id or config_body cannot be None")
             raise Exception("source id or table_id or config_body cannot be None")
         try:
@@ -1280,7 +1280,7 @@ class SourceClient(BaseClient):
         :type config_body: JSON dict
         :return: response dict
         """
-        if None in {source_id,table_id,config_body,key}:
+        if None in {source_id,table_id,key} or config_body is None:
             self.logger.error("source id or table_id or config_body or key cannot be None")
             raise Exception("source id or table_id or config_body or key cannot be None")
         try:
@@ -1292,8 +1292,7 @@ class SourceClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content
             )
-            result = parsed_response.get("result",None)
-            if result is not None:
+            if parsed_response.get("message","") == "Successfully updated Advance configuration":
                 self.logger.info("Successfully updated the table advanced config")
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
             else:
@@ -1327,8 +1326,7 @@ class SourceClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("DELETE", delete_advanced_config_url, IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
-            result=response.get("result",None)
-            if result is not None:
+            if response.get("message","") == "Successfully removed Advance configuration":
                 self.logger.info("Successfully deleted the table advance config")
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=response)
             else:
@@ -1498,7 +1496,7 @@ class SourceClient(BaseClient):
             }
         :return: response dict
         """
-        if None in {source_id,file_mappings_config}:
+        if None in {source_id} or file_mappings_config is None:
             self.logger.error("source id or file_mappings_config  cannot be None")
             raise Exception("source id or file_mappings_config cannot be None")
         try:
@@ -1514,7 +1512,7 @@ class SourceClient(BaseClient):
                                                    error_desc=f"Failed to add the table and configure file mappings",
                                                    response=response, job_id=None, source_id=None)
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=result)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             raise SourceError(f"Failed to add table and configure file mappings " + str(e))
 
@@ -1766,7 +1764,7 @@ class SourceClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in {source_id, table_id,table_payload}:
+            if None in {source_id, table_id} or table_payload is None:
                 self.logger.error("source id or table_id or table_payload cannot be None")
                 raise Exception("source id or table_id or table_payload cannot be None")
             response = IWUtils.ejson_deserialize(
@@ -1895,9 +1893,8 @@ class SourceClient(BaseClient):
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token']),
                                                                ).content)
-            initial_msg=""
+            initial_msg = response.get("message", "")
             if response is not None:
-                initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 while len(result) > 0:
                     tables_list.extend(result)

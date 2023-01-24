@@ -1,0 +1,221 @@
+{
+        "configuration": {
+            "entity_configs": [],
+            "iw_mappings": [
+                {
+                    "entity_type": "source",
+                    "entity_id": "63ceacad9e231b03aee3d135",
+                    "recommendation": {
+                        "source_name": "iwx_sdk_csv_srcname_snowflake_from_s3"
+                    }
+                },
+                {
+                    "entity_type": "table",
+                    "entity_id": "63ceb71f48ef1c73e0fa6d08",
+                    "recommendation": {
+                        "table_name": "CUSTOMERS"
+                    }
+                }
+            ],
+            "entity": {
+                "entity_type": "source",
+                "entity_id": "63ceacad9e231b03aee3d135",
+                "entity_name": "iwx_sdk_csv_srcname_snowflake_from_s3"
+            },
+            "export": {
+                "exported_at": "2023-01-23T16:37:49.191Z",
+                "exported_by": "6RkfybTRQQByEey3v"
+            },
+            "table_configs": [
+                {
+                    "entity_type": "table",
+                    "entity_id": "63ceb71f48ef1c73e0fa6d08",
+                    "configuration": {
+                        "configuration": {
+                            "exclude_legacy_audit_columns": true,
+                            "sync_type": "incremental",
+                            "write_supported_engines": [
+                                "SNOWFLAKE",
+                                "SPARK"
+                            ],
+                            "read_supported_engines": [
+                                "SNOWFLAKE",
+                                "SPARK"
+                            ],
+                            "target_table_name": "CUSTOMERS",
+                            "storage_format": "delta",
+                            "target_schema_name": "IWX_SDK_SRCNAME_CSV_NON_SNOWFLAKE",
+                            "is_table_case_sensitive": false,
+                            "is_schema_case_sensitive": false,
+                            "target_database_name": "IWX_SDK_CSV_SRCNAME_SNOWFLAKE_FROM_S3",
+                            "is_database_case_sensitive": false,
+                            "watermark_column": "ziw_file_modified_timestamp",
+                            "update_strategy": "merge",
+                            "is_scd2_table": false,
+                            "ingest_subdirectories": true,
+                            "is_archive_enabled": false,
+                            "natural_keys": [
+                                "Email"
+                            ],
+                            "generate_history_view": false,
+                            "is_table_user_managed": false,
+                            "does_table_contain_data": false,
+                            "exclude_filename_regex": "",
+                            "include_filename_regex": "",
+                            "target_relative_path": "/customers",
+                            "source_relative_path": "/customers",
+                            "deltaLake_table_name": "CUSTOMERS",
+                            "source_file_type": "csv",
+                            "source_file_properties": {
+                                "header_rows_count": 1,
+                                "column_separator": ",",
+                                "column_enclosed_by": "\"",
+                                "escape_character": "\\",
+                                "encoding": "UTF-8"
+                            }
+                        },
+                        "columns": [
+                            {
+                                "sql_type": 12,
+                                "is_deleted": false,
+                                "name": "Email",
+                                "original_name": "Email",
+                                "target_sql_type": 12,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 12,
+                                "is_deleted": false,
+                                "name": "Address",
+                                "original_name": "Address",
+                                "target_sql_type": 12,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 12,
+                                "is_deleted": false,
+                                "name": "Avatar",
+                                "original_name": "Avatar",
+                                "target_sql_type": 12,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 8,
+                                "is_deleted": false,
+                                "name": "AvgSessionLength3",
+                                "original_name": "Avg. Session Length",
+                                "target_sql_type": 8,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 8,
+                                "is_deleted": false,
+                                "name": "TimeonApp4",
+                                "original_name": "Time on App",
+                                "target_sql_type": 8,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 8,
+                                "is_deleted": false,
+                                "name": "TimeonWebsite5",
+                                "original_name": "Time on Website",
+                                "target_sql_type": 8,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 8,
+                                "is_deleted": false,
+                                "name": "LengthofMembership6",
+                                "original_name": "Length of Membership",
+                                "target_sql_type": 8,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 8,
+                                "is_deleted": false,
+                                "name": "YearlyAmountSpent7",
+                                "original_name": "Yearly Amount Spent",
+                                "target_sql_type": 8,
+                                "is_audit_column": false
+                            },
+                            {
+                                "sql_type": 12,
+                                "is_deleted": false,
+                                "name": "ziw_file_name",
+                                "original_name": "ziw_file_name",
+                                "target_sql_type": 12,
+                                "is_audit_column": true
+                            },
+                            {
+                                "sql_type": 93,
+                                "is_deleted": false,
+                                "name": "ziw_file_modified_timestamp",
+                                "original_name": "ziw_file_modified_timestamp",
+                                "target_sql_type": 93,
+                                "is_audit_column": true,
+                                "format": "yyyy-MM-dd HH:mm:ss"
+                            },
+                            {
+                                "sql_type": 93,
+                                "is_deleted": false,
+                                "name": "ziw_target_timestamp",
+                                "original_name": "ziw_target_timestamp",
+                                "target_sql_type": 93,
+                                "is_audit_column": true,
+                                "target_scale": "6",
+                                "precision": 0,
+                                "target_precision": "0",
+                                "scale": 6,
+                                "format": "yyyy-MM-dd HH:mm:ss"
+                            },
+                            {
+                                "sql_type": 16,
+                                "is_deleted": false,
+                                "name": "ziw_is_deleted",
+                                "original_name": "ziw_is_deleted",
+                                "target_sql_type": 16,
+                                "is_audit_column": true,
+                                "target_scale": "0",
+                                "precision": 0,
+                                "target_precision": "0",
+                                "scale": 0
+                            }
+                        ],
+                        "name": "CUSTOMERS",
+                        "meta_crawl_performed": true
+                    }
+                }
+            ],
+            "table_group_configs": [],
+            "source_configs": {
+                "id": "63ceacad9e231b03aee3d135",
+                "name": "iwx_sdk_csv_srcname_snowflake_from_s3",
+                "data_lake_schema": "PUBLIC",
+                "type": "file",
+                "sub_type": "structured",
+                "connection": {
+                    "warehouse": "TEST_WH",
+                    "source_base_path": "s3a://",
+                    "storage": {
+                        "storage_type": "cloud",
+                        "cloud_type": "s3",
+                        "access_id": "AKIAVKIERLLLZE6N3H6U",
+                        "access_type": "use_access_credentials",
+                        "support_gov_cloud": false,
+                        "endpoint": ""
+                    },
+                    "source_base_path_relative": "field-testing-cs"
+                },
+                "is_generic_jdbc_source_type": false,
+                "is_oem_connector": false,
+                "target_database_name": "PUBLIC",
+                "is_database_case_sensitive": false,
+                "is_schema_case_sensitive": false,
+                "staging_schema_name": null,
+                "is_staging_schema_case_sensitive": null
+            },
+            "file_mappings": [],
+            "topic_mappings": []
+        }
+    }
