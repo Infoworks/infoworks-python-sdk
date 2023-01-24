@@ -65,15 +65,57 @@ def test_create_pipeline():
                                  "domain_id": pytest.domain_id,
                                  "run_job_on_data_plane": False,
                                  })
-            assert pipeline1_create_response["result"]["status"].upper() == "SUCCESS" and \
-                   pipeline2_create_response["result"]["status"].upper() == "SUCCESS" and \
-                   pipeline3_create_response["result"]["status"].upper() == "SUCCESS"
-            pytest.pipelines["pipeline_api_unit_test_1"] = pipeline1_create_response["result"]["pipeline_id"]
-            pytest.pipelines["pipeline_api_unit_test_2"] = pipeline2_create_response["result"]["pipeline_id"]
-            pytest.pipelines["pipeline_api_unit_test_3"] = pipeline3_create_response["result"]["pipeline_id"]
-            logger.info(pipeline1_create_response)
-            logger.info(pipeline2_create_response)
-            logger.info(pipeline3_create_response)
+        elif pytest.env_type == "spark":
+            pipeline1_create_response = iwx_client.create_pipeline(
+                pipeline_config={"name": "pipeline_api_unit_test_1",
+                                 "batch_engine": "SPARK",
+                                 "domain_id": pytest.domain_id,
+                                 "environment_id": pytest.environment_id,
+                                 "storage_id": pytest.storage_id,
+                                 "compute_template_id": pytest.cluster_id,
+                                 "ml_engine": "SPARK",
+                                 "run_job_on_data_plane": True})
+            pipeline2_create_response = iwx_client.create_pipeline(
+                pipeline_config={"name": "pipeline_api_unit_test_2",
+                                 "batch_engine": "SPARK",
+                                 "domain_id": pytest.domain_id,
+                                 "environment_id": pytest.environment_id,
+                                 "storage_id": pytest.storage_id,
+                                 "compute_template_id": pytest.cluster_id,
+                                 "ml_engine": "SPARK",
+                                 "run_job_on_data_plane": True})
+            pipeline3_create_response = iwx_client.create_pipeline(
+                pipeline_config={"name": "pipeline_api_unit_test_3",
+                                 "batch_engine": "SPARK",
+                                 "domain_id": pytest.domain_id,
+                                 "environment_id": pytest.environment_id,
+                                 "storage_id": pytest.storage_id,
+                                 "compute_template_id": pytest.cluster_id,
+                                 "ml_engine": "SPARK",
+                                 "run_job_on_data_plane": True})
+        elif pytest.env_type == "bigquery":
+            pipeline1_create_response = iwx_client.create_pipeline(
+                pipeline_config={"name": "pipeline_api_unit_test_1",
+                                 "batch_engine": str("BIGQUERY"), "domain_id": pytest.domain_id,
+                                 "environment_id": pytest.environment_id, "run_job_on_data_plane": False})
+            pipeline2_create_response = iwx_client.create_pipeline(
+                pipeline_config={"name": "pipeline_api_unit_test_2",
+                                 "batch_engine": str("BIGQUERY"), "domain_id": pytest.domain_id,
+                                 "environment_id": pytest.environment_id, "run_job_on_data_plane": False})
+            pipeline3_create_response = iwx_client.create_pipeline(
+                pipeline_config={"name": "pipeline_api_unit_test_3",
+                                 "batch_engine": str("BIGQUERY"), "domain_id": pytest.domain_id,
+                                 "environment_id": pytest.environment_id, "run_job_on_data_plane": False})
+
+        assert pipeline1_create_response["result"]["status"].upper() == "SUCCESS" and \
+               pipeline2_create_response["result"]["status"].upper() == "SUCCESS" and \
+               pipeline3_create_response["result"]["status"].upper() == "SUCCESS"
+        pytest.pipelines["pipeline_api_unit_test_1"] = pipeline1_create_response["result"]["pipeline_id"]
+        pytest.pipelines["pipeline_api_unit_test_2"] = pipeline2_create_response["result"]["pipeline_id"]
+        pytest.pipelines["pipeline_api_unit_test_3"] = pipeline3_create_response["result"]["pipeline_id"]
+        logger.info(pipeline1_create_response)
+        logger.info(pipeline2_create_response)
+        logger.info(pipeline3_create_response)
     except PipelineError as e:
         print(str(e))
         assert False
@@ -257,14 +299,14 @@ def test_trigger_pipeline_job():
 @pytest.mark.dependency(depends=["test_import_pipeline_configuration_json"])
 def test_update_pipeline():
     try:
-        pipeline_update_response = iwx_client.update_pipeline(pytest.pipelines["pipeline_api_unit_test_2"], pytest.domain_id, {
-            "name": "pipeline_api_unit_test_2_updated"
-        })
+        pipeline_update_response = iwx_client.update_pipeline(pytest.pipelines["pipeline_api_unit_test_2"],
+                                                              pytest.domain_id, {
+                                                                  "name": "pipeline_api_unit_test_2_updated"
+                                                              })
         assert pipeline_update_response["result"]["status"].upper() == "SUCCESS"
     except PipelineError as e:
         print(str(e))
         assert False
-
 
 # @pytest.mark.dependency(depends=[""])
 # def test_update_pipeline_version_details():
