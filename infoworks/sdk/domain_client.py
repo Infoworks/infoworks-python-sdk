@@ -376,7 +376,7 @@ class DomainClient(BaseClient):
         :return: response dict
         """
         parent_entity_url = get_parent_entity_url(self.client_config)
-        response = requests.request("GET", parent_entity_url, data=json_obj)
+        response = requests.request("GET", parent_entity_url, data=json_obj, verify=False)
         if response.status_code == 200 and len(response.json().get("result", [])) > 0:
             result = response.json().get("result", [])
             if len(result) > 0:
