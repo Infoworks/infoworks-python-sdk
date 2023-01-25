@@ -12,6 +12,16 @@ iwx_client.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.tec
 class TestAdminClientSDK:
 
     @pytest.mark.dependency()
+    def test_list_users(self):
+        try:
+            response = iwx_client.list_users()
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except AdminError as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency()
     def test_create_new_user(self):
         try:
             response = iwx_client.create_new_user({
@@ -177,6 +187,27 @@ class TestAdminClientSDK:
     def test_get_source_extension(self):
         try:
             response = iwx_client.get_source_extension(extension_id=pytest.source_extension_id)
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except Exception as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestAdminClientSDK::test_get_source_extension"])
+    def test_update_source_extension(self):
+        try:
+            response = iwx_client.update_source_extension(extension_id=pytest.source_extension_id,data={"name":"iwx_sdk_test_updated"})
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except Exception as e:
+            print(str(e))
+            assert False
+
+
+    @pytest.mark.dependency(depends=["TestAdminClientSDK::test_update_source_extension"])
+    def test_delete_source_extension(self):
+        try:
+            response = iwx_client.delete_source_extension(extension_id=pytest.source_extension_id)
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except Exception as e:

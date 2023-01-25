@@ -11,6 +11,49 @@ class AdminClient(BaseClient):
         super(AdminClient, self).__init__()
         self._datalineage = {"path": [], "dataflow_objects": [], "master_pipeline_ids": [],
                              "master_sourcetable_ids": []}
+    def list_users(self, params=None):
+        """
+        Function to list the users
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_users = url_builder.list_users_url(self.client_config)\
+                            + IWUtils.get_query_params_string_from_dict(params=params)
+
+        users_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_users,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    users_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                           error_code=ErrorCode.GENERIC_ERROR,
+                                                           error_desc="Error in listing users",
+                                                           response=response
+                                                           )
+
+                response["result"]=users_list
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing users")
+            raise AdminError("Error in listing users" + str(e))
 
     def create_new_user(self, data=None, name=None, email=None, roles=None, password=None):
         """
@@ -655,7 +698,7 @@ class AdminClient(BaseClient):
 
     def get_source_extension(self,extension_id):
         """
-        Function to create a source extension
+        Function to get a source extension details
         :return: Response Dict
         """
         try:
@@ -678,6 +721,7 @@ class AdminClient(BaseClient):
             self.logger.error(f"Error getting source extension {extension_id}.")
             raise AdminError(
                 f"Error getting source extension {extension_id}." + str(e))
+
     def create_source_extension(self, data):
         """
         Function to create a source extension
@@ -704,3 +748,58 @@ class AdminClient(BaseClient):
             self.logger.error(f"Error creating source extension {data['name']}.Please do it by yourself from UI.")
             raise AdminError(
                 f"Error creating source extension  {data['name']}.Please do it by yourself from UI." + str(e))
+
+    def update_source_extension(self,extension_id,data=None):
+        """
+        Function to update a source extension
+        :return: Response Dict
+        """
+        if None in {extension_id} and data is None:
+            self.logger.error("Extension id or data cannot be None")
+            raise Exception("Extension id or data cannot be None")
+        try:
+            response = self.call_api("PUT",
+                                     url_builder.create_source_extension_url(self.client_config)+f"/{extension_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                                     ,data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error updating source extension {extension_id}."),
+                                                    response=parsed_response
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error updating source extension {extension_id}.")
+            raise AdminError(
+                f"Error updating source extension {extension_id}." + str(e))
+
+    def delete_source_extension(self,extension_id):
+        """
+        Function to delete a source extension
+        :return: Response Dict
+        """
+        try:
+            response = self.call_api("DELETE",
+                                     url_builder.create_source_extension_url(self.client_config)+f"/{extension_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                                     )
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error deleting source extension {extension_id}."),
+                                                    response=parsed_response
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error deleting source extension {extension_id}.")
+            raise AdminError(
+                f"Error deleting source extension {extension_id}." + str(e))
