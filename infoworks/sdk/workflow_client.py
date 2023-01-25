@@ -392,7 +392,7 @@ class WorkflowClient(BaseClient):
                 self.client_config['bearer_token']), data=workflow_list_body).content)
 
             result_msg = response.get("message", None)
-            if result_msg is None:
+            if result_msg is None and result_msg == "Submitted Cancel Job for Workflow Run":
                 self.logger.error(f'Failed to cancel the workflows')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
                                                      error_code=ErrorCode.USER_ERROR,
