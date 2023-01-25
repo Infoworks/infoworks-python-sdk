@@ -33,6 +33,16 @@ def list_domains_url(config):
                                                            protocol=config['protocol'])
     return request
 
+def list_pipelines_url(config,domain_id):
+    """
+    returns URL to list pipelines under given domain using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list pipelines
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines'.format(ip=config['ip'], port=config['port'],
+                                                           protocol=config['protocol'],domain_id=domain_id)
+    return request
 
 def list_sources_url(config):
     """

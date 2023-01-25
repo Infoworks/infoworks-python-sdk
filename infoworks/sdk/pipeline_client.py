@@ -59,6 +59,56 @@ class PipelineClient(BaseClient):
                 failed_count = failed_count + 1
             time.sleep(polling_frequency)
 
+    def list_pipelines(self, domain_id= None,params=None):
+        """
+        Function to list the pipelines
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response list
+        """
+
+        if None in {domain_id}:
+            self.logger.error("Domain ID cannot be None")
+            raise Exception("Domain ID cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_pipelines = url_builder.list_pipelines_url(self.client_config,domain_id)\
+                            + IWUtils.get_query_params_string_from_dict(params=params)
+
+        pipelines_list = []
+        initial_msg = ""
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_pipelines,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                initial_msg = response.get("message", "")
+                while len(result) > 0:
+                    pipelines_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                           error_code=ErrorCode.GENERIC_ERROR,
+                                                           error_desc="Error in listing pipelines",
+                                                           response=response
+                                                           )
+
+                response["result"]=pipelines_list
+                response["message"] = initial_msg
+            return PipelineResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing pipelines")
+            raise PipelineError("Error in listing pipelines" + str(e))
+
     def create_pipeline(self, pipeline_config=None):
         """
         Create a new Pipeline.
