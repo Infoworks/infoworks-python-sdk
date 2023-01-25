@@ -1,1 +1,58 @@
-{"configuration": {"entity_configs": [], "iw_mappings": [{"recommendation": {"table_group_name": "tg1", "source_name": "cvs_test1"}, "entity_id": "f9c821edafd5cbb77b4c2363", "entity_type": "table_group"}], "entity": {"entity_name": "test_workflow", "entity_id": "8bd61d6b91fd01249a02a0f5", "entity_type": "workflow"}, "workflow": {"description": "", "workflow_graph": {"tasks": [{"is_group": false, "title": "Ingest Source", "description": "", "task_id": "SI_HSDJ", "task_type": "ingest_table_group", "location": "-135 -155", "run_properties": {"num_retries": 0, "trigger_rule": "all_success"}, "task_properties": {"source_id": "dd434f82c140d2a66e125046", "table_group_id": "f9c821edafd5cbb77b4c2363", "ingest_type": "all"}}], "edges": []}}, "export": {"exported_at": "2022-05-11T10:50:07.454Z", "exported_by": "Infoworks Admin"}}}
+{
+        "configuration": {
+            "entity_configs": [],
+            "iw_mappings": [],
+            "entity": {
+                "entity_type": "workflow",
+                "entity_id": "6b50a8aa42bef847ac59a1c9",
+                "entity_name": "workflow_cicd_4"
+            },
+            "export": {
+                "exported_at": "2023-01-25T04:27:38.407Z",
+                "exported_by": "Infoworks Admin"
+            },
+            "workflow": {
+                "description": "",
+                "workflow_graph": {
+                    "tasks": [
+                        {
+                            "is_group": false,
+                            "task_type": "dummy",
+                            "task_id": "DM_MNWC",
+                            "location": "-305 -155",
+                            "title": "Dummy",
+                            "description": "",
+                            "task_properties": {},
+                            "run_properties": {
+                                "trigger_rule": "all_success",
+                                "num_retries": 0
+                            }
+                        },
+                        {
+                            "is_group": false,
+                            "task_type": "bash_command_run",
+                            "task_id": "BS_3UWO",
+                            "location": "-175 -155",
+                            "title": "Bash Script",
+                            "description": "",
+                            "task_properties": {
+                                "is_script_uploaded": false,
+                                "bash_command": "echo \"Hello Workflow\""
+                            },
+                            "run_properties": {
+                                "trigger_rule": "all_success",
+                                "num_retries": 0
+                            }
+                        }
+                    ],
+                    "edges": [
+                        {
+                            "from_task": "DM_MNWC",
+                            "to_task": "BS_3UWO",
+                            "category": "LINK"
+                        }
+                    ]
+                }
+            }
+        }
+    }
