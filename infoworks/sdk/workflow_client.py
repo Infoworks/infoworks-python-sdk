@@ -25,7 +25,7 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
-        initial_msg=""
+        initial_msg = ""
         try:
             if domain_id is None:
                 if params is None:
@@ -37,8 +37,8 @@ class WorkflowClient(BaseClient):
                     self.call_api("GET", url_to_list_workflows,
                                   IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
                 if response is not None:
-                    initial_msg = response.get("message","")
-                    result = response.get("result", [])
+                    initial_msg = response.get("message", "")
+                    result = response.get("result", {}).get("items", [])
                     while len(result) > 0:
                         workflows_list.extend(result)
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
@@ -49,9 +49,9 @@ class WorkflowClient(BaseClient):
                         response = IWUtils.ejson_deserialize(
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
-                        result = response.get("result", [])
-                response["result"]=workflows_list
-                response["message"]=initial_msg
+                        result = response.get("result", {}).get("items", [])
+                response["result"] = workflows_list
+                response["message"] = initial_msg
                 return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 workflows_list = []
@@ -59,10 +59,8 @@ class WorkflowClient(BaseClient):
                     self.client_config, domain_id), IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
 
-                result = response.get('result', {})
-
                 if response is not None:
-                    initial_msg = response.get("message","")
+                    initial_msg = response.get("message", "")
                     result = response.get("result", [])
                     while len(result) > 0:
                         workflows_list.extend(result)
@@ -75,8 +73,8 @@ class WorkflowClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-                response["result"]=workflows_list
-                response["message"]=initial_msg
+                response["result"] = workflows_list
+                response["message"] = initial_msg
                 return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
 
         except Exception as e:
@@ -97,7 +95,7 @@ class WorkflowClient(BaseClient):
         }
         :return: response dict
         """
-        if None in {domain_id,workflow_config}:
+        if None in {domain_id} and workflow_config is None:
             self.logger.error("domain id or workflow_config cannot be None")
             raise Exception("domain_id id or workflow_config cannot be None")
         response = None
@@ -135,7 +133,7 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
-        if None in {domain_id,workflow_id}:
+        if None in {domain_id, workflow_id}:
             self.logger.error("domain id or workflow_id cannot be None")
             raise Exception("domain_id id or workflow_id cannot be None")
         response = None
@@ -179,7 +177,7 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
-        if None in {domain_id,workflow_id}:
+        if None in {domain_id, workflow_id}:
             self.logger.error("domain id or workflow_id cannot be None")
             raise Exception("domain_id id or workflow_id cannot be None")
         response = None
@@ -260,7 +258,7 @@ class WorkflowClient(BaseClient):
         }
         :return: response dict
         """
-        if None in {domain_id,workflow_id,workflow_config}:
+        if None in {domain_id, workflow_id} and workflow_config is None:
             self.logger.error("domain id or workflow_id or workflow_config cannot be None")
             raise Exception("domain_id or workflow_id or workflow_config cannot be None")
         response = None
@@ -300,7 +298,7 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :return: response dict
         """
-        if None in {domain_id,workflow_id}:
+        if None in {domain_id, workflow_id}:
             self.logger.error("domain id or workflow_id cannot be None")
             raise Exception("domain_id or workflow_id cannot be None")
         response = None
@@ -331,19 +329,26 @@ class WorkflowClient(BaseClient):
 
     def restart_multiple_workflow(self, workflow_list_body=None):
         """
-        Triggers Infoworks Data workflow for given workflow id
+        Restart Infoworks Data workflow for given workflow id
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
-        :type workflow_id: dict
+        example: {
+                  "ids": [
+                    {
+                      "workflow_id": "e77850ad5127a2d7dab870ff",
+                      "run_id": "e77850ad5127a2d7dab870ff"
+                    }
+                  ]
+                }
         :return: response dict
         """
-        if None in {workflow_list_body}:
+        if workflow_list_body is None:
             self.logger.error("workflow_list_body cannot be None")
             raise Exception("workflow_list_body cannot be None")
         response = None
         try:
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.restart_multiple_workflows_url(
                 self.client_config), IWUtils.get_default_header_for_v3(
-                self.client_config['bearer_token']),data=workflow_list_body).content)
+                self.client_config['bearer_token']), data=workflow_list_body).content)
 
             result = response.get('result', None)
             if result is None:
@@ -360,27 +365,34 @@ class WorkflowClient(BaseClient):
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
-            self.logger.exception('Error occurred while restarting the workflows.'+str(e))
-            raise WorkflowError('Error occurred while restarting the workflows.'+str(e))
+            self.logger.exception('Error occurred while restarting the workflows.' + str(e))
+            raise WorkflowError('Error occurred while restarting the workflows.' + str(e))
 
     def cancel_multiple_workflow(self, workflow_list_body=None):
         """
-        Triggers Infoworks Data workflow for given workflow id
+        Cancels Infoworks Data workflow for given workflow id
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
-        :type workflow_id: dict
+        example: {
+                  "ids": [
+                    {
+                      "workflow_id": "e77850ad5127a2d7dab870ff",
+                      "run_id": "e77850ad5127a2d7dab870ff"
+                    }
+                  ]
+                }
         :return: response dict
         """
         response = None
-        if None in {workflow_list_body}:
+        if workflow_list_body is None:
             self.logger.error("workflow_list_body cannot be None")
             raise Exception("workflow_list_body cannot be None")
         try:
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.cancel_multiple_workflows_url(
                 self.client_config), IWUtils.get_default_header_for_v3(
-                self.client_config['bearer_token']),data=workflow_list_body).content)
+                self.client_config['bearer_token']), data=workflow_list_body).content)
 
-            result = response.get('result', None)
-            if result is None:
+            result_msg = response.get("message", None)
+            if result_msg is None:
                 self.logger.error(f'Failed to cancel the workflows')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
                                                      error_code=ErrorCode.USER_ERROR,
@@ -394,8 +406,8 @@ class WorkflowClient(BaseClient):
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
-            self.logger.exception('Error occurred while cancelled the workflows.'+str(e))
-            raise WorkflowError('Error occurred while cancelled the workflows.'+str(e))
+            self.logger.exception('Error occurred while cancelled the workflows.' + str(e))
+            raise WorkflowError('Error occurred while cancelled the workflows.' + str(e))
 
     def get_status_of_workflow(self, workflow_run_id=None, workflow_id=None):
         """
@@ -406,7 +418,7 @@ class WorkflowClient(BaseClient):
         :type workflow_id: String
         :return: response dict
         """
-        if None in {workflow_id,workflow_run_id}:
+        if None in {workflow_id, workflow_run_id}:
             self.logger.error("workflow_id or workflow_run_id cannot be None")
             raise Exception("workflow_id or workflow_run_id cannot be None")
         response = None
@@ -447,7 +459,7 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
-        if None in {workflow_id,workflow_run_id}:
+        if None in {workflow_id, workflow_run_id}:
             self.logger.error("workflow_id or workflow_run_id cannot be None")
             raise Exception("workflow_id or workflow_run_id cannot be None")
         try:
@@ -495,7 +507,7 @@ class WorkflowClient(BaseClient):
         :return: response dict
         """
         response = None
-        if None in {workflow_id,domain_id}:
+        if None in {workflow_id, domain_id}:
             self.logger.error("workflow_id or domain_id cannot be None")
             raise Exception("workflow_id or domain_id cannot be None")
         try:
@@ -534,7 +546,7 @@ class WorkflowClient(BaseClient):
         :type workflow_config: JSON Object
         :return: response dict
         """
-        if None in {workflow_id,domain_id,workflow_config}:
+        if None in {workflow_id, domain_id} and workflow_config is None:
             self.logger.error("workflow_id or domain_id or workflow_config cannot be None")
             raise Exception("workflow_id or domain_id or workflow_config cannot be None")
         response = None
@@ -594,7 +606,7 @@ class WorkflowClient(BaseClient):
         try:
             params = {"filter": {"name": workflow_name}}
             url_to_get_wf_info = url_builder.create_workflow_url(self.client_config,
-                                                                       domain_id) + IWUtils.get_query_params_string_from_dict(
+                                                                 domain_id) + IWUtils.get_query_params_string_from_dict(
                 params=params)
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_get_wf_info,
@@ -603,16 +615,17 @@ class WorkflowClient(BaseClient):
             if response is not None and "result" in response:
                 result = response.get("result", None)
                 if result is not None:
-                    return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response={"id":result[0].get('id')})
+                    return WorkflowResponse.parse_result(status=Response.Status.SUCCESS,
+                                                         response={"id": result[0].get('id')})
         except:
             raise WorkflowError("Unable to get workflow id from name")
 
     def get_workflow_name(self, domain_id=None, workflow_id=None):
-        if None in {workflow_id,domain_id}:
+        if None in {workflow_id, domain_id}:
             self.logger.error("workflow_id or domain_id cannot be None")
             raise Exception("workflow_id or domain_id cannot be None")
         try:
-            url_to_get_wf_info = url_builder.create_workflow_url(self.client_config, domain_id)+f"/{workflow_id}"
+            url_to_get_wf_info = url_builder.create_workflow_url(self.client_config, domain_id) + f"/{workflow_id}"
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_get_wf_info,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
@@ -620,39 +633,41 @@ class WorkflowClient(BaseClient):
             if response is not None and "result" in response:
                 result = response.get("result", None)
                 if result is not None:
-                    return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response={"name":result.get("name")})
+                    return WorkflowResponse.parse_result(status=Response.Status.SUCCESS,
+                                                         response={"name": result.get("name")})
         except:
             raise WorkflowError("Unable to get workflow name")
 
-    def get_list_of_workflows_runs(self, domain_id=None, workflow_id=None, params=None, api_body_for_filter={}):
+    def get_list_of_workflow_runs(self, domain_id=None, workflow_id=None, params=None, api_body_for_filter={}):
         """
         Gets List of Infoworks Data workflow runs details for given domain id and workflow id
         :param domain_id: Domain id to which the workflows belongs to, if None all workflows in all domains will be fetched
         :type domain_id: String
         :param workflow_id: Workflow id,if None all workflow runs in all domains will be fetched
         :type workflow_id: String
-        :param api_config: dict of API body
-        :type api_config: dict
+        :param api_body_for_filter: dict of API body
+        example: {'limit': 10000, 'date_range': {'type': 'last', 'unit': 'day', 'value': 1}, 'offset': 0}
         :return: response dict
         """
         response = None
-        initial_msg=""
-        if None in {workflow_id,domain_id}:
-            self.logger.error("workflow_id or domain_id cannot be None")
-            raise Exception("workflow_id or domain_id cannot be None")
+        initial_msg = ""
         try:
             if domain_id is None:
                 url_to_list_workflow_runs = url_builder.get_all_workflows_runs_url(
                     self.client_config) + IWUtils.get_query_params_string_from_dict(params=params)
-                if not api_body_for_filter.get("limit",None):
-                    api_body_for_filter["limit"]=10000
+                if not api_body_for_filter.get("limit", None):
+                    api_body_for_filter["limit"] = 10000
+
+                if not api_body_for_filter.get("date_range", None):
+                    api_body_for_filter["date_range"] = {"type": "last", "unit": "day", "value": 1}
                 api_body_for_filter["offset"] = 0
                 workflow_runs_list = []
                 response = IWUtils.ejson_deserialize(
                     self.call_api("POST", url_to_list_workflow_runs,
-                                  IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data=api_body_for_filter).content)
+                                  IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                  data=api_body_for_filter).content)
                 if response is not None:
-                    initial_msg = response.get("message","")
+                    initial_msg = response.get("message", "")
                     result = response.get("result", [])
                     if len(result) == 0:
                         self.logger.error('Failed to update the configuration json of workflow')
@@ -665,16 +680,17 @@ class WorkflowClient(BaseClient):
                         api_body_for_filter["offset"] = api_body_for_filter.get("limit")
                         response = IWUtils.ejson_deserialize(
                             self.call_api("POST", url_to_list_workflow_runs, IWUtils.get_default_header_for_v3(
-                                self.client_config['bearer_token']),data=api_body_for_filter).content)
+                                self.client_config['bearer_token']), data=api_body_for_filter).content)
                         result = response.get("result", [])
-                response["result"]=workflow_runs_list
+                response["result"] = workflow_runs_list
                 response["message"] = initial_msg
                 return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
                 workflow_runs_list = []
-                response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_all_workflows_runs_url_with_domain_id(
-                    self.client_config, domain_id,workflow_id), IWUtils.get_default_header_for_v3(
-                    self.client_config['bearer_token'])).content)
+                response = IWUtils.ejson_deserialize(
+                    self.call_api("GET", url_builder.get_all_workflows_runs_url_with_domain_id(
+                        self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                        self.client_config['bearer_token'])).content)
 
                 result = response.get('result', None)
                 if result is None:
@@ -685,7 +701,7 @@ class WorkflowClient(BaseClient):
                                                          response=response)
                 if response is not None:
                     result = response.get("result", [])
-                    initial_msg = response.get("message","")
+                    initial_msg = response.get("message", "")
                     while len(result) > 0:
                         workflow_runs_list.extend(result)
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
@@ -697,8 +713,8 @@ class WorkflowClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-                    response["result"]=workflow_runs_list
-                    response["message"]=initial_msg
+                    response["result"] = workflow_runs_list
+                    response["message"] = initial_msg
                 return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
 
         except Exception as e:
@@ -719,44 +735,45 @@ class WorkflowClient(BaseClient):
         response = None
         try:
             workflow_run_jobs_list = []
-            get_all_workflow_run_jobs_url=url_builder.get_all_workflow_run_jobs_url(self.client_config, run_id)
+            get_all_workflow_run_jobs_url = url_builder.get_all_workflow_run_jobs_url(self.client_config, run_id)
             if params is None:
-                get_all_workflow_run_jobs_url=get_all_workflow_run_jobs_url+"?fetch_summary=true&recursive_job_search=true"
+                get_all_workflow_run_jobs_url = get_all_workflow_run_jobs_url + "?fetch_summary=true&recursive_job_search=true"
             else:
-                get_all_workflow_run_jobs_url = get_all_workflow_run_jobs_url +\
-                                                    IWUtils.get_query_params_string_from_dict(params=params) + \
-                                                    "&fetch_summary=true&recursive_job_search=true"
-            response = IWUtils.ejson_deserialize(self.call_api("GET", get_all_workflow_run_jobs_url, IWUtils.get_default_header_for_v3(
+                get_all_workflow_run_jobs_url = get_all_workflow_run_jobs_url + \
+                                                IWUtils.get_query_params_string_from_dict(params=params) + \
+                                                "&fetch_summary=true&recursive_job_search=true"
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", get_all_workflow_run_jobs_url, IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
 
             result = response.get('result', None)
-            initial_msg=""
+            initial_msg = ""
             if result is None:
                 self.logger.error('Failed to get list of workflow runs jobs')
                 return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                         error_code=ErrorCode.USER_ERROR,
-                                                         error_desc='Failed to get the workflow run id jobs',
-                                                         response=response)
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Failed to get the workflow run id jobs',
+                                                     response=response)
 
             if response is not None:
                 result = response.get("result", [])
-                initial_msg = response.get("message","")
+                initial_msg = response.get("message", "")
                 while len(result) > 0:
                     workflow_run_jobs_list.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
-                                                                          ip=self.client_config['ip'],
-                                                                          port=self.client_config['port'],
-                                                                          protocol=self.client_config['protocol'],
-                                                                          )
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
                     response = IWUtils.ejson_deserialize(
-                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
-                                self.client_config['bearer_token'])).content)
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
-            response["result"]=workflow_run_jobs_list
-            response["message"]=initial_msg
+            response["result"] = workflow_run_jobs_list
+            response["message"] = initial_msg
             return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
-            self.logger.exception('Error occurred while trying to get jobs under workflow run.'+str(e))
-            raise WorkflowError('Error occurred while trying to get jobs under workflow run.'+str(e))
+            self.logger.exception('Error occurred while trying to get jobs under workflow run.' + str(e))
+            raise WorkflowError('Error occurred while trying to get jobs under workflow run.' + str(e))
