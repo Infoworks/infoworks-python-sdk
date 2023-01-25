@@ -17,7 +17,7 @@ Supports Infoworks version 5.2 onwards
 - [Example](#example)
 - [Authors](#authors)
 
-![alt text](https://github.com/infoworks/infoworks-python-sdk/blob/master/infoworks_sdk.gif?raw=true)
+![Infoworks SDK Usage GIF](/infoworks_sdk.gif?raw=true)
 
 ## Documentation
 
