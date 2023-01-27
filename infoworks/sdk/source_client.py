@@ -601,7 +601,7 @@ class SourceClient(BaseClient):
                                                          error_desc=f'Failed to list the table groups under source {source_id}',
                                                          response=response)
                 if tg_id is not None:
-                    tg_list.extend(result)
+                    tg_list.extend([result])
                 else:
                     while len(result) > 0:
                         tg_list.extend(result)
@@ -958,7 +958,7 @@ class SourceClient(BaseClient):
                                                        response=response
                                                        )
                 if key is not None:
-                    adv_config_list.extend(result)
+                    adv_config_list.extend([result])
                 else:
                     while len(result) > 0:
                         adv_config_list.extend(result)

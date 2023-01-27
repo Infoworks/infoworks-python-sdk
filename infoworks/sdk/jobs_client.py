@@ -47,7 +47,7 @@ class JobsClient(BaseClient):
                                                          error_desc='Failed to get job details',
                                                          response=response)
                 if job_id is not None:
-                    job_details.extend(result)
+                    job_details.extend([result])
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
@@ -263,20 +263,18 @@ class JobsClient(BaseClient):
                     return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                         error_desc=f"Failed to get the source jobs details.",
                                                         response=response)
-                if source_id is not None:
+
+                while len(result) > 0:
                     job_details.extend(result)
-                else:
-                    while len(result) > 0:
-                        job_details.extend(result)
-                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
                                                                           protocol=self.client_config['protocol'],
                                                                           )
-                        response = IWUtils.ejson_deserialize(
-                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                    response = IWUtils.ejson_deserialize(
+                    self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
-                        result = response.get("result", [])
+                    result = response.get("result", [])
             response["message"]=initial_msg
             response["result"]=job_details
             return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=response)
@@ -310,9 +308,9 @@ class JobsClient(BaseClient):
             if result is None:
                 self.logger.error(f"Failed to get the crawl job summary for job_id {job_id}.")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc=response, job_id=job_id)
+                                                   error_desc=f"Failed to get the crawl job summary for job_id {job_id}.",response=response, job_id=job_id)
             else:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=result)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             raise JobsError(f"Failed to get the crawl job summary for job_id {job_id}." + str(e))
 
@@ -351,7 +349,7 @@ class JobsClient(BaseClient):
                                                         error_desc=f"Failed to get the interactive jobs list.",
                                                         response=response)
                 if job_id is not None:
-                    job_details.extend(result)
+                    job_details.extend([result])
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
