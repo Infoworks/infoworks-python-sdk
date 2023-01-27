@@ -60,7 +60,7 @@ class SourceClient(BaseClient):
                     if failed_count >= retries - 1:
                         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                            error_code=ErrorCode.GENERIC_ERROR,
-                                                           error_desc=response, job_id=job_id,
+                                                           error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
                                                            source_id=source_id)
                     failed_count = failed_count + 1
             except Exception as e:
@@ -75,7 +75,7 @@ class SourceClient(BaseClient):
 
         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                            error_code=ErrorCode.POLL_TIMEOUT,
-                                           error_desc=response, job_id=job_id,
+                                           error_desc="Error occurred during job status poll",response=response, job_id=job_id,
                                            source_id=source_id)
 
     def create_source(self, source_config=None):
@@ -350,7 +350,7 @@ class SourceClient(BaseClient):
                         if failed_count >= retries - 1:
                             return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                                error_code=ErrorCode.GENERIC_ERROR,
-                                                               error_desc=response, job_id=job_id,
+                                                               error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
                                                                source_id=source_id)
                         failed_count = failed_count + 1
                 except Exception as e:
@@ -366,7 +366,7 @@ class SourceClient(BaseClient):
                 self.logger.error(f"Browse table job for source {source_id} failed with {job_status}")
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                    error_code=ErrorCode.GENERIC_ERROR,
-                                                   error_desc=response, job_id=job_id,
+                                                   error_desc=f"Browse table job for source {source_id} failed with {job_status}",response=response, job_id=job_id,
                                                    source_id=source_id)
 
     def add_tables_to_source(self, source_id=None, tables_to_add_config=None, poll_timeout=300, polling_frequency=15,

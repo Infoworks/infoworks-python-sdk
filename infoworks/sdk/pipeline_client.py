@@ -46,7 +46,7 @@ class PipelineClient(BaseClient):
                     if failed_count >= retries - 1:
                         return PipelineResponse.parse_result(status=Response.Status.FAILED,
                                                              error_code=ErrorCode.GENERIC_ERROR,
-                                                             error_desc=response, job_id=job_id,
+                                                             error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
                                                              pipeline_id=pipeline_id)
                     failed_count = failed_count + 1
             except Exception as e:
