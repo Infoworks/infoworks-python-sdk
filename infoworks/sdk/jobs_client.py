@@ -1,9 +1,8 @@
-import traceback
 from infoworks.error import JobsError
-from infoworks.sdk import url_builder, local_configurations
+from infoworks.sdk import url_builder
 from infoworks.sdk.base_client import BaseClient
-from infoworks.sdk.local_configurations import Response, ErrorCode
 from infoworks.sdk.generic_response import GenericResponse
+from infoworks.sdk.local_configurations import Response, ErrorCode
 from infoworks.sdk.utils import IWUtils
 
 
@@ -37,15 +36,15 @@ class JobsClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
-            initial_msg=""
+            initial_msg = ""
             if response is not None:
-                initial_msg = response.get("message","")
+                initial_msg = response.get("message", "")
                 result = response.get("result", None)
                 if result is None:
                     self.logger.error('Failed to get job details')
                     return GenericResponse.parse_result(status=Response.Status.FAILED,
-                                                         error_desc='Failed to get job details',
-                                                         response=response)
+                                                        error_desc='Failed to get job details',
+                                                        response=response)
                 if job_id is not None:
                     job_details.extend(result)
                 else:
@@ -60,8 +59,8 @@ class JobsClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            response["result"]=job_details
-            response["message"]=initial_msg
+            response["result"] = job_details
+            response["message"] = initial_msg
             return GenericResponse.parse_result(job_id=job_id, status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
@@ -79,8 +78,9 @@ class JobsClient(BaseClient):
             raise Exception("job_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
-        url_to_resubmit_job_for_failed_tables = url_builder.get_jobs_url(self.client_config)+ f"/{job_id}/resubmit"
-        url_to_resubmit_job_for_failed_tables = url_to_resubmit_job_for_failed_tables + IWUtils.get_query_params_string_from_dict(params=params)
+        url_to_resubmit_job_for_failed_tables = url_builder.get_jobs_url(self.client_config) + f"/{job_id}/resubmit"
+        url_to_resubmit_job_for_failed_tables = url_to_resubmit_job_for_failed_tables + IWUtils.get_query_params_string_from_dict(
+            params=params)
         response = None
         try:
             response = IWUtils.ejson_deserialize(
@@ -97,13 +97,14 @@ class JobsClient(BaseClient):
             if result.get('id', None) is None:
                 self.logger.error(f'Failed to resubmit the job {job_id}')
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_desc=f'Failed to resubmit the job {job_id}',
-                                                     response=response)
+                                                    error_desc=f'Failed to resubmit the job {job_id}',
+                                                    response=response)
 
             self.logger.info(
-                'Successfully resubmitted the job {job_id} with new job id {new_job_id}.'.format(job_id=job_id,new_job_id=new_job_id))
+                'Successfully resubmitted the job {job_id} with new job id {new_job_id}.'.format(job_id=job_id,
+                                                                                                 new_job_id=new_job_id))
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, job_id=new_job_id,
-                                                 response=response)
+                                                response=response)
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
@@ -122,26 +123,26 @@ class JobsClient(BaseClient):
             raise Exception("job_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
-        url_to_get_job_logs_text = url_builder.get_jobs_url(self.client_config)+ f"/{job_id}/logs"
+        url_to_get_job_logs_text = url_builder.get_jobs_url(self.client_config) + f"/{job_id}/logs"
         url_to_get_job_logs_text = url_to_get_job_logs_text + IWUtils.get_query_params_string_from_dict(params=params)
         response = None
         try:
-            headers=IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
-            headers["Content-Type"]= "application/octet-stream"
+            headers = IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+            headers["Content-Type"] = "application/octet-stream"
 
             response = self.call_api("GET", url_to_get_job_logs_text,
-                              headers)
+                                     headers)
             result = response.content
             if response.status_code != 200:
                 self.logger.error(f'Unable to get logs for job {job_id}')
-                return {"status":Response.Status.FAILED,
-                                                     "error_desc":f'Unable to get logs for the job {job_id}',
-                                                     "response":result}
+                return {"status": Response.Status.FAILED,
+                        "error_desc": f'Unable to get logs for the job {job_id}',
+                        "response": result}
 
             self.logger.info(
                 'Successfully got the logs for the job {job_id}.'.format(job_id=job_id))
-            return {"status":Response.Status.SUCCESS, "job_id":job_id,
-                                                 "response":result}
+            return {"status": Response.Status.SUCCESS, "job_id": job_id,
+                    "response": result}
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response.content))
@@ -165,8 +166,9 @@ class JobsClient(BaseClient):
                 params = {"limit": 20, "offset": 0}
             url_to_get_cluster_job_details = url_builder.get_jobs_url(self.client_config) + f"/{job_id}/runs"
             if run_id:
-                url_to_get_cluster_job_details=url_to_get_cluster_job_details+f"/{run_id}"
-            url_to_get_cluster_job_details=url_to_get_cluster_job_details+IWUtils.get_query_params_string_from_dict(params=params)
+                url_to_get_cluster_job_details = url_to_get_cluster_job_details + f"/{run_id}"
+            url_to_get_cluster_job_details = url_to_get_cluster_job_details + IWUtils.get_query_params_string_from_dict(
+                params=params)
             response = None
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_get_cluster_job_details,
                                                                IWUtils.get_default_header_for_v3(
@@ -176,7 +178,8 @@ class JobsClient(BaseClient):
             if result is None:
                 self.logger.error(f"Failed to get the cluster job details for {job_id}.")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc=f"Failed to get the cluster job details for {job_id}.", job_id=job_id,response=response)
+                                                    error_desc=f"Failed to get the cluster job details for {job_id}.",
+                                                    job_id=job_id, response=response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
@@ -200,9 +203,9 @@ class JobsClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
-            initial_msg=""
+            initial_msg = ""
             if response is not None:
-                initial_msg = response.get("message","")
+                initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 if len(result) == 0:
                     self.logger.error(f"Failed to get the admin job details.")
@@ -212,16 +215,16 @@ class JobsClient(BaseClient):
                 while len(result) > 0:
                     job_details.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
-                                                                          ip=self.client_config['ip'],
-                                                                          port=self.client_config['port'],
-                                                                          protocol=self.client_config['protocol'],
-                                                                          )
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
                     response = IWUtils.ejson_deserialize(
-                    self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
-                    self.client_config['bearer_token'])).content)
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
-            response["result"]=job_details
-            response["message"]=initial_msg
+            response["result"] = job_details
+            response["message"] = initial_msg
             return GenericResponse.parse_result(job_id=None, status=Response.Status.SUCCESS, response=job_details)
         except Exception as e:
             self.logger.error("Error in getting job details")
@@ -250,13 +253,13 @@ class JobsClient(BaseClient):
             raise JobsError("Pass the mandatory parameter source_id for this method")
         url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
         job_details = []
-        initial_msg=""
+        initial_msg = ""
         try:
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
-                initial_msg = response.get("message","")
+                initial_msg = response.get("message", "")
                 result = response.get("result", None)
                 if result is None:
                     self.logger.error(f"Failed to get the source jobs details.")
@@ -277,14 +280,14 @@ class JobsClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            response["message"]=initial_msg
-            response["result"]=job_details
-            return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=response)
+            response["message"] = initial_msg
+            response["result"] = job_details
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
 
-    def get_crawl_job_summary(self, job_id=None, source_id=None,params=None):
+    def get_crawl_job_summary(self, job_id=None, source_id=None, params=None):
         """
         Function to get job summary for given job_id
         :param source_id: source_id for the job
@@ -293,14 +296,16 @@ class JobsClient(BaseClient):
         :type job_id: String
         :return: response dict
         """
-        if None in {job_id,source_id}:
+        if None in {job_id, source_id}:
             self.logger.error("job_id or source_id cannot be None")
             raise Exception("job_id or source_id cannot be None")
         try:
             if params is None:
                 params = {"limit": 20, "offset": 0}
-            url_to_get_cluster_job_details = url_builder.get_source_details_url(self.client_config) + f"/{source_id}/jobs/{job_id}/summary"
-            url_to_get_cluster_job_details = url_to_get_cluster_job_details + IWUtils.get_query_params_string_from_dict(params=params)
+            url_to_get_cluster_job_details = url_builder.get_source_details_url(
+                self.client_config) + f"/{source_id}/jobs/{job_id}/summary"
+            url_to_get_cluster_job_details = url_to_get_cluster_job_details + IWUtils.get_query_params_string_from_dict(
+                params=params)
             response = None
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_get_cluster_job_details,
                                                                IWUtils.get_default_header_for_v3(
@@ -310,7 +315,7 @@ class JobsClient(BaseClient):
             if result is None:
                 self.logger.error(f"Failed to get the crawl job summary for job_id {job_id}.")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc=response, job_id=job_id)
+                                                    error_desc=response, job_id=job_id)
             else:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=result)
         except Exception as e:
@@ -331,19 +336,19 @@ class JobsClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
 
-        url_to_list_jobs = url_builder.get_interactive_jobs_url(self.client_config,source_id)
+        url_to_list_jobs = url_builder.get_interactive_jobs_url(self.client_config, source_id)
         if job_id:
             url_to_list_jobs = url_to_list_jobs + f"/{job_id}"
         url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
         job_details = []
 
         try:
-            initial_msg=""
+            initial_msg = ""
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
-                initial_msg = response.get("message","")
+                initial_msg = response.get("message", "")
                 result = response.get("result", None)
                 if result is None:
                     self.logger.error(f"Failed to get the interactive jobs list.")
@@ -364,9 +369,9 @@ class JobsClient(BaseClient):
                             self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                                 self.client_config['bearer_token'])).content)
                         result = response.get("result", [])
-            response["result"]=job_details
-            response["message"]=initial_msg
-            return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=response)
+            response["result"] = job_details
+            response["message"] = initial_msg
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
@@ -382,42 +387,44 @@ class JobsClient(BaseClient):
         :type: JSON dict
         :return: response list of dict
         """
-        if None in {domain_id,pipeline_id}:
+        if None in {domain_id, pipeline_id}:
             self.logger.error("domain_id or pipeline_id cannot be None")
             raise Exception("domain_id or pipeline_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
 
-        url_to_list_jobs = url_builder.get_pipeline_jobs_url(self.client_config,domain_id=domain_id,pipeline_id=pipeline_id)
+        url_to_list_jobs = url_builder.get_pipeline_jobs_url(self.client_config, domain_id=domain_id,
+                                                             pipeline_id=pipeline_id)
         url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
         job_details = []
-        initial_msg=""
+        initial_msg = ""
         try:
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
-                initial_msg = response.get("message","")
+                initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 while len(result) > 0:
                     job_details.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
-                                                                          ip=self.client_config['ip'],
-                                                                          port=self.client_config['port'],
-                                                                          protocol=self.client_config['protocol'],
-                                                                          )
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
                     response = IWUtils.ejson_deserialize(
-                    self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
-                    self.client_config['bearer_token'])).content)
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
-            response["result"]=job_details
-            response["message"]=initial_msg
-            return GenericResponse.parse_result( status=Response.Status.SUCCESS, response=response)
+            response["result"] = job_details
+            response["message"] = initial_msg
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
 
-    def submit_pipeline_job(self, domain_id=None, pipeline_id=None, version_id=None, job_type=None, updated_pipeline_parameters=[], params=None):
+    def submit_pipeline_job(self, domain_id=None, pipeline_id=None, version_id=None, job_type=None,
+                            updated_pipeline_parameters=[], params=None):
         """
         Function to initiate a pipeline job for given pipeline id
         :param domain_id: domain_id for the pipeline
@@ -432,31 +439,33 @@ class JobsClient(BaseClient):
         :type job_type: String
         :return: response dict
         """
-        if None in {domain_id,pipeline_id}:
+        if None in {domain_id, pipeline_id}:
             self.logger.error("domain_id or pipeline_id cannot be None")
             raise Exception("domain_id or pipeline_id cannot be None")
         try:
             if params is None:
                 params = {"limit": 20, "offset": 0}
-            url_to_initiate_pipeline_job = url_builder.get_pipeline_jobs_url(self.client_config,domain_id=domain_id,pipeline_id=pipeline_id)
-            url_to_initiate_pipeline_job = url_to_initiate_pipeline_job + IWUtils.get_query_params_string_from_dict(params=params)
+            url_to_initiate_pipeline_job = url_builder.get_pipeline_jobs_url(self.client_config, domain_id=domain_id,
+                                                                             pipeline_id=pipeline_id)
+            url_to_initiate_pipeline_job = url_to_initiate_pipeline_job + IWUtils.get_query_params_string_from_dict(
+                params=params)
             response = None
             api_payload = {}
             if version_id:
-                api_payload["version_id"]=version_id
+                api_payload["version_id"] = version_id
             if job_type:
-                api_payload["job_type"]=job_type
+                api_payload["job_type"] = job_type
             if updated_pipeline_parameters:
                 api_payload["updated_pipeline_parameters"] = updated_pipeline_parameters
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_to_initiate_pipeline_job,
                                                                IWUtils.get_default_header_for_v3(
-                                                                   self.client_config['bearer_token']),data=api_payload
+                                                                   self.client_config['bearer_token']), data=api_payload
                                                                ).content)
             result = response.get('result', None)
             if result is None:
                 self.logger.error(f"Failed to initiate {job_type} job for pipeline {pipeline_id}.")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc=response)
+                                                    error_desc=response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
@@ -475,14 +484,14 @@ class JobsClient(BaseClient):
         try:
             if params is None:
                 params = {"limit": 20, "offset": 0}
-            url_to_cancel_job = url_builder.get_cancel_job_url(self.client_config,job_id=job_id)
+            url_to_cancel_job = url_builder.get_cancel_job_url(self.client_config, job_id=job_id)
             url_to_cancel_job = url_to_cancel_job + IWUtils.get_query_params_string_from_dict(params=params)
             response = None
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_cancel_job,
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token'])
                                                                ).content)
-            result = response.get("message","")
+            result = response.get("message", "")
             if result != 'Requested Job Cancellation':
                 self.logger.error(f"Failed to cancel job {job_id}.")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
@@ -490,4 +499,3 @@ class JobsClient(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             raise JobsError(f"Failed to cancel job for job_id {job_id}." + str(e))
-
