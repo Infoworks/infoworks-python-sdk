@@ -98,7 +98,7 @@ class SourceClient(BaseClient):
         response = None
         if source_config is None:
             self.logger.error("source config cannot be None")
-            raise Exception("source cnfig cannot be None")
+            raise Exception("source config cannot be None")
         try:
             response = IWUtils.ejson_deserialize(
                 self.call_api("POST", url_builder.create_source_url(self.client_config),
