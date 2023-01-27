@@ -44,6 +44,7 @@ class Job(object):
 
 
 class ErrorCode(object):
+    POLL_TIMEOUT = 1408
     ENTITY_NOT_FOUND = 1400
     DEPENDENT_ENTITY_NOT_FOUND = 1401
     ENTITY_STATE_INCONSISTENT = 1402
