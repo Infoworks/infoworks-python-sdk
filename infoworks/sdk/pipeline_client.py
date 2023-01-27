@@ -76,7 +76,6 @@ class PipelineClient(BaseClient):
                             + IWUtils.get_query_params_string_from_dict(params=params)
 
         pipelines_list = []
-        initial_msg = ""
         try:
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_pipelines,

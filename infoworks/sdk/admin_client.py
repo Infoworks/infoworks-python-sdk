@@ -4,13 +4,14 @@ from infoworks.sdk.base_client import BaseClient
 from infoworks.sdk.local_configurations import Response, ErrorCode
 from infoworks.sdk.generic_response import GenericResponse
 from infoworks.sdk.utils import IWUtils
-from test_cases.conftest import ValueStorage
+
 
 class AdminClient(BaseClient):
     def __init__(self):
         super(AdminClient, self).__init__()
         self._datalineage = {"path": [], "dataflow_objects": [], "master_pipeline_ids": [],
                              "master_sourcetable_ids": []}
+
     def list_users(self, params=None):
         """
         Function to list the users
@@ -20,7 +21,7 @@ class AdminClient(BaseClient):
         """
         if params is None:
             params = {"limit": 20, "offset": 0}
-        url_to_list_users = url_builder.list_users_url(self.client_config)\
+        url_to_list_users = url_builder.list_users_url(self.client_config) \
                             + IWUtils.get_query_params_string_from_dict(params=params)
 
         users_list = []
@@ -43,12 +44,12 @@ class AdminClient(BaseClient):
                     result = response.get("result", None)
                     if result is None:
                         return GenericResponse.parse_result(status=Response.Status.FAILED,
-                                                           error_code=ErrorCode.GENERIC_ERROR,
-                                                           error_desc="Error in listing users",
-                                                           response=response
-                                                           )
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing users",
+                                                            response=response
+                                                            )
 
-                response["result"]=users_list
+                response["result"] = users_list
 
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
@@ -188,7 +189,7 @@ class AdminClient(BaseClient):
                 initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 if user_id is not None:
-                    users_list.extend(result)
+                    users_list.extend([result])
                 else:
                     while len(result) > 0:
                         users_list.extend(result)
@@ -503,7 +504,7 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 initial_msg = response.get("message", "")
                 if storage_id is not None:
-                    storage_details.extend(result)
+                    storage_details.extend([result])
                 else:
                     while len(result) > 0:
                         storage_details.extend(result)
@@ -557,7 +558,7 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 initial_msg = response.get("message", "")
                 if compute_id is not None:
-                    compute_details.extend(result)
+                    compute_details.extend([result])
                 else:
                     while len(result) > 0:
                         compute_details.extend(result)
@@ -592,13 +593,13 @@ class AdminClient(BaseClient):
         """
         response = self.get_environment_details(environment_id=None, params={"filter": {"name": environment_name}})
         if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
-            result = response.get("result", {}).get("response", {}).get("result",{})
+            result = response.get("result", {}).get("response", {}).get("result", {})
             if len(result) > 0:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS,
                                                     response={"environment_id": result[0]["id"]})
             else:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                    response={"environment_id":None}
+                                                    response={"environment_id": None}
                                                     )
         else:
             return GenericResponse.parse_result(status=Response.Status.FAILED,
@@ -615,7 +616,7 @@ class AdminClient(BaseClient):
         """
         response = self.get_environment_details(environment_id=environment_id, params=None)
         if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
-            result = response.get("result", {}).get("response", {}).get("result",[])
+            result = response.get("result", {}).get("response", {}).get("result", [])
             if len(result) > 0:
                 for item in result[0]["data_warehouse_configuration"]["warehouse"]:
                     if item["is_default_warehouse"]:
@@ -648,7 +649,7 @@ class AdminClient(BaseClient):
         response = self.get_compute_template_details(environment_id, compute_id=None, is_interactive=True,
                                                      params={"filter": {"name": compute_name}})
         if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
-            result = response.get("result", {}).get("response", {}).get("result",[])
+            result = response.get("result", {}).get("response", {}).get("result", [])
             if len(result) > 0:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS,
                                                     response={"compute_id": result[0]["id"]})
@@ -656,13 +657,14 @@ class AdminClient(BaseClient):
                 response_non_interactive = self.get_compute_template_details(environment_id, compute_id=None,
                                                                              is_interactive=False,
                                                                              params={"filter": {"name": compute_name}})
-                result_non_interactive = response_non_interactive.get("result", {}).get("response", {}).get("result",[])
+                result_non_interactive = response_non_interactive.get("result", {}).get("response", {}).get("result",
+                                                                                                            [])
                 if len(result_non_interactive) > 0:
                     return GenericResponse.parse_result(status=Response.Status.SUCCESS,
                                                         response={"compute_id": result_non_interactive[0]["id"]})
                 else:
                     return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                        response={"compute_id":None}
+                                                        response={"compute_id": None}
                                                         )
         else:
             return GenericResponse.parse_result(status=Response.Status.FAILED,
@@ -680,9 +682,9 @@ class AdminClient(BaseClient):
         :return: Response Dict
         """
         response = self.get_storage_details(environment_id=environment_id,
-                                          params={"filter": {"name": storage_name}})
+                                            params={"filter": {"name": storage_name}})
         if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
-            result = response.get("result", {}).get("response", {}).get("result",[])
+            result = response.get("result", {}).get("response", {}).get("result", [])
             if len(result) > 0:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS,
                                                     response={"storage_id": result[0]["id"]})
@@ -696,20 +698,20 @@ class AdminClient(BaseClient):
                                                 response=response.get("result", {}).get("response", {})
                                                 )
 
-    def get_source_extension(self,extension_id):
+    def get_source_extension(self, extension_id):
         """
         Function to get a source extension details
         :return: Response Dict
         """
         try:
             response = self.call_api("GET",
-                                     url_builder.create_source_extension_url(self.client_config)+f"/{extension_id}",
+                                     url_builder.create_source_extension_url(self.client_config) + f"/{extension_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
                                      )
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
@@ -737,7 +739,7 @@ class AdminClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
@@ -749,7 +751,7 @@ class AdminClient(BaseClient):
             raise AdminError(
                 f"Error creating source extension  {data['name']}.Please do it by yourself from UI." + str(e))
 
-    def update_source_extension(self,extension_id,data=None):
+    def update_source_extension(self, extension_id, data=None):
         """
         Function to update a source extension
         :return: Response Dict
@@ -759,13 +761,13 @@ class AdminClient(BaseClient):
             raise Exception("Extension id or data cannot be None")
         try:
             response = self.call_api("PUT",
-                                     url_builder.create_source_extension_url(self.client_config)+f"/{extension_id}",
+                                     url_builder.create_source_extension_url(self.client_config) + f"/{extension_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
-                                     ,data=data)
+                                     , data=data)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
@@ -778,20 +780,20 @@ class AdminClient(BaseClient):
             raise AdminError(
                 f"Error updating source extension {extension_id}." + str(e))
 
-    def delete_source_extension(self,extension_id):
+    def delete_source_extension(self, extension_id):
         """
         Function to delete a source extension
         :return: Response Dict
         """
         try:
             response = self.call_api("DELETE",
-                                     url_builder.create_source_extension_url(self.client_config)+f"/{extension_id}",
+                                     url_builder.create_source_extension_url(self.client_config) + f"/{extension_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
                                      )
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.GENERIC_ERROR,
