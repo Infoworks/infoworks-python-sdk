@@ -59,9 +59,10 @@ class PipelineClient(BaseClient):
                 failed_count = failed_count + 1
             time.sleep(polling_frequency)
 
-    def list_pipelines(self, domain_id= None,params=None):
+    def list_pipelines(self, domain_id=None, params=None):
         """
         Function to list the pipelines
+        :param domain_id: Entity identified for domain
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
         :return: response list
@@ -72,8 +73,8 @@ class PipelineClient(BaseClient):
             raise Exception("Domain ID cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
-        url_to_list_pipelines = url_builder.list_pipelines_url(self.client_config,domain_id)\
-                            + IWUtils.get_query_params_string_from_dict(params=params)
+        url_to_list_pipelines = url_builder.list_pipelines_url(self.client_config, domain_id) \
+                                + IWUtils.get_query_params_string_from_dict(params=params)
 
         pipelines_list = []
         try:
@@ -96,12 +97,12 @@ class PipelineClient(BaseClient):
                     result = response.get("result", None)
                     if result is None:
                         return PipelineResponse.parse_result(status=Response.Status.FAILED,
-                                                           error_code=ErrorCode.GENERIC_ERROR,
-                                                           error_desc="Error in listing pipelines",
-                                                           response=response
-                                                           )
+                                                             error_code=ErrorCode.GENERIC_ERROR,
+                                                             error_desc="Error in listing pipelines",
+                                                             response=response
+                                                             )
 
-                response["result"]=pipelines_list
+                response["result"] = pipelines_list
                 response["message"] = initial_msg
             return PipelineResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
@@ -615,4 +616,3 @@ class PipelineClient(BaseClient):
                 f"Failed to get pipeline lineage for pipeline {pipeline_id} and column {column_name} " + str(e))
             raise PipelineError(
                 f"Failed to get pipeline lineage for pipeline {pipeline_id} and column {column_name} " + str(e))
-
