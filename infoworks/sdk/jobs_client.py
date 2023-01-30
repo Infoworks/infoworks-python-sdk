@@ -71,6 +71,8 @@ class JobsClient(BaseClient):
         Resubmit the failed tables for Ingestion
         :param job_id: job id to resubmit the failed tables for ingestion
         :type job_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :return: response dict
         """
         if None in {job_id}:
@@ -116,6 +118,8 @@ class JobsClient(BaseClient):
         Get the job logs as text stream
         :param job_id: job id to get logs
         :type job_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :return: response dict
         """
         if None in {job_id}:
@@ -156,6 +160,8 @@ class JobsClient(BaseClient):
         :type job_id: String
         :param run_id: run_id for the job
         :type run_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :return: response dict
         """
         if None in {job_id}:
@@ -476,6 +482,8 @@ class JobsClient(BaseClient):
         Function to cancel an Infoworks Job
         :param job_id: job_id in Infoworks
         :type job_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :return: response dict
         """
         if None in {job_id}:

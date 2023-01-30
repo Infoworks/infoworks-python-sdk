@@ -17,6 +17,8 @@ class WorkflowClient(BaseClient):
         Gets List of Infoworks Data workflow details for given domain id
         :param domain_id: Domain id to which the workflows belongs to, if None all workflows in all domains will be fetched
         :type domain_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :return: response dict
         """
         response = None
@@ -326,6 +328,7 @@ class WorkflowClient(BaseClient):
         """
         Restart Infoworks Data workflow for given workflow id
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
+        :type workflow_list_body: JSON Dict
         example: {
                   "ids": [
                     {
@@ -367,6 +370,7 @@ class WorkflowClient(BaseClient):
         """
         Cancels Infoworks Data workflow for given workflow id
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
+        :type workflow_list_body: JSON dict
         example: {
                   "ids": [
                     {
@@ -577,6 +581,8 @@ class WorkflowClient(BaseClient):
         :param domain_id: Entity identifier of the domain
         :param domain_name: Entity name of the domain
         :return: Workflow ID
+
+        example response : {"id": "884236e85b9b1a69b2907e4c"}
         """
         if None in {workflow_name}:
             self.logger.error("workflow_name cannot be None")
@@ -616,6 +622,16 @@ class WorkflowClient(BaseClient):
             raise WorkflowError("Unable to get workflow id from name")
 
     def get_workflow_name(self, domain_id=None, workflow_id=None):
+        """
+        Function to get workflow name from ID
+        :param workflow_id: Id of the workflow
+        :type workflow_id: String
+        :param domain_id: Entity identifier of the domain
+        :type domain_id: String
+        :return: Workflow name
+
+        example response : {"name": "sample_workflow"}
+        """
         if None in {workflow_id, domain_id}:
             self.logger.error("workflow_id or domain_id cannot be None")
             raise Exception("workflow_id or domain_id cannot be None")
@@ -640,9 +656,12 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :param workflow_id: Workflow id,if None all workflow runs in all domains will be fetched
         :type workflow_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :param api_body_for_filter: dict of API body
+        :type api_body_for_filter: JSON dict
         example: {'limit': 10000, 'date_range': {'type': 'last', 'unit': 'day', 'value': 1}, 'offset': 0}
-        :return: response dict
+        :return: response List
         """
         response = None
         initial_msg = ""
@@ -722,6 +741,8 @@ class WorkflowClient(BaseClient):
          Gets List of Infoworks Data workflow runs jobs details
         :param run_id: Run id to which the workflows belongs to, if None all workflows
         :type run_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
         :return: response dict
         """
         if None in {run_id}:

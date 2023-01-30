@@ -75,7 +75,7 @@ class SourceClient(BaseClient):
 
         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                            error_code=ErrorCode.POLL_TIMEOUT,
-                                           error_desc="Error occurred during job status poll",response=response, job_id=job_id,
+                                           error_desc="Job status poll timeout occurred",response=response, job_id=job_id,
                                            source_id=source_id)
 
     def create_source(self, source_config=None):
@@ -127,6 +127,7 @@ class SourceClient(BaseClient):
         """
         Function to configure the source connection
         :param read_passwords_from_secrets: True/False. If True then the passwords are read from the secret manager info provided
+        :type read_passwords_from_secrets: Boolean
         :param source_id: source identifier entity id
         :type source_id: String
         :param connection_object: The json dict containing the source connection details
@@ -438,7 +439,7 @@ class SourceClient(BaseClient):
         The configuration_obj should be similar to the json object that is the output of GET source configuration API
         :param source_id: source identifier entity id
         :type source_id: String
-        :param configuration_obj: Configurations for the tables and tablegroups
+        :param configuration_obj: Configurations for the tables and tablegroups under given source id
         :type configuration_obj: JSON object
         :return:  response dict
         """
@@ -496,8 +497,9 @@ class SourceClient(BaseClient):
         """
         Function to create table group
         :param source_id: entity identifier for source
-        :param table_group_obj:
-
+        :type source_id: String
+        :param table_group_obj: JSON object containing create table group payload
+        :type table_group_obj: JSON object
         table_group_obj = {
          "environment_compute_template": {"environment_compute_template_id": "536592c8ceb69bbbe730d452"},
          "name": "tg_name",
@@ -534,10 +536,13 @@ class SourceClient(BaseClient):
 
     def update_table_group(self, source_id=None, table_group_id=None, table_group_obj=None):
         """
-        Function to create table group
+        Function to update table group
         :param source_id: entity identifier for source
+        :type source_id: String
         :param table_group_id: entity identifier for tablegroup
-        :param table_group_obj:
+        :type table_group_id: String
+        :param table_group_obj: JSON object containing update table group body
+        :type table_group_obj: JSON object
 
         table_group_obj = {
          "environment_compute_template": {"environment_compute_template_id": "536592c8ceb69bbbe730d452"},
@@ -576,7 +581,9 @@ class SourceClient(BaseClient):
         """
         Function to list the table groups under source
         :param source_id: entity identifier for source
+        :type source_id: String
         :param tg_id: id of table group config to fetch
+        :type tg_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
         :return: response dict
@@ -662,7 +669,9 @@ class SourceClient(BaseClient):
         """
         Function to trigger the jobs related to source
         :param source_id: source entity id
-        :param body:
+        :type source_id: String
+        :param body: JSON body containing type of job to trigger
+        :type body: JSON dict
 
         metadata_job_body_example = {
                 "job_type": "source_fetch_metadata",
@@ -931,7 +940,7 @@ class SourceClient(BaseClient):
 
     def get_advanced_configuration_of_sources(self, source_id=None, params=None, key=None):
         """
-        Function to list the advanced configuration of source
+        Function to get the advanced configuration of source
         :param source_id: Entity identifier for source
         :type source_id: String
         :param key: Name of advanced config to get
@@ -1535,6 +1544,7 @@ class SourceClient(BaseClient):
         """
         Function to return source id from name
         :param source_name: Source name
+        :type: String
         :return: Source Identifier
         """
         if None in {source_name}:
@@ -1564,6 +1574,7 @@ class SourceClient(BaseClient):
         """
         Function to return source name from Id
         :param src_id: Source identifier
+        :type: String
         :return: Source name
         """
         if None in {src_id}:

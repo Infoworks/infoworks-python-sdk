@@ -17,7 +17,7 @@ class DomainClient(BaseClient):
         """
         Function to create domain
         :param config_body: JSON payload for the domain creation
-
+        :type config_body: JSON dict
         config_body_example = {
          "name": "Abhi",
          "description": "Example Domain",
@@ -87,6 +87,7 @@ class DomainClient(BaseClient):
         """
         Function to get the domain details
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :return: response dict
         """
         try:
@@ -111,7 +112,9 @@ class DomainClient(BaseClient):
         """
         Function to update the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :param config_body: JSON payload for the domain creation
+        :type config_body: JSON dict
         :return: response dict
         """
         try:
@@ -136,6 +139,7 @@ class DomainClient(BaseClient):
         """
         Function to delete the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :return: response dict
         """
         url_to_delete_domain = url_builder.create_domain_url(self.client_config) + f"/{domain_id}"
@@ -164,7 +168,9 @@ class DomainClient(BaseClient):
         """
         Function to get sources associated with the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: JSON dict
         :return: response dict
         """
         if params is None:
@@ -207,7 +213,9 @@ class DomainClient(BaseClient):
         """
         Function to add source to the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :param config_body: JSON payload
+        :type config_body: JSON dict
         config_body_example =
             {
              "entity_ids": ["33164bbaa811058db5c3941d"]
@@ -237,7 +245,9 @@ class DomainClient(BaseClient):
         """
         Function to remove source from the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :param config_body: JSON payload
+        :type config_body: JSON dict
 
         config_body_example =
             {
@@ -268,7 +278,9 @@ class DomainClient(BaseClient):
         """
         Function to create data connection in the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :param data_connection_id: id of dataconnection for which config has to be fetched
+        :type data_connection_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
         :return: response dict
@@ -320,7 +332,9 @@ class DomainClient(BaseClient):
         """
         Function to create data connection in the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :param config_body: JSON payload
+        :type config_body: JSON dict
         :return: response dict
         """
         try:
@@ -346,7 +360,9 @@ class DomainClient(BaseClient):
         """
         Function to delete data connection in the domain
         :param domain_id: Entity identifier for the domain
+        :type domain_id: String
         :param data_connection_id: Entity identifier for the data connection
+        :type data_connection_id: String
         :return: response dict
         """
         try:
@@ -371,8 +387,9 @@ class DomainClient(BaseClient):
 
     def get_parent_entity_id(self, json_obj):
         """
-        Function to get domain
+        Function to get parent entity for any entity
         :param json_obj: Example: {"entity_id": workflow_id, "entity_type": "workflow"}
+        :type json_obj: JSON dict
         :return: response dict
         """
         parent_entity_url = get_parent_entity_url(self.client_config)
@@ -394,6 +411,7 @@ class DomainClient(BaseClient):
         """
         Function to get domain id using domain name
         :param domain_name: Name of the domain
+        :type domain_name: String
         :return: Entity identifier of the domain
         """
         params = {"filter": {"name": domain_name}}

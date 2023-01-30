@@ -15,6 +15,20 @@ class PipelineClient(BaseClient):
     def poll_job(self, pipeline_id=None, job_id=None, poll_timeout=local_configurations.POLLING_TIMEOUT,
                  polling_frequency=local_configurations.POLLING_FREQUENCY_IN_SEC,
                  retries=local_configurations.NUM_POLLING_RETRIES):
+        """
+        Function to poll the pipeline job
+        :param pipeline_id: ID of the pipeline
+        :type pipeline_id: String
+        :param job_id: job_id of the pipeline
+        :type job_id: String
+        :param poll_timeout: Polling timeout(default is 1200 seconds)
+        :type poll_timeout: Integer
+        :param polling_frequency: Frequency of the polling(default is 15seconds)
+        :type polling_frequency: Integer
+        :param retries: Number of retries in case of failure(default 3)
+        :type retries: Integer
+        :return: response dict
+        """
         failed_count = 0
         response = {}
         timeout = time.time() + poll_timeout
@@ -63,6 +77,7 @@ class PipelineClient(BaseClient):
         """
         Function to list the pipelines
         :param domain_id: Entity identified for domain
+        :type domain_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
         :return: response list
@@ -267,13 +282,14 @@ class PipelineClient(BaseClient):
     def sql_import_into_pipeline(self, pipeline_id, domain_id, import_configs=None, sql_query=None):
         """
         Import SQL into given pipeline id
-        :param pipeline_id Id of the pipeline
-        :type Id as string
-        :param domain_id Domain Id to which the pipeline belongs to
-        :type Id as string
+        :param pipeline_id: Id of the pipeline
+        :type pipeline_id: String
+        :param domain_id: Domain Id to which the pipeline belongs to
+        :type domain_id: String
         :param import_configs: a JSON object containing configurations to import the SQL
         :type import_configs: JSON Object
         :param sql_query: SQL query
+        :type sql_query: String
         import_configs_example = {
         "dry_run": "{boolean}",
          "sql": "select * from employee",
@@ -546,8 +562,11 @@ class PipelineClient(BaseClient):
         """
         Function to get pipeline id
         :param pipeline_name: Name of the pipeline
+        :type pipeline_name: String
         :param domain_id: Entity identifier of the domain
+        :type domain_id: String
         :param domain_name: Entity name of the domain
+        :type domain_name: String
         :return: response Dict
         """
         if domain_id is None and domain_name is None:
@@ -588,10 +607,15 @@ class PipelineClient(BaseClient):
         """
         Function to get the lineage of column in pipeline
         :param pipeline_id: Entity identifier for pipeline
+        :type pipeline_id: String
         :param pipeline_version_id: Entity identifier for pipeline version
+        :type pipeline_version_id: String
         :param domain_id: Entity identifier of the domain
+        :type domain_id: String
         :param column_name: Name of the column for which lineage needs to be tracked
+        :type column_name: String
         :param node: Node name from which the column lineage needs to be tracked
+        :type node: String
         :return: response dict
         """
         url_to_get_pipeline_lineage = url_builder.get_pipeline_lineage_url(self.client_config,

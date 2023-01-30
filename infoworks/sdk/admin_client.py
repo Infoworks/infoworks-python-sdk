@@ -60,10 +60,15 @@ class AdminClient(BaseClient):
         """
         Function to create new user in Infoworks
         :param data: JSON Payload with user details
+        :type data: JSON
         :param name: Name of the user
+        :type name: String
         :param email: Email Id of the user
+        :type email: String
         :param roles: Comma seperated list of roles
+        :type roles: List
         :param password: Password of the user
+        :type password: String
 
         example_data = {
             "profile": {
@@ -117,7 +122,9 @@ class AdminClient(BaseClient):
         """
         Function to update the user
         :param user_id: Entity identifier of the user
+        :type user_id: String
         :param data: JSON Payload with user details
+        :type data: JSON dict
         :return: response dict
         """
         try:
@@ -144,6 +151,7 @@ class AdminClient(BaseClient):
         """
         Function to delete the user
         :param user_id: Entity identifier of the user
+        :type user_id: String
         :return: response dict
         """
         try:
@@ -170,7 +178,9 @@ class AdminClient(BaseClient):
         """
         Function to get the user details
         :param user_id: Entity identifier of the user
+        :type user_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: JSON dict
         :return: response dict
         """
         if params is None:
@@ -220,8 +230,11 @@ class AdminClient(BaseClient):
         """
         Function to make domains accessible to the user
         :param domain_id: Entity identifier for domain
+        :type domain_id: String
         :param user_id: Entity identifier for user
+        :type user_id: String
         :param user_email: email_id of the user
+        :type user_email: String
         :return: response dict
         """
         status_flag = "failed"
@@ -282,7 +295,9 @@ class AdminClient(BaseClient):
         """
         Function to get the lineage of source
         :param src_id: Entity identifier for source
+        :type src_id: String
         :param table_id: Entity identifier for table
+        :type table_id: String
         :return: source lineage info
         """
         url_to_get_table_details = url_builder.get_table_configuration(self.client_config, src_id, table_id)
@@ -320,9 +335,13 @@ class AdminClient(BaseClient):
         """
         Function to get the lineage of pipeline
         :param domain_id: Entity identifier for domain
+        :type domain_id: String
         :param pipeline_id: Entity identifier for pipeline
+        :type pipeline_id: String
         :param pipeline_version_id: Entity identifier for pipeline version
+        :type pipeline_version_id: String
         :param pl_description: pipeline description
+        :type pl_description: String
         :return: response dict
         """
         url_to_get_pipelineversion_details = url_builder.list_pipeline_versions_url(self.client_config, domain_id,
@@ -413,8 +432,11 @@ class AdminClient(BaseClient):
         """
         Function to ger complete lineage info
         :param sourcetable_ids: Comma seperated src_id:table_id combination
+        :type sourcetable_ids: Comma seperated src_id:table_id combination
         :param domain_id: Entity identifier for domain
+        :type domain_id: String
         :param pipeline_id: Entity identifier for pipeline
+        :type pipeline_id: String
         :return: lineage info
         """
         self._datalineage["master_pipeline_ids"].append(pipeline_id)
@@ -441,7 +463,9 @@ class AdminClient(BaseClient):
         """
         Function to get environment details
         :param environment_id: Entity identifier of the environment
+        :type environment_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: Dict
         :return: Response Dict
         """
         if params is None and environment_id is None:
@@ -487,8 +511,11 @@ class AdminClient(BaseClient):
         """
         Function to get storage details
         :param environment_id: Entity identifier of the environment
+        :type environment_id: String
         :param storage_id: Entity identifier of the storage
+        :type storage_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: Dict
         :return: Response Dict
         """
         if params is None and storage_id is None:
@@ -534,9 +561,13 @@ class AdminClient(BaseClient):
         """
          Function to get compute template details
          :param environment_id: Entity identifier of the environment
+         :type environment_id: String
          :param compute_id: Entity identifier of compute cluster
+         :type compute_id: String
          :param is_interactive: True/False. If True only the details of interactive clusters is fetched
+         :type is_interactive: Boolean
          :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+         :type params: Dict
          :return: Response Dict
          """
         if params is None and compute_id is None:
@@ -701,6 +732,8 @@ class AdminClient(BaseClient):
     def get_source_extension(self, extension_id):
         """
         Function to get a source extension details
+        :param extension_id: ID of the source extension
+        :type extension_id: String
         :return: Response Dict
         """
         try:
@@ -728,7 +761,7 @@ class AdminClient(BaseClient):
         """
         Function to create a source extension
         :param data: Source extension details body
-        :type data: String
+        :type data: Dict
         :return: Response Dict
         """
         try:
@@ -754,6 +787,10 @@ class AdminClient(BaseClient):
     def update_source_extension(self, extension_id, data=None):
         """
         Function to update a source extension
+        :param extension_id: Id of the source extension to update
+        :type extension_id: String
+        :param data: JSON dict of the body to update
+        :type data: JSON dict
         :return: Response Dict
         """
         if None in {extension_id} and data is None:
@@ -783,6 +820,8 @@ class AdminClient(BaseClient):
     def delete_source_extension(self, extension_id):
         """
         Function to delete a source extension
+        :param extension_id: ID of the source extension
+        :type extension_id: String
         :return: Response Dict
         """
         try:
