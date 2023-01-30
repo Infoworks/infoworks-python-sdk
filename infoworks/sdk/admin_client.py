@@ -478,7 +478,14 @@ class AdminClient(BaseClient):
                 self.call_api("GET", url_to_list_environments,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
-                result = response.get("result", [])
+                result = response.get("result", None)
+                if result is None:
+                    self.logger.error("Failed to get environment details for given id")
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.USER_ERROR,
+                                                        response=response,
+                                                        error_desc="Failed to get environment details"
+                                                        )
                 initial_msg = response.get("message", "")
                 if environment_id is not None:
                     env_details.extend([result])
@@ -501,7 +508,8 @@ class AdminClient(BaseClient):
                 self.logger.error("Failed to get environment details")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.USER_ERROR,
-                                                    response="Failed to get environment details"
+                                                    error_desc="Failed to get environment details",
+                                                    response=response
                                                     )
         except Exception as e:
             self.logger.error("Error in getting environment details " + str(e))
@@ -528,7 +536,14 @@ class AdminClient(BaseClient):
                 self.call_api("GET", url_to_list_storages,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
-                result = response.get("result", [])
+                result = response.get("result", None)
+                if result is None:
+                    self.logger.error("Failed to get environment storage details for given id")
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.USER_ERROR,
+                                                        response=response,
+                                                        error_desc="Failed to get environment storage details"
+                                                        )
                 initial_msg = response.get("message", "")
                 if storage_id is not None:
                     storage_details.extend([result])
@@ -586,7 +601,14 @@ class AdminClient(BaseClient):
                 self.call_api("GET", url_to_list_computes,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None and "result" in response:
-                result = response.get("result", [])
+                result = response.get("result", None)
+                if result is None:
+                    self.logger.error("Failed to get environment compute details for given id")
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.USER_ERROR,
+                                                        response=response,
+                                                        error_desc="Failed to get environment compute details"
+                                                        )
                 initial_msg = response.get("message", "")
                 if compute_id is not None:
                     compute_details.extend([result])
@@ -609,7 +631,8 @@ class AdminClient(BaseClient):
                 self.logger.error("Failed to get compute template details")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.USER_ERROR,
-                                                    response="Failed to get compute template details"
+                                                    error_desc="Failed to get compute template details",
+                                                    response=response
                                                     )
         except Exception as e:
             self.logger.error("Error in getting compute template details " + str(e))
