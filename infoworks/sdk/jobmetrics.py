@@ -726,11 +726,14 @@ class JobMetricsClient(BaseClient):
 
             result = []
             header = ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time', 'job_end_time', 'job_status', 'source_name', 'source_file_names', 'source_schema_name', 'source_database_name', 'table_group_name', 'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value', 'target_schema_name', 'target_table_name', 'pre_target_count', 'fetch_records_count', 'target_records_count', 'job_link']
+
             if len(self.job_metrics_final) > 0:
                 for item in self.job_metrics_final:
                     dict_temp = {}
                     for i in header:
                         dict_temp[i] = item.get(i)
+                        if i=="job_link" and dict_temp.get("job_id",None)!=None:
+                            dict_temp[i]=f"{self.client_config['protocol']}://{self.client_config['ip']}:{self.client_config['port']}/job/logs?jobId={dict_temp.get('job_id','')}"
                     result.append(copy.deepcopy(dict_temp))
                 return result
             else:
