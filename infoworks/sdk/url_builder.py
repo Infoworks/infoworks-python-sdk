@@ -33,7 +33,8 @@ def list_domains_url(config):
                                                            protocol=config['protocol'])
     return request
 
-def list_pipelines_url(config,domain_id):
+
+def list_pipelines_url(config, domain_id):
     """
     returns URL to list pipelines under given domain using v3 api
     :param config: client configurations
@@ -41,8 +42,10 @@ def list_pipelines_url(config,domain_id):
     :return: url to list pipelines
     """
     request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines'.format(ip=config['ip'], port=config['port'],
-                                                           protocol=config['protocol'],domain_id=domain_id)
+                                                                                 protocol=config['protocol'],
+                                                                                 domain_id=domain_id)
     return request
+
 
 def list_sources_url(config):
     """
@@ -594,6 +597,7 @@ def get_all_workflows_url(config):
         protocol=config['protocol'])
     return request
 
+
 def get_all_workflows_runs_url(config):
     """
     returns URL to fetch all workflows runs in Infoworks using v3 api
@@ -606,7 +610,8 @@ def get_all_workflows_runs_url(config):
         protocol=config['protocol'])
     return request
 
-def get_all_workflow_run_jobs_url(config,run_id):
+
+def get_all_workflow_run_jobs_url(config, run_id):
     """
     returns URL to fetch all workflows run jobs in Infoworks using v3 api
     :param config: client configurations
@@ -621,6 +626,7 @@ def get_all_workflow_run_jobs_url(config,run_id):
         protocol=config['protocol'])
     return request
 
+
 def restart_multiple_workflows_url(config):
     """
     returns URL to restart multiple workflows using Infoworks using v3 api
@@ -632,6 +638,7 @@ def restart_multiple_workflows_url(config):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
 
 def cancel_multiple_workflows_url(config):
     """
@@ -645,7 +652,8 @@ def cancel_multiple_workflows_url(config):
         protocol=config['protocol'])
     return request
 
-def get_all_workflows_runs_url_with_domain_id(config,domain_id,workflow_id):
+
+def get_all_workflows_runs_url_with_domain_id(config, domain_id, workflow_id):
     """
     returns URL to fetch all workflows runs in Infoworks using v3 api
     :param config: client configurations
@@ -653,44 +661,47 @@ def get_all_workflows_runs_url_with_domain_id(config,domain_id,workflow_id):
     :return: url fetch all workflows in Infoworks using v3 api
     """
     request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/runs'.format(
-        domain_id= domain_id,
+        domain_id=domain_id,
         workflow_id=workflow_id,
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
 
-def create_data_connection(config, domain_id):
+
+def create_data_connection(config):
     """
     returns URL to create data connection using v3 api
     :param config: client configurations
     :type config: dict
-    :param domain_id: Identifier for domain_id
-    :type domain_id: string
     :return: url for data connection creation
     """
-    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/data-connections'.format(ip=config['ip'],
+    request = '{protocol}://{ip}:{port}/v3/admin/data-connections'.format(ip=config['ip'],
                                                                                         port=config['port'],
-                                                                                        protocol=config['protocol'],
-                                                                                        domain_id=domain_id)
+                                                                                        protocol=config['protocol']
+                                                                                        )
     return request
 
 
-def get_data_connection(config, domain_id, dataconnection_id):
+def get_data_connection(config, dataconnection_id=None):
     """
     returns URL to get data connection details using v3 api
     :param config: client configurations
     :type config: dict
-    :param domain_id: Identifier for domain_id
-    :type domain_id: string
     :param dataconnection_id: Identifier for data connection
     :type dataconnection_id: string
     :return: url to get data connection details
     """
-    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/data-connections/{dataconnection_id}'.format(
-        ip=config['ip'],
-        port=config['port'],
-        protocol=config['protocol'],
-        domain_id=domain_id, dataconnection_id=dataconnection_id)
+    if dataconnection_id is None:
+        request = '{protocol}://{ip}:{port}/v3/admin/data-connections'.format(
+            ip=config['ip'],
+            port=config['port'],
+            protocol=config['protocol'])
+    else:
+        request = '{protocol}://{ip}:{port}/v3/admin/data-connections/{dataconnection_id}'.format(
+            ip=config['ip'],
+            port=config['port'],
+            protocol=config['protocol'],
+            dataconnection_id=dataconnection_id)
     return request
 
 
@@ -1189,7 +1200,8 @@ def get_jobs_url(config):
         protocol=config['protocol'])
     return request
 
-def get_interactive_jobs_url(config,source_id):
+
+def get_interactive_jobs_url(config, source_id):
     """
     returns URL to get interactive jobs details
     :param config: client configurations
@@ -1204,6 +1216,7 @@ def get_interactive_jobs_url(config,source_id):
         protocol=config['protocol'])
     return request
 
+
 def get_admin_jobs_url(config):
     """
     returns URL to get jobs details
@@ -1216,7 +1229,8 @@ def get_admin_jobs_url(config):
         protocol=config['protocol'])
     return request
 
-def get_pipeline_jobs_url(config,domain_id,pipeline_id):
+
+def get_pipeline_jobs_url(config, domain_id, pipeline_id):
     """
     returns URL to get jobs details
     :param config: client configurations
@@ -1234,7 +1248,8 @@ def get_pipeline_jobs_url(config,domain_id,pipeline_id):
         protocol=config['protocol'])
     return request
 
-def get_cancel_job_url(config,job_id):
+
+def get_cancel_job_url(config, job_id):
     """
     returns URL to get jobs details
     :param config: client configurations
@@ -1248,4 +1263,3 @@ def get_cancel_job_url(config,job_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
-
