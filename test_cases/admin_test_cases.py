@@ -213,3 +213,47 @@ class TestAdminClientSDK:
         except Exception as e:
             print(str(e))
             assert False
+
+    @pytest.mark.dependency()
+    def test_create_data_connection(self):
+        try:
+            config_body = {
+                "name": "Snowflake-connection_via_api",
+                "type": "TARGET",
+                "sub_type": "SNOWFLAKE",
+                "properties": {
+                    "url": "",
+                    "account": "",
+                    "username": "",
+                    "password": "",
+                    "additional_params": "",
+                    "warehouse": "DEMO_WH"
+                }
+            }
+            response = iwx_client.create_data_connection(config_body)
+            print(response)
+            pytest.data_connection_id = response["result"]["response"]["result"]["id"]
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except Exception as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestAdminClientSDK::test_create_data_connection"])
+    def test_get_data_connections(self):
+        try:
+            response = iwx_client.get_data_connection()
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except Exception as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestAdminClientSDK::test_get_data_connections"])
+    def test_delete_data_connection(self):
+        try:
+            response = iwx_client.delete_data_connection(data_connection_id=pytest.data_connection_id)
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except Exception as e:
+            print(str(e))
+            assert False
