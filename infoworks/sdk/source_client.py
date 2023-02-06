@@ -23,7 +23,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :param job_id: Job Identifier
         :type job_id: String
-        :param poll_timeout: Polling timeout(default : 1200 seconds)
+        :param poll_timeout: Polling timeout(default : 1200 seconds).If -1 then till the job completes polling will be done.
         :type poll_timeout: Integer
         :param polling_frequency: Polling Frequency(default : 15 seconds)
         :type polling_frequency: Integer
@@ -36,7 +36,11 @@ class SourceClient(BaseClient):
             raise Exception("source id cannot be None")
         failed_count = 0
         response = {}
-        timeout = time.time() + poll_timeout
+        if poll_timeout != -1:
+            timeout = time.time() + poll_timeout
+        else:
+            #2,592,000 is 30 days assuming it to be max time a job can run
+            timeout = time.time() + 2592000
         while True:
             if time.time() > timeout:
                 break

@@ -471,7 +471,7 @@ class JobsClient(BaseClient):
             if result is None:
                 self.logger.error(f"Failed to initiate {job_type} job for pipeline {pipeline_id}.")
                 return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                    error_desc=f"Failed to cancel job {job_id}.",response=response)
+                                                    error_desc=f"Failed to initiate {job_type} job for pipeline {pipeline_id}.",response=response)
             else:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:

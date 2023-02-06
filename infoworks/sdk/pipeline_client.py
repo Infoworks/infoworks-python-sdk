@@ -21,7 +21,7 @@ class PipelineClient(BaseClient):
         :type pipeline_id: String
         :param job_id: job_id of the pipeline
         :type job_id: String
-        :param poll_timeout: Polling timeout(default is 1200 seconds)
+        :param poll_timeout: Polling timeout(default is 1200 seconds).If -1 then till the job completes polling will be done.
         :type poll_timeout: Integer
         :param polling_frequency: Frequency of the polling(default is 15seconds)
         :type polling_frequency: Integer
@@ -31,7 +31,11 @@ class PipelineClient(BaseClient):
         """
         failed_count = 0
         response = {}
-        timeout = time.time() + poll_timeout
+        if poll_timeout != -1:
+            timeout = time.time() + poll_timeout
+        else:
+            # 2,592,000 is 30 days assuming it to be max time a job can run
+            timeout = time.time() + 2592000
         while True:
             if time.time() > timeout:
                 break
