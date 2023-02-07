@@ -24,8 +24,8 @@ class DownloadAllEntitiesFromDomain(BaseClient):
             raise Exception("Unable to get response for url: {url}".format(url=nextUrl))
 
     def cicd_get_all_configuration_dumps_from_domain(self, domain_ids, config_file_dump_path, files_overwrite=True,
-                                                serviceaccountemail="admin@infoworks.io",
-                                                replace_words=""):
+                                                     serviceaccountemail="admin@infoworks.io",
+                                                     replace_words=""):
         if not os.path.exists(os.path.join(config_file_dump_path, "modified_files")):
             os.makedirs(os.path.join(config_file_dump_path, "modified_files"))
         if not os.path.exists(os.path.join(config_file_dump_path, "source")):
@@ -73,10 +73,14 @@ class DownloadAllEntitiesFromDomain(BaseClient):
             if len(pipeline_ids) > 0:
                 pipeline_obj = DownloadPipeline()
                 pipeline_obj.cicd_get_pipelineconfig_dumps(pipeline_ids, config_file_dump_path, files_overwrite,
-                                                      serviceaccountemail,
-                                                      replace_words)
+                                                           serviceaccountemail,
+                                                           replace_words)
+            else:
+                print("No pipelines available to dump the configurations ")
             if len(workflow_ids) > 0:
                 wf_obj = DownloadWorkflow()
                 wf_obj.cicd_get_workflowconfig_dumps(workflow_ids, config_file_dump_path, files_overwrite,
-                                                serviceaccountemail,
-                                                replace_words)
+                                                     serviceaccountemail,
+                                                     replace_words)
+            else:
+                print("No workflow available to dump the configurations ")

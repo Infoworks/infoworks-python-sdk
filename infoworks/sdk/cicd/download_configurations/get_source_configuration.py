@@ -27,8 +27,8 @@ class DownloadSource(BaseClient):
         for source_id in source_ids:
             try:
                 filename, configuration_obj = utils_obj.dump_to_file(self, "source", None,
-                                                                                         source_id, replace_words,
-                                                                                         config_file_dump_path)
+                                                                     source_id, replace_words,
+                                                                     config_file_dump_path)
                 if filename is not None:
                     f.write(filename)
                     f.write("\n")
