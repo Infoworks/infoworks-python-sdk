@@ -1949,7 +1949,127 @@ class SourceClient(BaseClient):
                                                    error_desc="Failed to submit get list of tables", response=response)
             response["result"] = tables_list
             response["message"] = initial_msg
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
         except Exception as e:
             self.logger.error(f"Failed to get the tables under {source_id} " + str(e))
             raise SourceError(f"Failed to get the tables under {source_id} " + str(e))
+
+    def get_source_metadata(self, source_id=None):
+        """
+        Function to get source metadata (like tags,description etc)
+        :param source_id: Entity identifier for table
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id}:
+            self.logger.error("source id cannot be None")
+            raise Exception("source id cannot be None")
+        try:
+            source_configurations_url = url_builder.get_source_details_url(self.client_config)
+            source_configurations_url = source_configurations_url + f"/{source_id}/metadata"
+            response = IWUtils.ejson_deserialize(self.call_api("GET", source_configurations_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the table metadata for {source_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the table metadata for {source_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the table metadata for {source_id} " + str(e))
+
+    def update_source_metadata(self, source_id=None,data=None):
+        """
+        Function to update source metadata (like tags,description etc)
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param data : payload to update the metadata of source
+        :type data: JSON dict
+        :return: response dict
+        """
+        if None in {source_id} or data is None:
+            self.logger.error("source id or data cannot be None")
+            raise Exception("source id or data cannot be None")
+        try:
+            source_configurations_url = url_builder.get_source_details_url(self.client_config)
+            source_configurations_url = source_configurations_url + f"/{source_id}/metadata"
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", source_configurations_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),data=data
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the source metadata for {source_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the source metadata for {source_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the source metadata for {source_id} " + str(e))
+
+    def get_table_metadata(self, source_id=None, table_id=None):
+        """
+        Function to get table metadata (like tags,description etc)
+        :param table_id: Entity identifier for table
+        :type table_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id, table_id}:
+            self.logger.error("source id or table_id cannot be None")
+            raise Exception("source id or table_id cannot be None")
+        try:
+            table_configurations_url = url_builder.get_table_configuration(self.client_config, source_id, table_id)
+            table_configurations_url = table_configurations_url + "/metadata"
+            response = IWUtils.ejson_deserialize(self.call_api("GET", table_configurations_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the table metadata for {table_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the table metadata for {table_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the table metadata for {table_id} " + str(e))
+
+    def update_table_metadata(self, source_id=None, table_id=None,data=None):
+        """
+        Function to update table metadata (like tags,description etc)
+        :param table_id: Entity identifier for table
+        :type table_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param data : payload to update the metadata
+        :type data: JSON dict
+        :return: response dict
+        """
+        if None in {source_id, table_id} or data is None:
+            self.logger.error("source id or table_id or data cannot be None")
+            raise Exception("source id or table_id or data cannot be None")
+        try:
+            table_configurations_url = url_builder.get_table_configuration(self.client_config, source_id, table_id)
+            table_configurations_url = table_configurations_url + "/metadata"
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", table_configurations_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),data=data
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the table metadata for {table_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the table metadata for {table_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the table metadata for {table_id} " + str(e))
