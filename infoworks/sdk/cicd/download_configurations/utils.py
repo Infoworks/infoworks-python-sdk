@@ -166,6 +166,7 @@ class Utils:
                     status = "SUCCESS"
                 else:
                     status = "FAILED"
+                    print("Get Source Info failed "+json.dumps(response))
                 response_to_return["get_source_details_response"] = CICDResponse.parse_result(status=status,
                                                                                               entity_id=entity_id,
                                                                                               response=parsed_response)
@@ -208,6 +209,7 @@ class Utils:
                         environment_storage_id = result["storage_id"]
                 else:
                     status = "FAILED"
+                    print("Get Source Configurations failed " + json.dumps(response))
                 response_to_return["get_source_configurations_response"] = CICDResponse.parse_result(status=status,
                                                                                                      entity_id=entity_id,
                                                                                                      response=parsed_response)
@@ -221,6 +223,7 @@ class Utils:
                         status = "SUCCESS"
                     else:
                         status = "FAILED"
+                        print("Get Env Details failed " + json.dumps(response))
                     response = f"Found environment details: environment_id {environment_id}, environment_compute_template_id {environment_compute_template_id}, environment_storage_id {environment_storage_id}"
                     response_to_return["get_env_details_response"] = CICDResponse.parse_result(status=status,
                                                                                                entity_id=entity_id,
@@ -233,7 +236,7 @@ class Utils:
                         for dataconn in list_of_dataconnections:
                             dataconnection_obj = {}
                             entity_id = dataconn["entity_id"]
-                            get_data_connection_url = get_data_connection(cicd_client.client_config, domain_id,
+                            get_data_connection_url = get_data_connection(cicd_client.client_config,
                                                                           entity_id)
                             response = cicd_client.call_api("GET", get_data_connection_url,
                                                             IWUtils.get_default_header_for_v3(
@@ -243,6 +246,8 @@ class Utils:
                                 status = "SUCCESS"
                             else:
                                 status = "FAILED"
+                                print("Get Data Connection Details failed " + json.dumps(response))
+
                             response_to_return["get_data_connection_details_response"] = CICDResponse.parse_result(
                                 status=status,
                                 entity_id=entity_id,
@@ -268,6 +273,7 @@ class Utils:
                     status = "SUCCESS"
                 else:
                     status = "FAILED"
+                    print("Get Domains Details failed " + json.dumps(response))
                 response_to_return["get_domain_details_response"] = CICDResponse.parse_result(status=status,
                                                                                               entity_id=entity_id,
                                                                                               response=parsed_response)

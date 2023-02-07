@@ -10,10 +10,11 @@ class DownloadEntityWithLineage(BaseClient):
     def __init__(self):
         super(DownloadEntityWithLineage, self).__init__()
 
-    def cicd_get_dumps_withlineage(self, workflows_to_dump, pipelines, sources, config_file_dump_path, files_overwrite=True,
-                              only_wf_pl=False,
-                              maintain_lineage=True,
-                              serviceaccountemail="admin@infoworks.io", replace_words=""):
+    def cicd_get_dumps_withlineage(self, workflows_to_dump, pipelines, sources, config_file_dump_path,
+                                   files_overwrite=True,
+                                   only_wf_pl=False,
+                                   maintain_lineage=True,
+                                   serviceaccountemail="admin@infoworks.io", replace_words=""):
         if not os.path.exists(os.path.join(config_file_dump_path, "modified_files")):
             os.makedirs(os.path.join(config_file_dump_path, "modified_files"))
         if not os.path.exists(os.path.join(config_file_dump_path, "source")):
@@ -47,11 +48,9 @@ class DownloadEntityWithLineage(BaseClient):
                                 workflows_to_dump.append(task["task_properties"]["workflow_id"])
                                 wf_edges.extend([(workflow_id, task["task_properties"]["workflow_id"])])
                         elif task["task_type"] == "export":
-                            if task["task_properties"]["export_type"] == "source" and task["task_properties"][
-                                "source_id"] not in sources_to_dump and not only_wf_pl:
+                            if task["task_properties"]["export_type"] == "source" and task["task_properties"]["source_id"] not in sources_to_dump and not only_wf_pl:
                                 sources_to_dump.append(task["task_properties"]["source_id"])
-                            if task["task_properties"]["export_type"] == "pipeline" and task["task_properties"][
-                                "pipeline_id"] not in pipelines_to_dump and not only_wf_pl:
+                            if task["task_properties"]["export_type"] == "pipeline" and task["task_properties"]["pipeline_id"] not in pipelines_to_dump and not only_wf_pl:
                                 pipelines_to_dump.append(task["task_properties"]["pipeline_id"])
 
             if maintain_lineage:
@@ -118,5 +117,7 @@ class DownloadEntityWithLineage(BaseClient):
         if len(sources_to_dump) > 0:
             src_obj = DownloadSource()
             src_obj.cicd_get_sourceconfig_dumps(sources_to_dump, config_file_dump_path, files_overwrite,
-                                           serviceaccountemail,
-                                           replace_words)
+                                                serviceaccountemail,
+                                                replace_words)
+        else:
+            print("No sources available to dump the configurations ")

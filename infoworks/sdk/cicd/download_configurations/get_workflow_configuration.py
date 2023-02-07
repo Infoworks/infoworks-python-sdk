@@ -8,8 +8,8 @@ class DownloadWorkflow(BaseClient):
         super(DownloadWorkflow, self).__init__()
 
     def cicd_get_workflowconfig_dumps(self, workflow_ids, config_file_dump_path, files_overwrite=True,
-                                 serviceaccountemail="admin@infoworks.io",
-                                 replace_words=""):
+                                      serviceaccountemail="admin@infoworks.io",
+                                      replace_words=""):
         if not os.path.exists(os.path.join(config_file_dump_path, "modified_files")):
             os.makedirs(os.path.join(config_file_dump_path, "modified_files"))
         if not os.path.exists(os.path.join(config_file_dump_path, "workflow")):
