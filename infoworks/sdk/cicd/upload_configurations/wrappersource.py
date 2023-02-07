@@ -145,15 +145,23 @@ class WrapperSource(BaseClient):
                             self.logger.info("Failed to configure source")
                             print("Failed to configure source")
                             print(source_import_configuration_response)
+                            self.logger.error("Failed to configure source")
+                            self.logger.error(source_import_configuration_response)
+                            raise Exception("Failed to configure source")
                         response_to_return[
                             "source_import_configuration_response"] = source_import_configuration_response
                     else:
                         print("Failed to configure the source connection details")
                         print(source_connection_configurations_response)
+                        self.logger.error("Failed to configure the source connection details")
+                        self.logger.error(source_connection_configurations_response)
+                        raise Exception("Failed to configure the source connection details")
                     response_to_return["source_connection_configurations_response"] = source_connection_configurations_response
 
                 else:
                     print("Failed to create source")
+                    self.logger.error("Failed to create source")
+                    raise Exception("Failed to create source")
                 response_to_return["create_source_response"] = create_source_response
             elif source_type == "rdbms" and source_sub_type!="snowflake":
                 source_obj = RDBMSSource()
@@ -179,6 +187,10 @@ class WrapperSource(BaseClient):
                                 if status == "SUCCESS":
                                     self.logger.info("Added tables to source successfully")
                                     print("Added tables to source successfully")
+                                else:
+                                    print("Failed to add tables to source")
+                                    self.logger.error("Failed to add tables to source")
+                                    raise Exception("Failed to add tables to source")
                                 status = source_obj.configure_tables_and_tablegroups(self, source_id,
                                                                                      override_configuration_file,
                                                                                      export_lookup, self.mappings,
@@ -188,6 +200,19 @@ class WrapperSource(BaseClient):
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
                                     print("Configured source successfully")
+                                else:
+                                    self.logger.error("Failed to configure source")
+                                    print("Failed to configure source")
+                                    raise Exception("Failed to configure source")
+                        else:
+                            print(source_test_connection_response)
+                            raise Exception("Failed to launch test connection job")
+                    else:
+                        print(source_connection_configurations_response)
+                        raise Exception("Failed to configure source connection details")
+                else:
+                    print(source_creation_response)
+                    raise Exception("Failed to create source")
             elif source_type == "crm" and source_sub_type == "salesforce":
                 source_obj = SalesforceSource()
                 source_obj.update_mappings_for_configurations(self.mappings)
@@ -213,6 +238,14 @@ class WrapperSource(BaseClient):
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
                                     print("Configured source successfully")
+                        else:
+                            self.logger.error("Failed to launch source test connection")
+                            self.logger.error(status)
+                            print("Failed to launch source test connection")
+                            raise Exception("Failed to launch source test connection")
+                else:
+                    self.logger.error("Failed to create source")
+                    raise Exception("Failed to create source")
             else:    #assumes to be cdata source
                 source_obj = CdataSource()
                 source_obj.update_mappings_for_configurations(self.mappings)
@@ -242,7 +275,14 @@ class WrapperSource(BaseClient):
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
                                     print("Configured source successfully")
-
+                            else:
+                                self.logger.error("Failed to configure the source")
+                                print("Failed to configure the source")
+                                raise Exception("Failed to configure the source")
+                    else:
+                        self.logger.error("Failed to configure the source connection")
+                        print("Failed to configure the source connection")
+                        raise Exception("Failed to configure the source connection")
             return response_to_return
         except Exception as e:
             self.logger.error(str(e))
