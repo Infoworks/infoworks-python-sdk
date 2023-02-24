@@ -676,9 +676,9 @@ def create_data_connection(config):
     :return: url for data connection creation
     """
     request = '{protocol}://{ip}:{port}/v3/admin/data-connections'.format(ip=config['ip'],
-                                                                                        port=config['port'],
-                                                                                        protocol=config['protocol']
-                                                                                        )
+                                                                          port=config['port'],
+                                                                          protocol=config['protocol']
+                                                                          )
     return request
 
 
@@ -1260,6 +1260,17 @@ def get_cancel_job_url(config, job_id):
     """
     request = '{protocol}://{ip}:{port}/v3/prodops/jobs/{job_id}/cancel'.format(
         job_id=job_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_query_as_table_url(config, source_id):
+    """
+        returns URL to create query as table
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/query_tables'.format(
+        source_id=source_id,
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request

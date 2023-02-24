@@ -39,7 +39,7 @@ class SourceClient(BaseClient):
         if poll_timeout != -1:
             timeout = time.time() + poll_timeout
         else:
-            #2,592,000 is 30 days assuming it to be max time a job can run
+            # 2,592,000 is 30 days assuming it to be max time a job can run
             timeout = time.time() + 2592000
         while True:
             if time.time() > timeout:
@@ -64,7 +64,8 @@ class SourceClient(BaseClient):
                     if failed_count >= retries - 1:
                         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                            error_code=ErrorCode.GENERIC_ERROR,
-                                                           error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
+                                                           error_desc=f"Error occurred during job {job_id} status poll",
+                                                           response=response, job_id=job_id,
                                                            source_id=source_id)
                     failed_count = failed_count + 1
             except Exception as e:
@@ -79,7 +80,8 @@ class SourceClient(BaseClient):
 
         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                            error_code=ErrorCode.POLL_TIMEOUT,
-                                           error_desc="Job status poll timeout occurred",response=response, job_id=job_id,
+                                           error_desc="Job status poll timeout occurred", response=response,
+                                           job_id=job_id,
                                            source_id=source_id)
 
     def create_source(self, source_config=None):
@@ -355,7 +357,8 @@ class SourceClient(BaseClient):
                         if failed_count >= retries - 1:
                             return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                                error_code=ErrorCode.GENERIC_ERROR,
-                                                               error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
+                                                               error_desc=f"Error occurred during job {job_id} status poll",
+                                                               response=response, job_id=job_id,
                                                                source_id=source_id)
                         failed_count = failed_count + 1
                 except Exception as e:
@@ -371,7 +374,8 @@ class SourceClient(BaseClient):
                 self.logger.error(f"Browse table job for source {source_id} failed with {job_status}")
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                    error_code=ErrorCode.GENERIC_ERROR,
-                                                   error_desc=f"Browse table job for source {source_id} failed with {job_status}",response=response, job_id=job_id,
+                                                   error_desc=f"Browse table job for source {source_id} failed with {job_status}",
+                                                   response=response, job_id=job_id,
                                                    source_id=source_id)
 
     def add_tables_to_source(self, source_id=None, tables_to_add_config=None, poll_timeout=300, polling_frequency=15,
@@ -421,7 +425,7 @@ class SourceClient(BaseClient):
                 job_id = result['job_created']
                 if not poll:
                     self.logger.info(f"Tables added to source {source_id} and metacrawl job was submitted {job_id}")
-                    return SourceResponse.parse_result(status=Response.Status.SUCCESS)
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
                 else:
                     return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
                                          polling_frequency=polling_frequency,
@@ -1953,3 +1957,32 @@ class SourceClient(BaseClient):
         except Exception as e:
             self.logger.error(f"Failed to get the tables under {source_id} " + str(e))
             raise SourceError(f"Failed to get the tables under {source_id} " + str(e))
+
+    def create_query_as_table(self, source_id, tables_to_add_body: list):
+        """
+        Function to create query as table under source
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param tables_to_add_body: Pass the body required to create query as a table
+        :type: array of dict
+        :return: response dict
+        """
+        try:
+            query_as_table_url = url_builder.get_query_as_table_url(self.client_config, source_id)
+            table_payload = {"tables_to_add": tables_to_add_body}
+            response = IWUtils.ejson_deserialize(
+                self.call_api("POST",
+                              query_as_table_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              data=table_payload).content,
+            )
+            if response is not None:
+                result = response.get("result", None)
+                if result is None:
+                    return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                       error_desc="Could not create query as table",
+                                                       response=response)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error(f"Unable to create query as a table under {source_id} " + str(e))
+            raise SourceError(f"Unable to create query as a table under {source_id} " + str(e))
