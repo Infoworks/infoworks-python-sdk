@@ -2073,3 +2073,32 @@ class SourceClient(BaseClient):
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
         except Exception as e:
             raise SourceError(f"Failed to get the table metadata for {table_id} " + str(e))
+
+    def create_query_as_table(self, source_id, tables_to_add_body: list):
+        """
+        Function to create query as table under source
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param tables_to_add_body: Pass the body required to create query as a table
+        :type: array of dict
+        :return: response dict
+        """
+        try:
+            query_as_table_url = url_builder.get_query_as_table_url(self.client_config, source_id)
+            table_payload = {"tables_to_add": tables_to_add_body}
+            response = IWUtils.ejson_deserialize(
+                self.call_api("POST",
+                              query_as_table_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              data=table_payload).content,
+            )
+            if response is not None:
+                result = response.get("result", None)
+                if result is None:
+                    return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                       error_desc="Could not create query as table",
+                                                       response=response)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error(f"Unable to create query as a table under {source_id} " + str(e))
+            raise SourceError(f"Unable to create query as a table under {source_id} " + str(e))
