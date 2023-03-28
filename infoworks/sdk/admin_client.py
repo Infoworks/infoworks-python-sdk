@@ -972,3 +972,499 @@ class AdminClient(BaseClient):
                                                     response=parsed_response)
         except Exception as e:
             raise AdminError(f"Failed in deleting data connection" + str(e))
+    def list_secret_stores(self, params=None):
+        """
+        Function to list the secret stores
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_secret_stores = url_builder.list_secret_stores_url(self.client_config) \
+                            + IWUtils.get_query_params_string_from_dict(params=params)
+
+        secret_stores_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_secret_stores,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    secret_stores_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing secret store",
+                                                            response=response
+                                                            )
+
+                response["result"] = secret_stores_list
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing secret stores")
+            raise AdminError("Error in listing secret store" + str(e))
+
+    def create_secret_store(self, data=None):
+        """
+        Function to create new secret store in Infoworks
+        :param data: JSON Payload with secret store details
+        :type data: JSON
+        example_data = {
+            "name": "iwx-sp-secret-store",
+            "service_type": "azure",
+            "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
+            "service_authentication": "64182fac35298f0d05a8b689",
+        }
+        :return: response dict
+        """
+        try:
+            response = self.call_api("POST",
+                                     url_builder.list_secret_stores_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in creating secret store ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in creating secret store " + str(e))
+            raise AdminError("Error in creating secret store " + str(e))
+
+    def get_secret_store_details(self, secret_store_id=None):
+        """
+        Function to get secret store details in Infoworks
+        :param secret_store_id: secret store id in infoworks
+        :type data: String
+        :return: response dict
+        """
+        try:
+            response = self.call_api("GET",
+                                     url_builder.list_secret_stores_url(self.client_config)+f"/{secret_store_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in getting secret store ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in getting secret store " + str(e))
+            raise AdminError("Error in getting secret store " + str(e))
+
+    def update_secret_store_details(self, secret_store_id=None,data=None):
+        """
+        Function to updates secret store details in Infoworks
+        :param secret_store_id: secret store id in infoworks
+        :type data: String
+        :param data: JSON Payload with secret store details
+        :type data: JSON
+        example_data = {
+            "name": "iwx-sp-secret-store",
+            "service_type": "azure",
+            "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
+            "service_authentication": "64182fac35298f0d05a8b689",
+        }
+        :return: response dict
+        """
+        try:
+            response = self.call_api("PATCH",
+                                     url_builder.list_secret_stores_url(self.client_config)+f"/{secret_store_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in updating secret store ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in updating secret store " + str(e))
+            raise AdminError("Error in updating secret store " + str(e))
+
+    def delete_secret_store(self, secret_store_id=None):
+        """
+        Function to delete secret store details in Infoworks
+        :param secret_store_id: secret store id in infoworks
+        :type data: String
+        :return: response dict
+        """
+        try:
+            response = self.call_api("DELETE",
+                                     url_builder.list_secret_stores_url(self.client_config)+f"/{secret_store_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in deleting secret store ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in deleting secret store " + str(e))
+            raise AdminError("Error in deleting secret store " + str(e))
+
+    def list_service_authentication(self, params=None):
+        """
+        Function to list the service authentication mechanisms in Infoworks
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_service_authentication = url_builder.list_service_authentication_url(self.client_config) \
+                            + IWUtils.get_query_params_string_from_dict(params=params)
+
+        secret_stores_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_service_authentication,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    secret_stores_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing service authentication",
+                                                            response=response
+                                                            )
+
+                response["result"] = secret_stores_list
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing service authentication")
+            raise AdminError("Error in listing service authentication" + str(e))
+
+    def create_service_authentication(self, data=None):
+        """
+        Function to create new service authentication in Infoworks
+        :param data: JSON Payload with service auth details
+        :type data: JSON
+        example_data = {
+            "name": "iw-azure-cs-db-cluster-sp",
+            "service_type": "azure",
+            "authentication_type": "service_principal",
+            "authentication_properties": {
+                "subscription_id": "xxx",
+                "client_id": "xxx",
+                "object_id": "xxx",
+                "tenant_id": "xxx"
+            }
+        }
+        :return: response dict
+        """
+        try:
+            response = self.call_api("POST",
+                                     url_builder.list_service_authentication_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in creating service authentication mechanism ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in creating service authentication mechanism " + str(e))
+            raise AdminError("Error in creating service authentication mechanism" + str(e))
+
+    def get_service_authentication_details(self, service_auth_id=None):
+        """
+        Function to get service authentication in Infoworks
+        :param service_auth_id: secret store id in infoworks
+        :type data: String
+        :return: response dict
+        """
+        try:
+            response = self.call_api("GET",
+                                     url_builder.list_service_authentication_url(self.client_config)+f"/{service_auth_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in getting service authentication ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in getting service authentication" + str(e))
+            raise AdminError("Error in getting service authentication " + str(e))
+
+    def update_service_authentication_details(self, service_auth_id=None,data=None):
+        """
+        Function to updates service auth details in Infoworks
+        :param service_auth_id: service auth id in infoworks
+        :type data: String
+        :param data: JSON Payload with service auth details
+        :type data: JSON
+        example_data = {
+            "name": "iw-azure-cs-db-cluster-sp",
+            "service_type": "azure",
+            "authentication_type": "service_principal",
+            "authentication_properties": {
+                "subscription_id": "xxx",
+                "client_id": "xxx",
+                "object_id": "xxx",
+                "tenant_id": "xxx"
+            }
+        }
+        :return: response dict
+        """
+        try:
+            response = self.call_api("PATCH",
+                                     url_builder.list_service_authentication_url(self.client_config)+f"/{service_auth_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in updating service auth ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in updating service auth " + str(e))
+            raise AdminError("Error in updating service auth " + str(e))
+
+    def delete_service_authentication(self, service_auth_id=None):
+        """
+        Function to delete service authentication in Infoworks
+        :param service_auth_id: secret store id in infoworks
+        :type data: String
+        :return: response dict
+        """
+        try:
+            response = self.call_api("DELETE",
+                                     url_builder.list_service_authentication_url(self.client_config)+f"/{service_auth_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in deleting service auth ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in deleting service auth " + str(e))
+            raise AdminError("Error in deleting service auth " + str(e))
+
+    def list_secrets(self, params=None):
+        """
+        Function to list the secrets in Infoworks
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_secrets = url_builder.list_secrets_url(self.client_config) \
+                                    + IWUtils.get_query_params_string_from_dict(params=params)
+
+        secret_stores_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_secrets,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    secret_stores_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing secrets",
+                                                            response=response
+                                                            )
+
+                response["result"] = secret_stores_list
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing secrets")
+            raise AdminError("Error in listing secrets" + str(e))
+
+    def create_secret(self, data=None):
+        """
+        Function to create new secret in Infoworks
+        :param data: JSON Payload with secret details
+        :type data: JSON
+        example_data = {
+            "name": "mongo-pg-pwd",
+            "secret_store": "64182fd27eeb1c40de2b6007",
+            "secret_name": "mongo-pg-pwd"
+        }
+        :return: response dict
+        """
+        try:
+            response = self.call_api("POST",
+                                     url_builder.list_secrets_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in creating secret")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in creating secret" + str(e))
+            raise AdminError("Error in creating secret" + str(e))
+
+    def get_secret_details(self, secret_id=None):
+        """
+        Function to get secret details in Infoworks
+        :param secret_store_id: secret id in infoworks
+        :type data: String
+        :return: response dict
+        """
+        try:
+            response = self.call_api("GET",
+                                     url_builder.list_secrets_url(self.client_config) + f"/{secret_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in getting secret details")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in getting secret details" + str(e))
+            raise AdminError("Error in getting secret details " + str(e))
+
+    def update_secret_details(self, secret_id=None, data=None):
+        """
+        Function to updates secret details in Infoworks
+        :param secret_store_id: secret id in infoworks
+        :type data: String
+        :param data: JSON Payload with secret store details
+        :type data: JSON
+        example_data = {
+            "name": "mongo-pg-pwd",
+            "secret_store": "64182fd27eeb1c40de2b6007",
+            "secret_name": "mongo-pg-pwd"
+        }
+        :return: response dict
+        """
+        try:
+            response = self.call_api("PATCH",
+                                     url_builder.list_secrets_url(self.client_config) + f"/{secret_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in updating secret ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in updating secret " + str(e))
+            raise AdminError("Error in updating secret " + str(e))
+
+    def delete_secret(self, secret_id=None):
+        """
+        Function to delete secret details in Infoworks
+        :param secret_store_id: secret id in infoworks
+        :type data: String
+        :return: response dict
+        """
+        try:
+            response = self.call_api("DELETE",
+                                     url_builder.list_secrets_url(self.client_config) + f"/{secret_id}",
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in deleting secret ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in deleting secret " + str(e))
+            raise AdminError("Error in deleting secret " + str(e))

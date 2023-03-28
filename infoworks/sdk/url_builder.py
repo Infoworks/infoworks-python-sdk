@@ -1263,3 +1263,37 @@ def get_cancel_job_url(config, job_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+
+def list_service_authentication_url(config):
+    """
+    returns URL to list service authentication using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list service authentication
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/service-auth'.format(ip=config['ip'], port=config['port'],
+                                                               protocol=config['protocol'])
+    return request
+
+def list_secret_stores_url(config):
+    """
+    returns URL to list secret stores using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list secret stores
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secret-store'.format(ip=config['ip'], port=config['port'],
+                                                               protocol=config['protocol'])
+    return request
+
+def list_secrets_url(config):
+    """
+    returns URL to list secrets using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list secret
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(ip=config['ip'], port=config['port'],
+                                                               protocol=config['protocol'])
+    return request
