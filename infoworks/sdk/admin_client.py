@@ -1054,7 +1054,7 @@ class AdminClient(BaseClient):
         """
         Function to get secret store details in Infoworks
         :param secret_store_id: secret store id in infoworks
-        :type data: String
+        :type secret_store_id: String
         :return: response dict
         """
         try:
@@ -1080,7 +1080,7 @@ class AdminClient(BaseClient):
         """
         Function to updates secret store details in Infoworks
         :param secret_store_id: secret store id in infoworks
-        :type data: String
+        :type secret_store_id: String
         :param data: JSON Payload with secret store details
         :type data: JSON
         example_data = {
@@ -1114,7 +1114,7 @@ class AdminClient(BaseClient):
         """
         Function to delete secret store details in Infoworks
         :param secret_store_id: secret store id in infoworks
-        :type data: String
+        :type secret_store_id: String
         :return: response dict
         """
         try:
@@ -1221,8 +1221,8 @@ class AdminClient(BaseClient):
     def get_service_authentication_details(self, service_auth_id=None):
         """
         Function to get service authentication in Infoworks
-        :param service_auth_id: secret store id in infoworks
-        :type data: String
+        :param service_auth_id: secret auth id in infoworks
+        :type service_auth_id: String
         :return: response dict
         """
         try:
@@ -1248,7 +1248,7 @@ class AdminClient(BaseClient):
         """
         Function to updates service auth details in Infoworks
         :param service_auth_id: service auth id in infoworks
-        :type data: String
+        :type service_auth_id: String
         :param data: JSON Payload with service auth details
         :type data: JSON
         example_data = {
@@ -1286,8 +1286,8 @@ class AdminClient(BaseClient):
     def delete_service_authentication(self, service_auth_id=None):
         """
         Function to delete service authentication in Infoworks
-        :param service_auth_id: secret store id in infoworks
-        :type data: String
+        :param service_auth_id: secret auth id in infoworks
+        :type service_auth_id: String
         :return: response dict
         """
         try:
@@ -1388,8 +1388,8 @@ class AdminClient(BaseClient):
     def get_secret_details(self, secret_id=None):
         """
         Function to get secret details in Infoworks
-        :param secret_store_id: secret id in infoworks
-        :type data: String
+        :param secret_id: secret id in infoworks
+        :type secret_id: String
         :return: response dict
         """
         try:
@@ -1414,8 +1414,8 @@ class AdminClient(BaseClient):
     def update_secret_details(self, secret_id=None, data=None):
         """
         Function to updates secret details in Infoworks
-        :param secret_store_id: secret id in infoworks
-        :type data: String
+        :param secret_id: secret id in infoworks
+        :type secret_id: String
         :param data: JSON Payload with secret store details
         :type data: JSON
         example_data = {
@@ -1447,8 +1447,8 @@ class AdminClient(BaseClient):
     def delete_secret(self, secret_id=None):
         """
         Function to delete secret details in Infoworks
-        :param secret_store_id: secret id in infoworks
-        :type data: String
+        :param secret_id: secret id in infoworks
+        :type secret_id: String
         :return: response dict
         """
         try:
