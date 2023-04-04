@@ -676,9 +676,9 @@ def create_data_connection(config):
     :return: url for data connection creation
     """
     request = '{protocol}://{ip}:{port}/v3/admin/data-connections'.format(ip=config['ip'],
-                                                                                        port=config['port'],
-                                                                                        protocol=config['protocol']
-                                                                                        )
+                                                                          port=config['port'],
+                                                                          protocol=config['protocol']
+                                                                          )
     return request
 
 
@@ -1272,9 +1272,11 @@ def list_service_authentication_url(config):
     :type config: dict
     :return: url to list service authentication
     """
-    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/service-auth'.format(ip=config['ip'], port=config['port'],
-                                                               protocol=config['protocol'])
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/service-auth'.format(ip=config['ip'],
+                                                                                     port=config['port'],
+                                                                                     protocol=config['protocol'])
     return request
+
 
 def list_secret_stores_url(config):
     """
@@ -1283,9 +1285,11 @@ def list_secret_stores_url(config):
     :type config: dict
     :return: url to list secret stores
     """
-    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secret-store'.format(ip=config['ip'], port=config['port'],
-                                                               protocol=config['protocol'])
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secret-store'.format(ip=config['ip'],
+                                                                                     port=config['port'],
+                                                                                     protocol=config['protocol'])
     return request
+
 
 def list_secrets_url(config):
     """
@@ -1295,5 +1299,16 @@ def list_secrets_url(config):
     :return: url to list secret
     """
     request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(ip=config['ip'], port=config['port'],
-                                                               protocol=config['protocol'])
+                                                                                protocol=config['protocol'])
+    return request
+
+
+def get_query_as_table_url(config, source_id):
+    """
+        returns URL to create query as table
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/query_tables'.format(
+        source_id=source_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
     return request
