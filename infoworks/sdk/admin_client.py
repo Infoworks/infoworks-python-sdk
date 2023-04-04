@@ -972,6 +972,7 @@ class AdminClient(BaseClient):
                                                     response=parsed_response)
         except Exception as e:
             raise AdminError(f"Failed in deleting data connection" + str(e))
+
     def list_secret_stores(self, params=None):
         """
         Function to list the secret stores
@@ -982,7 +983,7 @@ class AdminClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_secret_stores = url_builder.list_secret_stores_url(self.client_config) \
-                            + IWUtils.get_query_params_string_from_dict(params=params)
+                                    + IWUtils.get_query_params_string_from_dict(params=params)
 
         secret_stores_list = []
         try:
@@ -1058,7 +1059,7 @@ class AdminClient(BaseClient):
         """
         try:
             response = self.call_api("GET",
-                                     url_builder.list_secret_stores_url(self.client_config)+f"/{secret_store_id}",
+                                     url_builder.list_secret_stores_url(self.client_config) + f"/{secret_store_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
@@ -1075,7 +1076,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in getting secret store " + str(e))
             raise AdminError("Error in getting secret store " + str(e))
 
-    def update_secret_store_details(self, secret_store_id=None,data=None):
+    def update_secret_store_details(self, secret_store_id=None, data=None):
         """
         Function to updates secret store details in Infoworks
         :param secret_store_id: secret store id in infoworks
@@ -1092,7 +1093,7 @@ class AdminClient(BaseClient):
         """
         try:
             response = self.call_api("PATCH",
-                                     url_builder.list_secret_stores_url(self.client_config)+f"/{secret_store_id}",
+                                     url_builder.list_secret_stores_url(self.client_config) + f"/{secret_store_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
@@ -1113,12 +1114,11 @@ class AdminClient(BaseClient):
         """
         Function to delete secret store details in Infoworks
         :param secret_store_id: secret store id in infoworks
-        :type data: String
         :return: response dict
         """
         try:
             response = self.call_api("DELETE",
-                                     url_builder.list_secret_stores_url(self.client_config)+f"/{secret_store_id}",
+                                     url_builder.list_secret_stores_url(self.client_config) + f"/{secret_store_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
@@ -1145,7 +1145,7 @@ class AdminClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_service_authentication = url_builder.list_service_authentication_url(self.client_config) \
-                            + IWUtils.get_query_params_string_from_dict(params=params)
+                                             + IWUtils.get_query_params_string_from_dict(params=params)
 
         secret_stores_list = []
         try:
@@ -1226,7 +1226,8 @@ class AdminClient(BaseClient):
         """
         try:
             response = self.call_api("GET",
-                                     url_builder.list_service_authentication_url(self.client_config)+f"/{service_auth_id}",
+                                     url_builder.list_service_authentication_url(
+                                         self.client_config) + f"/{service_auth_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
@@ -1243,7 +1244,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in getting service authentication" + str(e))
             raise AdminError("Error in getting service authentication " + str(e))
 
-    def update_service_authentication_details(self, service_auth_id=None,data=None):
+    def update_service_authentication_details(self, service_auth_id=None, data=None):
         """
         Function to updates service auth details in Infoworks
         :param service_auth_id: service auth id in infoworks
@@ -1265,7 +1266,8 @@ class AdminClient(BaseClient):
         """
         try:
             response = self.call_api("PATCH",
-                                     url_builder.list_service_authentication_url(self.client_config)+f"/{service_auth_id}",
+                                     url_builder.list_service_authentication_url(
+                                         self.client_config) + f"/{service_auth_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
@@ -1291,7 +1293,8 @@ class AdminClient(BaseClient):
         """
         try:
             response = self.call_api("DELETE",
-                                     url_builder.list_service_authentication_url(self.client_config)+f"/{service_auth_id}",
+                                     url_builder.list_service_authentication_url(
+                                         self.client_config) + f"/{service_auth_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
@@ -1318,7 +1321,7 @@ class AdminClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_secrets = url_builder.list_secrets_url(self.client_config) \
-                                    + IWUtils.get_query_params_string_from_dict(params=params)
+                              + IWUtils.get_query_params_string_from_dict(params=params)
 
         secret_stores_list = []
         try:
