@@ -972,6 +972,7 @@ class AdminClient(BaseClient):
                                                     response=parsed_response)
         except Exception as e:
             raise AdminError(f"Failed in deleting data connection" + str(e))
+
     def list_secret_stores(self, params=None):
         """
         Function to list the secret stores

@@ -1,6 +1,5 @@
 import time
 import traceback
-
 from infoworks.error import SourceError
 from infoworks.sdk import url_builder, local_configurations
 from infoworks.sdk.base_client import BaseClient
