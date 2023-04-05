@@ -12,7 +12,7 @@ class PipelineClient(BaseClient):
     def __init__(self):
         super(PipelineClient, self).__init__()
 
-    def poll_job(self, pipeline_id=None, job_id=None, poll_timeout=local_configurations.POLLING_TIMEOUT,
+    def poll_pipeline_job(self, pipeline_id=None, job_id=None, poll_timeout=local_configurations.POLLING_TIMEOUT,
                  polling_frequency=local_configurations.POLLING_FREQUENCY_IN_SEC,
                  retries=local_configurations.NUM_POLLING_RETRIES):
         """
@@ -51,7 +51,7 @@ class PipelineClient(BaseClient):
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
-                    if job_status in ["completed", "failed", "aborted"]:
+                    if job_status in ["completed", "failed", "aborted", "cancelled"]:
                         if job_status == "completed":
                             return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
                                                                  pipeline_id=pipeline_id,
@@ -557,7 +557,7 @@ class PipelineClient(BaseClient):
                 return PipelineResponse.parse_result(status=Response.Status.SUCCESS, job_id=job_id,
                                                      pipeline_id=pipeline_id, response=response)
             else:
-                return self.poll_job(pipeline_id=pipeline_id, job_id=job_id)
+                return self.poll_pipeline_job(pipeline_id=pipeline_id, job_id=job_id)
         else:
             self.logger.error(response)
             raise PipelineError(f"Failed to submit pipeline build job for {pipeline_id} ")

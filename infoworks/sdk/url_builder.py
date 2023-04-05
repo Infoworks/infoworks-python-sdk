@@ -1312,3 +1312,48 @@ def get_query_as_table_url(config, source_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+
+def get_pipeline_group_jobs_base_url(config, domain_id, pipeline_group_id):
+    """
+        returns URL to get list of pipeline group jobs
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipeline-groups/{pipeline_group_id}/jobs'.format(
+        domain_id=domain_id,
+        pipeline_group_id=pipeline_group_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_pipeline_group_base_url(config, domain_id):
+    """
+        returns URL to get details of pipeline group
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipeline-groups/'.format(
+        domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_accessible_pipeline_groups_url(config, domain_id):
+    """
+    returns URL to get accessible pipeline group
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-groups'.format(
+        domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def advance_config_under_pipeline_groups_base_url(config, domain_id, pipeline_group_id):
+    """
+    returns base URL to get the advance config under pipeline group.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipeline-groups/{pipeline_group_id}/configurations/advance/'.format(
+        domain_id=domain_id, pipeline_group_id=pipeline_group_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request

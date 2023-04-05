@@ -13,10 +13,12 @@ from infoworks.sdk.domain_client import DomainClient
 from infoworks.sdk.jobmetrics import JobMetricsClient
 from infoworks.sdk.admin_client import AdminClient
 from infoworks.sdk.jobs_client import JobsClient
+from infoworks.sdk.pipeline_group_client import PipelineGroupClient
 
 
 class InfoworksClientSDK(SourceClient, PipelineClient, WorkflowClient, DomainClient, AdminClient, JobMetricsClient,
                          DownloadSource, DownloadPipeline, DownloadWorkflow, DownloadEntityWithLineage,
-                         DownloadAllEntitiesFromDomain, WrapperSource, WrapperPipeline, WrapperWorkflow, JobsClient):
+                         DownloadAllEntitiesFromDomain, WrapperSource, WrapperPipeline, WrapperWorkflow, JobsClient,
+                         PipelineGroupClient):
     def __init__(self):
         super().__init__()

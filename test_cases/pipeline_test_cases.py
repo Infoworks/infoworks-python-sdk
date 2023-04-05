@@ -40,12 +40,14 @@ def get_domain_id():
 def test_list_pipelines():
     pytest.domain_id = get_domain_id()
     try:
-        response = iwx_client.list_pipelines(domain_id=pytest.domain_id,params={"filter":{"name":"pipeline_api_unit_test_1"}})
+        response = iwx_client.list_pipelines(domain_id=pytest.domain_id,
+                                             params={"filter": {"name": "pipeline_api_unit_test_1"}})
         print(response)
         assert response["result"]["status"].upper() == "SUCCESS"
     except PipelineError as e:
         print(str(e))
         assert False
+
 
 @pytest.mark.dependency()
 def test_create_pipeline():
