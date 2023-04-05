@@ -9,11 +9,13 @@ import json
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
+refresh_token = ""
 iwx_client = InfoworksClientSDK()
-#iwx_client.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
+# iwx_client.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
 iwx_client.initialize_client_with_defaults("https", "att-iwx-pri.infoworks.technology", "443", refresh_token)
-#iwx_client.initialize_client_with_defaults("https", "gke-qa-540.infoworks.technology", "443", refresh_token) // 5.4 instance
+
+
+# iwx_client.initialize_client_with_defaults("https", "gke-qa-540.infoworks.technology", "443", refresh_token) // 5.4 instance
 
 class TestRDBMSSDKFlow:
     @pytest.mark.dependency()
@@ -851,7 +853,8 @@ class TestFileSDKFlow:
         depends=["TestFileSDKFlow::test_create_source"])
     def test_update_source_metadata(self):
         try:
-            response = iwx_client.update_source_metadata(ValueStorage.source_id,{"description":"test description","tags":["test"]})
+            response = iwx_client.update_source_metadata(ValueStorage.source_id,
+                                                         {"description": "test description", "tags": ["test"]})
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:
@@ -870,10 +873,12 @@ class TestFileSDKFlow:
             assert False
 
     @pytest.mark.dependency(
-        depends=["TestFileSDKFlow::test_create_source","TestFileSDKFlow::test_delete_table_advanced_configuration"])
+        depends=["TestFileSDKFlow::test_create_source", "TestFileSDKFlow::test_delete_table_advanced_configuration"])
     def test_update_table_metadata(self):
         try:
-            response = iwx_client.update_table_metadata(source_id=ValueStorage.source_id,table_id=ValueStorage.table_ids[0],data={"description":"test description","tags":["test"]})
+            response = iwx_client.update_table_metadata(source_id=ValueStorage.source_id,
+                                                        table_id=ValueStorage.table_ids[0],
+                                                        data={"description": "test description", "tags": ["test"]})
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:
@@ -884,7 +889,8 @@ class TestFileSDKFlow:
         depends=["TestFileSDKFlow::test_update_table_metadata"])
     def test_get_table_metadata(self):
         try:
-            response = iwx_client.get_table_metadata(source_id=ValueStorage.source_id,table_id=ValueStorage.table_ids[0])
+            response = iwx_client.get_table_metadata(source_id=ValueStorage.source_id,
+                                                     table_id=ValueStorage.table_ids[0])
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:

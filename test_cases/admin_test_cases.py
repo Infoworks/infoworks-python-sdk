@@ -6,9 +6,9 @@ from test_cases.conftest import ValueStorage
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
+refresh_token = ""
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("https", "att-iwx-pri.infoworks.technology", "443", refresh_token)
+iwx_client.initialize_client_with_defaults("https", "host_name", "443", refresh_token)
 
 
 class TestAdminClientSDK:

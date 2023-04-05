@@ -4,9 +4,9 @@ from test_cases.conftest import ValueStorage
 import pytest
 import logging
 
-refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
+refresh_token = ""
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
+iwx_client.initialize_client_with_defaults("https", "host_name", "443", refresh_token)
 pytest.environment_id = "884236e85b9b1a69b2907e4c"
 pytest.domains = {}
 logger = logging.getLogger()
