@@ -1115,6 +1115,7 @@ class SourceClient(BaseClient):
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
+                initial_msg = response.get("message", "")
                 while len(result) > 0:
                     tables_list.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
@@ -1134,7 +1135,7 @@ class SourceClient(BaseClient):
                                                            )
 
                 response["result"] = tables_list
-
+                response["message"] = initial_msg
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in listing tables under source")
@@ -1561,9 +1562,7 @@ class SourceClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_sources,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
-            initial_msg = ""
             if response is not None:
-                initial_msg = response.get("message", "")
                 result = response.get("result", [])
                 if len(result) > 0:
                     return SourceResponse.parse_result(status=Response.Status.SUCCESS, response={"id": result[0]["id"]})
