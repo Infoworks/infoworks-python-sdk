@@ -8,14 +8,15 @@ import pytest
 from infoworks.error import *
 from infoworks.sdk.client import InfoworksClientSDK
 
-refresh_token = ""
+refresh_token = os.environ['refresh_token']
+host_name = os.environ['host_name']
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("https", "host_name", "443", refresh_token)
+iwx_client.initialize_client_with_defaults("https", host_name, "443", refresh_token)
 cwd = os.getcwd()
 
-pytest.environment_id = "884236e85b9b1a69b2907e4c"
-pytest.domain_id = "63ce8f639e231b03aee3d11d"
-pytest.workflows = {}
+pytest.environment_id = "a801283f2e8077120d000b49"
+pytest.domain_id = "61907f7fb36697f05a0d71d4"
+pytest.workflows = {"AR_TEST": "b93ddecc42929834f3788be2"}
 pytest.workflow_run_id = ""
 
 logger = logging.getLogger()
@@ -215,16 +216,18 @@ def test_poll_workflow():
 
 
 # @pytest.mark.dependency(depends=["test_poll_workflow"])
-def test_cancel_restart_multiple_workflow():
+def test_restart_or_cancel_multiple_workflows():
     # Restart Multiple Workflows (This operation is only for operations_analyst user)
     try:
-        workflow_get_response = iwx_client.trigger_workflow("63d1297548ef1c73e0fa875b", pytest.domain_id)
+        workflow_get_response = iwx_client.trigger_workflow(pytest.workflows[next(iter(pytest.workflows))], pytest.domain_id)
         pytest.workflow_run_id = workflow_get_response["result"]["response"].get('result', {}).get('id', None)
         workflow_cancel_response = iwx_client.cancel_multiple_workflow(
-            {"ids": [{"workflow_id": "63d1297548ef1c73e0fa875b", "run_id": pytest.workflow_run_id}]})
+            {"ids": [{"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
         time.sleep(10)
-        workflow_restart_response = iwx_client.restart_multiple_workflow({"ids": [{"workflow_id": "63d1297548ef1c73e0fa875b", "run_id": pytest.workflow_run_id}]})
-        assert workflow_cancel_response["result"]["status"].upper() == "SUCCESS" and workflow_restart_response["result"]["status"].upper() == "SUCCESS"
+        workflow_restart_response = iwx_client.restart_or_cancel_multiple_workflows(
+            workflow_list_body={"ids": [{"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
+        assert workflow_cancel_response["result"]["status"].upper() == "SUCCESS" and \
+               workflow_restart_response["result"]["status"].upper() == "SUCCESS"
     except WorkflowError as e:
         print(str(e))
         assert False

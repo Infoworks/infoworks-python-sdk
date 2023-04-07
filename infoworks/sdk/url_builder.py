@@ -1357,3 +1357,54 @@ def advance_config_under_pipeline_groups_base_url(config, domain_id, pipeline_gr
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+
+def pause_multiple_workflows_url(config):
+    """
+    returns url to pause multiple workflows
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/workflows/pause'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def resume_multiple_workflows_url(config):
+    """
+    returns url to resume workflow
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/workflows/resume'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_workflow_runs_url(config):
+    """
+    returns url to get workflow runs
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/workflows/runs'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_workflow_tasks_url(config):
+    """
+    returns url to get workflow tasks
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/workflows/tasks'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_workflow_run_id_details_url(config, workflow_id, run_id):
+    """
+    returns url to get workflow run id details
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/workflows/{workflow_id}/runs/{run_id}'.format(
+        workflow_id=workflow_id, run_id=run_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
