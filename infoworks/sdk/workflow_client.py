@@ -795,7 +795,7 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to get jobs under workflow run.' + str(e))
             raise WorkflowError('Error occurred while trying to get jobs under workflow run.' + str(e))
 
-    def pause_or_resume_multiple_workflows(self, action_type, workflow_list_body=None):
+    def pause_or_resume_multiple_workflows(self, action_type="pause", workflow_list_body=None):
         """
         Pause/resume Infoworks Data workflow for given workflow ids
         :param action_type: pause/resume

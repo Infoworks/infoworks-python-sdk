@@ -16,7 +16,7 @@ cwd = os.getcwd()
 
 pytest.environment_id = "a801283f2e8077120d000b49"
 pytest.domain_id = "61907f7fb36697f05a0d71d4"
-pytest.workflows = {"AR_TEST": "b93ddecc42929834f3788be2"}
+pytest.workflows = {}
 pytest.workflow_run_id = ""
 
 logger = logging.getLogger()
@@ -215,19 +215,67 @@ def test_poll_workflow():
         assert False
 
 
-# @pytest.mark.dependency(depends=["test_poll_workflow"])
+@pytest.mark.dependency(depends=["test_poll_workflow"])
 def test_restart_or_cancel_multiple_workflows():
     # Restart Multiple Workflows (This operation is only for operations_analyst user)
     try:
-        workflow_get_response = iwx_client.trigger_workflow(pytest.workflows[next(iter(pytest.workflows))], pytest.domain_id)
+        workflow_get_response = iwx_client.trigger_workflow(pytest.workflows[next(iter(pytest.workflows))],
+                                                            pytest.domain_id)
         pytest.workflow_run_id = workflow_get_response["result"]["response"].get('result', {}).get('id', None)
         workflow_cancel_response = iwx_client.cancel_multiple_workflow(
-            {"ids": [{"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
+            {"ids": [
+                {"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
         time.sleep(10)
         workflow_restart_response = iwx_client.restart_or_cancel_multiple_workflows(
-            workflow_list_body={"ids": [{"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
+            workflow_list_body={"ids": [
+                {"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
         assert workflow_cancel_response["result"]["status"].upper() == "SUCCESS" and \
                workflow_restart_response["result"]["status"].upper() == "SUCCESS"
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_restart_or_cancel_multiple_workflows"])
+def test_pause_or_resume_multiple_workflows():
+    try:
+        workflow_pause_response = iwx_client.pause_or_resume_multiple_workflows(workflow_list_body={
+            "workflow_ids": [pytest.workflows[next(iter(pytest.workflows))]]
+        })
+        print(workflow_pause_response)
+        time.sleep(30)
+        workflow_resume_response = iwx_client.pause_or_resume_multiple_workflows(action_type="resume",
+                                                                                 workflow_list_body={
+                                                                                     "workflow_ids": [pytest.workflows[
+                                                                                                          next(iter(
+                                                                                                              pytest.workflows))]]
+                                                                                 })
+        print(workflow_resume_response)
+        assert workflow_pause_response["result"]["status"].upper() == "SUCCESS" and workflow_resume_response["result"][
+            "status"].upper() == "SUCCESS"
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_pause_or_resume_multiple_workflows"])
+def test_get_global_list_of_workflow_runs():
+    try:
+        workflow_run_status_response = iwx_client.get_global_list_of_workflow_runs()
+        # print(workflow_run_status_response)
+        assert workflow_run_status_response["result"]["status"].upper() == "SUCCESS"
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_get_global_list_of_workflow_runs"])
+def test_get_workflow_run_details():
+    try:
+        workflow_run_details_response = iwx_client.get_workflow_run_details(
+            workflow_id=pytest.workflows[next(iter(pytest.workflows))], run_id=pytest.workflow_run_id)
+        # print(workflow_run_status_response)
+        assert workflow_run_details_response["result"]["status"].upper() == "SUCCESS"
     except WorkflowError as e:
         print(str(e))
         assert False
