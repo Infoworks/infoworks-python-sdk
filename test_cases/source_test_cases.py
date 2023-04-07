@@ -9,7 +9,7 @@ import json
 
 config = configparser.ConfigParser()
 config.read('config.ini')
-refresh_token = ""
+refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 iwx_client = InfoworksClientSDK()
 # iwx_client.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
 iwx_client.initialize_client_with_defaults("https", "att-iwx-pri.infoworks.technology", "443", refresh_token)
@@ -35,7 +35,7 @@ class TestRDBMSSDKFlow:
                     "target_database_name": "PUBLIC",
                     "is_database_case_sensitive": False,
                     "is_schema_case_sensitive": False,
-                    "staging_schema_name": None,
+                    "staging_schema_name": "PUBLIC",
                     "is_staging_schema_case_sensitive": None,
                     "is_source_ingested": True})
             else:
@@ -144,6 +144,7 @@ class TestRDBMSSDKFlow:
             f.close()
             response = iwx_client.configure_tables_and_tablegroups(ValueStorage.source_id,
                                                                    configuration_obj=data["configuration"])
+            print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:
             print(str(e))
@@ -156,6 +157,7 @@ class TestRDBMSSDKFlow:
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
             tables = response["result"]["response"]["result"]
+            ValueStorage.table_ids=[]
             for item in tables:
                 print(item["id"])
                 ValueStorage.table_ids.append(item["id"])
@@ -169,7 +171,7 @@ class TestRDBMSSDKFlow:
             response = iwx_client.create_table_group(ValueStorage.source_id,
                                                      table_group_obj={
                                                          "environment_compute_template": {
-                                                             "environment_compute_template_id": ValueStorage.compute_id},
+                                                             "environment_compute_template_id": ValueStorage.cluster_id},
                                                          "name": "tg_via_api",
                                                          "max_connections": 1,
                                                          "max_parallel_entities": 1,
@@ -194,7 +196,7 @@ class TestRDBMSSDKFlow:
             response = iwx_client.update_table_group(ValueStorage.source_id, ValueStorage.table_group_id,
                                                      table_group_obj={
                                                          "environment_compute_template": {
-                                                             "environment_compute_template_id": ValueStorage.compute_id},
+                                                             "environment_compute_template_id": ValueStorage.cluster_id},
                                                          "name": "tg_via_api",
                                                          "max_connections": 1,
                                                          "max_parallel_entities": 1,
@@ -582,6 +584,21 @@ class TestFileSDKFlow:
                                                                                + f"_from_{pytest.file_source}"
             response = iwx_client.configure_tables_and_tablegroups(ValueStorage.source_id,
                                                                    configuration_obj=data["configuration"])
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except SourceError as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestFileSDKFlow::test_source_metacrawl_job_poll"])
+    def test_configure_table_ingestion_properties_with_payload(self):
+        try:
+            f = open("config_jsons/csv_source_configuration.json")
+            data = json.load(f)
+            f.close()
+            table_configurations = data["configuration"]["table_configs"]["configuration"]["configuration"]
+            response = iwx_client.configure_table_ingestion_properties_with_payload(ValueStorage.source_id,
+                                                                   configuration_obj=table_configurations)
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:

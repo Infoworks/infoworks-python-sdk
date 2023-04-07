@@ -37,6 +37,12 @@
                 "exported_at": "2023-01-23T10:06:46.994Z",
                 "exported_by": "6RkfybTRQQByEey3v"
             },
+
+            "environment": {
+            "compute_engine": "databricks",
+            "data_warehouse_type": "snowflake",
+            "platform": "azure"
+        },
             "table_configs": [
                 {
                     "entity_type": "table",
@@ -60,7 +66,7 @@
                             "is_schema_case_sensitive": false,
                             "target_database_name": "PUBLIC",
                             "is_database_case_sensitive": false,
-                            "watermark_column": "date",
+                            "watermark_columns": ["date"],
                             "use_capture_table": false,
                             "update_strategy": "merge",
                             "is_scd2_table": false,
@@ -337,7 +343,7 @@
                             "is_schema_case_sensitive": false,
                             "target_database_name": "PUBLIC",
                             "is_database_case_sensitive": false,
-                            "watermark_column": "date_of_purchase",
+                            "watermark_columns": ["date_of_purchase"],
                             "use_capture_table": false,
                             "update_strategy": "merge",
                             "is_scd2_table": false,
