@@ -1688,7 +1688,7 @@ class SourceClient(BaseClient):
     def configure_table_ingestion_properties(self, source_id=None, table_id=None, natural_keys=None,
                                              sync_type="full-load",
                                              update_strategy=None,
-                                             watermark_column=None, partition_key=None, derived_partition=False,
+                                             watermark_columns=None, partition_key=None, derived_partition=False,
                                              derive_partition_format=None, split_by_key=None, storage_format=None):
         """
         Function to configure the ingestion configs of table
@@ -1702,8 +1702,8 @@ class SourceClient(BaseClient):
         :type sync_type: String
         :param update_strategy: append/merge
         :type update_strategy: String
-        :param watermark_column: Watermark column to be used during incremental ingestion
-        :type watermark_column: String
+        :param watermark_columns: Watermark columns to be used during incremental ingestion
+        :type watermark_columns: Array
         :param partition_key: Partition by Column
         :type partition_key: String
         :param derived_partition: True/False. If True pass the derive_partition_format
@@ -1731,15 +1731,15 @@ class SourceClient(BaseClient):
                 table_config_body['natural_keys'] = natural_keys
             if sync_type in ['full-load', 'incremental']:
                 table_config_body["sync_type"] = "full-load"
-                if update_strategy in ["append", "merge"] and watermark_column is not None:
+                if update_strategy in ["append", "merge"] and watermark_columns is not None:
                     if update_strategy == "append":
                         table_config_body["sync_type"] = "incremental"
                         table_config_body["update_strategy"] = "append"
-                        table_config_body["watermark_column"] = watermark_column
-                    elif update_strategy == "merge" and watermark_column is not None:
+                        table_config_body["watermark_columns"] = watermark_columns
+                    elif update_strategy == "merge" and watermark_columns is not None:
                         table_config_body["sync_type"] = "incremental"
                         table_config_body["update_strategy"] = "merge"
-                        table_config_body["watermark_column"] = watermark_column
+                        table_config_body["watermark_columns"] = watermark_columns
             if partition_key:
                 if not derived_partition:
                     table_config_body["partition_keys"] = [{
