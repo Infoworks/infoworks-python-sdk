@@ -1408,3 +1408,61 @@ def get_workflow_run_id_details_url(config, workflow_id, run_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+
+def source_table_schema_url(config, source_id, table_id):
+    """
+    returns url to get table schema details
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/configurations/schema'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_file_mappings_for_json_source_url(config, source_id):
+    """
+    returns url to get table schema details
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/file-mappings'.format(
+        source_id=source_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_source_audit_logs_url(config, source_id):
+    """
+    returns url to get source audit logs
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/audit-logs'.format(
+        source_id=source_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_table_audit_logs_url(config, source_id, table_id):
+    """
+    returns url to get table audit logs
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}//tables/table_id/audit-logs'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_source_audit_logs_url(config, source_id, table_group_id):
+    """
+    returns url to get table group audit logs
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/table_group_id/audit-logs'.format(
+        source_id=source_id,
+        table_group_id=table_group_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request

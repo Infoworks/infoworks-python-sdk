@@ -854,7 +854,7 @@ class TestFileSDKFlow:
     def test_update_source_metadata(self):
         try:
             response = iwx_client.update_source_metadata(ValueStorage.source_id,
-                                                         {"description": "test description", "tags": ["test"]})
+                                                         data={"description": "test description", "tags": ["test"]})
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:
@@ -863,7 +863,7 @@ class TestFileSDKFlow:
 
     @pytest.mark.dependency(
         depends=["TestFileSDKFlow::test_update_source_metadata"])
-    def test_update_source_metadata(self):
+    def test_get_source_metadata(self):
         try:
             response = iwx_client.get_source_metadata(source_id=ValueStorage.source_id)
             print(response)
@@ -891,6 +891,18 @@ class TestFileSDKFlow:
         try:
             response = iwx_client.get_table_metadata(source_id=ValueStorage.source_id,
                                                      table_id=ValueStorage.table_ids[0])
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except SourceError as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(
+        depends=["TestFileSDKFlow::test_get_table_metadata"])
+    def test_get_table_schema(self):
+        try:
+            response = iwx_client.get_table_schema(source_id=ValueStorage.source_id,
+                                                   table_id=ValueStorage.table_ids[0])
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:

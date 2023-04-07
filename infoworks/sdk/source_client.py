@@ -38,7 +38,7 @@ class SourceClient(BaseClient):
         if poll_timeout != -1:
             timeout = time.time() + poll_timeout
         else:
-            #2,592,000 is 30 days assuming it to be max time a job can run
+            # 2,592,000 is 30 days assuming it to be max time a job can run
             timeout = time.time() + 2592000
         while True:
             if time.time() > timeout:
@@ -63,7 +63,8 @@ class SourceClient(BaseClient):
                     if failed_count >= retries - 1:
                         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                            error_code=ErrorCode.GENERIC_ERROR,
-                                                           error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
+                                                           error_desc=f"Error occurred during job {job_id} status poll",
+                                                           response=response, job_id=job_id,
                                                            source_id=source_id)
                     failed_count = failed_count + 1
             except Exception as e:
@@ -78,7 +79,8 @@ class SourceClient(BaseClient):
 
         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                            error_code=ErrorCode.POLL_TIMEOUT,
-                                           error_desc="Job status poll timeout occurred",response=response, job_id=job_id,
+                                           error_desc="Job status poll timeout occurred", response=response,
+                                           job_id=job_id,
                                            source_id=source_id)
 
     def create_source(self, source_config=None):
@@ -354,7 +356,8 @@ class SourceClient(BaseClient):
                         if failed_count >= retries - 1:
                             return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                                error_code=ErrorCode.GENERIC_ERROR,
-                                                               error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
+                                                               error_desc=f"Error occurred during job {job_id} status poll",
+                                                               response=response, job_id=job_id,
                                                                source_id=source_id)
                         failed_count = failed_count + 1
                 except Exception as e:
@@ -370,7 +373,8 @@ class SourceClient(BaseClient):
                 self.logger.error(f"Browse table job for source {source_id} failed with {job_status}")
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                    error_code=ErrorCode.GENERIC_ERROR,
-                                                   error_desc=f"Browse table job for source {source_id} failed with {job_status}",response=response, job_id=job_id,
+                                                   error_desc=f"Browse table job for source {source_id} failed with {job_status}",
+                                                   response=response, job_id=job_id,
                                                    source_id=source_id)
 
     def add_tables_to_source(self, source_id=None, tables_to_add_config=None, poll_timeout=300, polling_frequency=15,
@@ -785,7 +789,6 @@ class SourceClient(BaseClient):
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_sources,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
-            initial_msg = ""
             if response is not None:
                 initial_msg = response.get("message", "")
                 result = response.get("result", [])
@@ -801,9 +804,9 @@ class SourceClient(BaseClient):
                             self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
             else:
-                self.logger.error("Failed to submit get list of sources")
+                self.logger.error("Failed to get list of sources")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc="Failed to submit get list of sources", response=response)
+                                                   error_desc="Failed to get list of sources", response=response)
             response["result"] = source_list
             response["message"] = initial_msg
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
@@ -1947,7 +1950,7 @@ class SourceClient(BaseClient):
                                                    error_desc="Failed to submit get list of tables", response=response)
             response["result"] = tables_list
             response["message"] = initial_msg
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response, source_id=source_id)
         except Exception as e:
             self.logger.error(f"Failed to get the tables under {source_id} " + str(e))
             raise SourceError(f"Failed to get the tables under {source_id} " + str(e))
@@ -1976,39 +1979,53 @@ class SourceClient(BaseClient):
                                                    error_desc=f"Failed to get the table metadata for {source_id}",
                                                    response=response, job_id=None, source_id=source_id)
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
         except Exception as e:
             raise SourceError(f"Failed to get the table metadata for {source_id} " + str(e))
 
-    def update_source_metadata(self, source_id=None,data=None):
+    def update_source_metadata(self, source_id, tags_to_add: str = None, tags_to_remove: str = None,
+                               description: str = None, is_favorite=False, data=None):
         """
         Function to update source metadata (like tags,description etc)
         :param source_id: Entity identifier for source
         :type source_id: String
-        :param data : payload to update the metadata of source
+        :param tags_to_add: Pass comma seperated tags to add. Optional field
+        :param tags_to_remove: Pass comma seperated tags to remove. Optional field
+        :param description: Pass the description of the tag
+        :param is_favorite: Boolean. True/False
+        :param data : Json body to update source metadata. You can pass only this param if the body of API is known. Else pass other individual params
         :type data: JSON dict
         :return: response dict
         """
-        if None in {source_id} or data is None:
-            self.logger.error("source id or data cannot be None")
-            raise Exception("source id or data cannot be None")
+        if None in {source_id}:
+            self.logger.error("source id cannot be None")
+            raise Exception("source id cannot be None")
         try:
+            if data is None:
+                data = {
+                    "tags_to_add": [] if tags_to_add is None else tags_to_add.split(","),
+                    "tags_to_remove": [] if tags_to_remove is None else tags_to_remove.split(","),
+                    "is_favorite": is_favorite,
+                    "description": "" if description is None else description
+                }
             source_configurations_url = url_builder.get_source_details_url(self.client_config)
             source_configurations_url = source_configurations_url + f"/{source_id}/metadata"
             response = IWUtils.ejson_deserialize(self.call_api("PUT", source_configurations_url,
                                                                IWUtils.get_default_header_for_v3(
-                                                                   self.client_config['bearer_token']),data=data
+                                                                   self.client_config['bearer_token']), data=data
                                                                ).content)
             result = response.get('result', False)
             if not result:
-                self.logger.error(f"Failed to get the source metadata for {source_id}")
+                self.logger.error(f"Failed to update the source metadata for {source_id}")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
                                                    error_desc=f"Failed to get the source metadata for {source_id}",
                                                    response=response, job_id=None, source_id=source_id)
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
         except Exception as e:
-            raise SourceError(f"Failed to get the source metadata for {source_id} " + str(e))
+            raise SourceError(f"Failed to update the source metadata for {source_id} " + str(e))
 
     def get_table_metadata(self, source_id=None, table_id=None):
         """
@@ -2036,30 +2053,43 @@ class SourceClient(BaseClient):
                                                    error_desc=f"Failed to get the table metadata for {table_id}",
                                                    response=response, job_id=None, source_id=source_id)
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
         except Exception as e:
             raise SourceError(f"Failed to get the table metadata for {table_id} " + str(e))
 
-    def update_table_metadata(self, source_id=None, table_id=None,data=None):
+    def update_table_metadata(self, source_id, table_id, tags_to_add: str = None, tags_to_remove: str = None,
+                              description: str = None, is_favorite=False, data=None):
         """
         Function to update table metadata (like tags,description etc)
         :param table_id: Entity identifier for table
         :type table_id: String
         :param source_id: Entity identifier for source
         :type source_id: String
-        :param data : payload to update the metadata
+        :param tags_to_add: Pass comma seperated tags to add. Optional field
+        :param tags_to_remove: Pass comma seperated tags to remove. Optional field
+        :param description: Pass the description of the tag
+        :param is_favorite: Boolean. True/False
+        :param data : Json body to update source metadata. You can pass only this param if the body of API is known. Else pass other individual params
         :type data: JSON dict
         :return: response dict
         """
-        if None in {source_id, table_id} or data is None:
-            self.logger.error("source id or table_id or data cannot be None")
-            raise Exception("source id or table_id or data cannot be None")
+        if None in {source_id, table_id}:
+            self.logger.error("source id or table_id cannot be None")
+            raise Exception("source id or table_id cannot be None")
         try:
+            if data is None:
+                data = {
+                    "tags_to_add": [] if tags_to_add is None else tags_to_add.split(","),
+                    "tags_to_remove": [] if tags_to_remove is None else tags_to_remove.split(","),
+                    "is_favorite": is_favorite,
+                    "description": "" if description is None else description
+                }
             table_configurations_url = url_builder.get_table_configuration(self.client_config, source_id, table_id)
             table_configurations_url = table_configurations_url + "/metadata"
             response = IWUtils.ejson_deserialize(self.call_api("PUT", table_configurations_url,
                                                                IWUtils.get_default_header_for_v3(
-                                                                   self.client_config['bearer_token']),data=data
+                                                                   self.client_config['bearer_token']), data=data
                                                                ).content)
             result = response.get('result', False)
             if not result:
@@ -2068,7 +2098,8 @@ class SourceClient(BaseClient):
                                                    error_desc=f"Failed to get the table metadata for {table_id}",
                                                    response=response, job_id=None, source_id=source_id)
             else:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,source_id=source_id)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
         except Exception as e:
             raise SourceError(f"Failed to get the table metadata for {table_id} " + str(e))
 
@@ -2100,3 +2131,531 @@ class SourceClient(BaseClient):
         except Exception as e:
             self.logger.error(f"Unable to create query as a table under {source_id} " + str(e))
             raise SourceError(f"Unable to create query as a table under {source_id} " + str(e))
+
+    def get_table_schema(self, source_id=None, table_id=None):
+        """
+        Function to get table schema
+        :param table_id: Entity identifier for table
+        :type table_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id, table_id}:
+            self.logger.error("source id or table_id cannot be None")
+            raise Exception("source id or table_id cannot be None")
+        try:
+            table_schema_url = url_builder.source_table_schema_url(self.client_config, source_id, table_id)
+            response = IWUtils.ejson_deserialize(self.call_api("GET", table_schema_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the table schema for {table_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the table schema for {table_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the table schema for {table_id} " + str(e))
+
+    def get_file_mappings_for_json_source(self, source_id=None, file_mapping_id=None, file_mapping_name=None,
+                                          params=None):
+        """
+        Function to get file mappings
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param file_mapping_id: Entity identifier of the file mapping
+        :param file_mapping_name: Name of the file mapping for which details are to be fetched
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :return: response dict
+        """
+        if None in {source_id}:
+            self.logger.error("source id cannot be None")
+            raise Exception("source id cannot be None")
+
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+
+        try:
+            if file_mapping_id is None:
+                if file_mapping_name is not None:
+                    params = {"filter": {"name": file_mapping_name}}
+                file_mappings_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                      source_id) + IWUtils.get_query_params_string_from_dict(
+                    params=params)
+                file_mappings_list = []
+                response = IWUtils.ejson_deserialize(
+                    self.call_api("GET", file_mappings_url,
+                                  IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+                if response is not None:
+                    initial_msg = response.get("message", "")
+                    result = response.get("result", [])
+                    while len(result) > 0:
+                        file_mappings_list.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+                else:
+                    self.logger.error("Failed to get list of file mappings")
+                    return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                       error_desc="Failed to get list of file mappings",
+                                                       response=response)
+                response["result"] = file_mappings_list
+                response["message"] = initial_msg
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                file_mappings_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                      source_id) + f"/{file_mapping_id}"
+                response = IWUtils.ejson_deserialize(self.call_api("GET", file_mappings_url,
+                                                                   IWUtils.get_default_header_for_v3(
+                                                                       self.client_config['bearer_token']),
+                                                                   ).content)
+                result = response.get('result', False)
+                if not result:
+                    self.logger.error(f"Failed to get file mappings")
+                    return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                       error_desc=f"Failed to get file mappings",
+                                                       response=response, job_id=None, source_id=source_id)
+                else:
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                       source_id=source_id)
+        except Exception as e:
+            self.logger.error("Error in getting file mappings")
+            raise SourceError("Error in getting file mappings " + str(e))
+
+    def modify_file_mappings_for_json_source(self, source_id=None, config_body=None, action_type="create",
+                                             file_mappings_id=None):
+        """
+        Function to create file mappings
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param file_mappings_id: Entity identifier of the file mapping. Pass this incase you want to update the file mapping
+        :param action_type: create/update
+        :param config_body: JSON dict with necessary keys
+        config_body_example =
+            {       "name" :"xyz",
+                "source_relative_path": "/test",
+                "record_scope": "file",
+                "include_subdirectories": true,
+                "character_encoding": "UTF-8",
+                "include_filename_regex": ".*",
+                "exclude_filename_regex": ""
+            }
+        :return: response dict
+        """
+        if None in {source_id} or config_body is None:
+            self.logger.error("source id or config_body cannot be None")
+            raise Exception("source id or config_body cannot be None")
+        try:
+            if action_type.lower() == "create":
+                request_type = "POST"
+                file_mappings_url = url_builder.get_file_mappings_for_json_source_url(self.client_config, source_id)
+            else:
+                request_type = "PATCH"
+                file_mappings_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                      source_id) + f"/{file_mappings_id}"
+
+            response = IWUtils.ejson_deserialize(self.call_api(request_type, file_mappings_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               data=config_body).content)
+            result = response.get('result', {})
+            message = response.get('message', "")
+            created_file_mapping_id = result.get('id', None)
+            if created_file_mapping_id is not None:
+                adv_config_id = str(created_file_mapping_id)
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+            elif message == "Updated File mappings":
+                self.logger.info('File Mappings has been updated')
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                self.logger.error(f'Failed to {action_type} file mappings')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f'Failed to {action_type} file mappings',
+                                                   response=response)
+        except Exception as e:
+            raise SourceError(f"Failed to {action_type} the file mappings for {source_id} " + str(e))
+
+    def delete_file_mappings_for_json_source(self, source_id=None, file_mapping_id=None):
+        """
+        Function to get table schema
+        :param file_mapping_id: Entity identifier of the file mapping
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id, file_mapping_id}:
+            self.logger.error("source id or file_mapping_id cannot be None")
+            raise Exception("source id or file_mapping_id cannot be None")
+        try:
+            file_mappings_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                  source_id) + f"/{file_mapping_id}"
+            response = IWUtils.ejson_deserialize(self.call_api("DELETE", file_mappings_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get("result", None)
+            if result is None:
+                self.logger.error(f"Failed to delete the file mappings for {file_mapping_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to delete the file mappings for {file_mapping_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to delete the file mappings for {file_mapping_id} " + str(e))
+
+    def crawl_schema_for_file_mapping_json_source(self, source_id=None, file_mapping_id=None):
+        """
+        Function to get table schema
+        :param file_mapping_id: Entity identifier for file mapping
+        :type file_mapping_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id, file_mapping_id}:
+            self.logger.error("source id or file_mapping_id cannot be None")
+            raise Exception("source id or file_mapping_id cannot be None")
+        try:
+            crawl_schema_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                 source_id) + f"/{file_mapping_id}/crawl-schema"
+            response = IWUtils.ejson_deserialize(self.call_api("GET", crawl_schema_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the crawl schema for file mapping {file_mapping_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the crawl schema for file mapping {file_mapping_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the crawl schema for file mapping {file_mapping_id} " + str(e))
+
+    def get_table_schema_from_file_mapping_json_source(self, source_id=None, file_mapping_id=None):
+        """
+        Function to get table schema
+        :param file_mapping_id: Entity identifier for file mapping
+        :type file_mapping_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id, file_mapping_id}:
+            self.logger.error("source id or file_mapping_id cannot be None")
+            raise Exception("source id or file_mapping_id cannot be None")
+        try:
+            table_schema_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                 source_id) + f"/{file_mapping_id}/table-schema"
+            response = IWUtils.ejson_deserialize(self.call_api("GET", table_schema_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the table schema from file mapping {file_mapping_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the table schema from file mapping {file_mapping_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the table schema from file mapping {file_mapping_id} " + str(e))
+
+    def create_json_source_table(self, source_id=None, file_mapping_id=None):
+        """
+        Function to create Infoworks JSON Source Table
+        :param file_mapping_id: Entity identifier for file mapping
+        :type file_mapping_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        response = None
+        if None in {source_id, file_mapping_id}:
+            self.logger.error("source id or file_mapping_id cannot be None")
+            raise Exception("source id or file_mapping_id cannot be None")
+        try:
+            table_create_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                 source_id) + f"/{file_mapping_id}/tables"
+            response = IWUtils.ejson_deserialize(
+                self.call_api("POST", table_create_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              "").content)
+
+            result = response.get('result', {})
+            table_id = result.get('id', None)
+            if table_id is None:
+                self.logger.error('Table creation failed')
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_desc='Table creation failed',
+                                                   response=response)
+
+            table_id = str(table_id)
+            self.logger.info('Table {id} has been created.'.format(id=table_id))
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id, response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to create a json table.')
+            raise SourceError(response.get("message", "Error occurred while trying to create a json table."))
+
+    def get_json_source_table(self, source_id=None, file_mapping_id=None, table_id=None, params=None):
+        """
+        Function to get json source table details
+        :param file_mapping_id: Entity identifier for file mapping
+        :type file_mapping_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param table_id: Entity identifier for table
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :return: response dict
+        """
+        if None in {source_id, file_mapping_id}:
+            self.logger.error("source id or file_mapping_id cannot be None")
+            raise Exception("source id or file_mapping_id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        try:
+            if table_id is None:
+                get_json_src_tbls_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                          source_id) + IWUtils.get_query_params_string_from_dict(
+                    params=params)
+                tables_list = []
+                response = IWUtils.ejson_deserialize(
+                    self.call_api("GET", get_json_src_tbls_url,
+                                  IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+                if response is not None:
+                    initial_msg = response.get("message", "")
+                    result = response.get("result", [])
+                    while len(result) > 0:
+                        tables_list.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+                else:
+                    self.logger.error("Failed to get list of json source tables")
+                    return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                       error_desc="Failed to get list of json source tables",
+                                                       response=response)
+                response["result"] = tables_list
+                response["message"] = initial_msg
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+
+            else:
+                get_json_src_tbl_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                         source_id) + f"/{file_mapping_id}/tables/{table_id}"
+                response = IWUtils.ejson_deserialize(self.call_api("GET", get_json_src_tbl_url,
+                                                                   IWUtils.get_default_header_for_v3(
+                                                                       self.client_config['bearer_token']),
+                                                                   ).content)
+                result = response.get('result', False)
+                if not result:
+                    self.logger.error(f"Failed to get the table details for {table_id}")
+                    return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                       error_desc=f"Failed to get the table details for {table_id}",
+                                                       response=response, job_id=None, source_id=source_id)
+                else:
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                       source_id=source_id)
+        except Exception as e:
+            self.logger.error(f"Failed to get the table details for {table_id} " + str(e))
+            raise SourceError(f"Failed to get the table details for {table_id} " + str(e))
+
+    def delete_json_source_table(self, source_id=None, file_mapping_id=None, table_id=None):
+        """
+        Function to delete json source table
+        :param file_mapping_id: Entity identifier for file mapping
+        :type file_mapping_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param table_id: Entity identifier for table
+        :return: response dict
+        """
+        if None in {source_id, file_mapping_id, table_id}:
+            self.logger.error("source id or file_mapping_id or table_id cannot be None")
+            raise Exception("source id or file_mapping_id or table_id cannot be None")
+        try:
+            get_json_src_tbl_url = url_builder.get_file_mappings_for_json_source_url(self.client_config,
+                                                                                     source_id) + f"/{file_mapping_id}/tables/{table_id}"
+            response = IWUtils.ejson_deserialize(self.call_api("DELETE", get_json_src_tbl_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            message = response.get('message', "")
+            if message != "Table Deleted Successfully":
+                self.logger.error(f"Failed to delete the json source table {table_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to delete the json source table {table_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to delete the json source table {table_id} " + str(e))
+
+    def get_source_audit_logs(self, source_id=None, params=None):
+        """
+        Function to get audit logs of source
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        audit_logs = []
+        if None in {source_id}:
+            self.logger.error("source id cannot be None")
+            raise Exception("source id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        try:
+            src_audit_logs_url = url_builder.get_source_audit_logs_url(self.client_config, source_id)
+            src_audit_logs_url = src_audit_logs_url + IWUtils.get_query_params_string_from_dict(params=params)
+            response = IWUtils.ejson_deserialize(self.call_api("GET", src_audit_logs_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            initial_msg = response.get("message", "")
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    audit_logs.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            else:
+                self.logger.error("Failed to get audit logs of source")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc="Failed to get audit logs of source", response=response)
+            response["result"] = audit_logs
+            response["message"] = initial_msg
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response, source_id=source_id)
+        except Exception as e:
+            self.logger.error(f"Failed to get the audit logs of {source_id} " + str(e))
+            raise SourceError(f"Failed to get the audit logs of {source_id} " + str(e))
+
+    def get_table_audit_logs(self, source_id=None, table_id=None, params=None):
+        """
+        Function to get audit logs of source
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param table_id: Entity identifier of table
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        audit_logs = []
+        if None in {source_id, table_id}:
+            self.logger.error("source id or table_id cannot be None")
+            raise Exception("source id or table_id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        try:
+            tbl_audit_logs_url = url_builder.get_table_audit_logs_url(self.client_config, source_id, table_id)
+            tbl_audit_logs_url = tbl_audit_logs_url + IWUtils.get_query_params_string_from_dict(params=params)
+            response = IWUtils.ejson_deserialize(self.call_api("GET", tbl_audit_logs_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            initial_msg = response.get("message", "")
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    audit_logs.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            else:
+                self.logger.error("Failed to get audit logs of table")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc="Failed to get audit logs of table", response=response)
+            response["result"] = audit_logs
+            response["message"] = initial_msg
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response, source_id=source_id)
+        except Exception as e:
+            self.logger.error(f"Failed to get the audit logs of table {table_id} " + str(e))
+            raise SourceError(f"Failed to get the audit logs of table {table_id} " + str(e))
+
+    def get_tablegroup_audit_logs(self, source_id=None, table_group_id=None, params=None):
+        """
+        Function to get audit logs of source
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param table_group_id: Entity identifier of table group
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        audit_logs = []
+        if None in {source_id, table_group_id}:
+            self.logger.error("source id or table_group_id cannot be None")
+            raise Exception("source id or table_group_id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        try:
+            tblgrp_audit_logs_url = url_builder.get_table_audit_logs_url(self.client_config, source_id, table_group_id)
+            tblgrp_audit_logs_url = tblgrp_audit_logs_url + IWUtils.get_query_params_string_from_dict(params=params)
+            response = IWUtils.ejson_deserialize(self.call_api("GET", tblgrp_audit_logs_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            initial_msg = response.get("message", "")
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    audit_logs.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            else:
+                self.logger.error("Failed to get audit logs of table group")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc="Failed to get audit logs of table group", response=response)
+            response["result"] = audit_logs
+            response["message"] = initial_msg
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response, source_id=source_id)
+        except Exception as e:
+            self.logger.error(f"Failed to get the audit logs of table group {table_group_id} " + str(e))
+            raise SourceError(f"Failed to get the audit logs of table group {table_group_id} " + str(e))

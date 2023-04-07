@@ -89,6 +89,9 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {domain_id, pipeline_group_id}:
+            self.logger.error("domain_id or pipeline_group_id cannot be None")
+            raise Exception("domain_id or pipeline_group_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp_jobs = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
@@ -137,6 +140,9 @@ class PipelineGroupClient(BaseClient):
             :type poll: Boolean
             :return: response dict
         """
+        if None in {domain_id, pipeline_group_id}:
+            self.logger.error("domain_id or pipeline_group_id cannot be None")
+            raise Exception("domain_id or pipeline_group_id cannot be None")
         url_for_pipeline_grp_build = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
                                                                                   pipeline_group_id)
         request_body = {
@@ -209,6 +215,8 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id, job_id}:
+            raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp_jobs = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
@@ -258,6 +266,8 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id, job_id}:
+            raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp_job_runs = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
@@ -306,6 +316,8 @@ class PipelineGroupClient(BaseClient):
             :param job_id: id of the pipeline group job
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id, job_id}:
+            raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
         try:
             if None in {pipeline_group_id, domain_id, job_id}:
                 raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
@@ -402,6 +414,8 @@ class PipelineGroupClient(BaseClient):
         :type: JSON dict
         :return: response list
         """
+        if None in {domain_id}:
+            raise Exception(f"domain_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp = url_builder.get_pipeline_group_base_url(self.client_config,
@@ -583,6 +597,8 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if domain_id is None:
+            raise Exception(f"domain_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_get_accessible_pl_grp = url_builder.get_accessible_pipeline_groups_url(self.client_config,
@@ -632,6 +648,8 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id}:
+            raise Exception(f"pipeline_group_id, domain_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_get_adv_config_pl_grp = url_builder.advance_config_under_pipeline_groups_base_url(self.client_config,
@@ -691,6 +709,8 @@ class PipelineGroupClient(BaseClient):
         :param key: In case of update, name of the adv config to update
         :return: response dict
         """
+        if None in {pipeline_group_id, domain_id} or adv_config_body is None:
+            raise Exception(f"pipeline_group_id, domain_id and adv_config_body cannot be None")
         try:
             if action_type.lower() == "create":
                 request_type = "POST"
