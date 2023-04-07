@@ -26,6 +26,11 @@
                 "exported_at": "2023-01-23T16:37:49.191Z",
                 "exported_by": "6RkfybTRQQByEey3v"
             },
+            "environment": {
+            "compute_engine": "databricks",
+            "data_warehouse_type": "snowflake",
+            "platform": "azure"
+        },
             "table_configs": [
                 {
                     "entity_type": "table",
@@ -49,7 +54,7 @@
                             "is_schema_case_sensitive": false,
                             "target_database_name": "IWX_SDK_CSV_SRCNAME_SNOWFLAKE_FROM_S3",
                             "is_database_case_sensitive": false,
-                            "watermark_column": "ziw_file_modified_timestamp",
+                            "watermark_columns": ["ziw_file_modified_timestamp"],
                             "update_strategy": "merge",
                             "is_scd2_table": false,
                             "ingest_subdirectories": true,
