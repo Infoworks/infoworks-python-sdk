@@ -1,10 +1,13 @@
 class ValueStorage:
-    env_id = "884236e85b9b1a69b2907e4c"
-    storage_id = "30b7db33231c6c1890eae9ab"
-    cluster_id = "03e08fb415447fd56df9d888"
-    source_id = "555739cc2a12b4664d09b44f"
-    table_ids = ["629780ec1086072f3633ba4a"]
-    table_group_id = "6297810e7c6c8f543ab516e4"
+    env_id = "ed1c6973a2d2046f1fe93a20"
+    storage_id = "5432aa6f7bd670067e7a095b"
+    compute_id = "c18df68e81968a4647ee3cf5"
+
+    source_id = ""
+    table_ids = []
+    table_group_id = ""
+
+
     domain_id = "950f61da93956431ca173eb3"
     pipeline_id = "627b674c80cccd05ac2007c5"
     pipeline_version_id = "627b6bb680cccd05ac2007e7"

@@ -183,7 +183,7 @@ class TestRDBMSSDKFlow:
                                                      })
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
-
+            ValueStorage.table_group_id = response["result"]["response"]
         except SourceError as e:
             print(str(e))
             assert False
