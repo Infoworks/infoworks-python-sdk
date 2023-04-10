@@ -1359,6 +1359,56 @@ def advance_config_under_pipeline_groups_base_url(config, domain_id, pipeline_gr
     return request
 
 
+def get_domain_workflow_schedules_url(config, domain_id):
+    """
+    Returns URL to get Schedules of Workflows belonging to the Domain.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/schedules'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id
+    )
+    return request
+
+
+def get_workflow_schedule_url(config, domain_id, workflow_id):
+    """
+    Returns URL to get Schedules of particular Workflow belonging to the Domain.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
+def get_enable_workflow_schedule_url(config, domain_id, workflow_id):
+    """
+    Returns URL to Enable Workflow Schedule.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules/enable'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
+def get_disable_workflow_schedule_url(config, domain_id, workflow_id):
+    """
+    Returns URL to Disable Workflow Schedule.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules/disable'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
+def update_workflow_schedule_user_url(config, domain_id, workflow_id):
+    """
+    Return URL to Change Workflow Schedule User
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules/user'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
 def pause_multiple_workflows_url(config):
     """
     returns url to pause multiple workflows

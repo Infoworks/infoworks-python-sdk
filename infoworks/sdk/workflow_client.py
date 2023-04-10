@@ -795,6 +795,224 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to get jobs under workflow run.' + str(e))
             raise WorkflowError('Error occurred while trying to get jobs under workflow run.' + str(e))
 
+    def get_list_of_domain_workflow_schedules(self, domain_id, params=None):
+        """
+        Gets List of Schedules of all Workflows belonging to the Domain
+        :param domain_id: Domain Id to list the schedules configured
+        :type domain_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: JSON Dict
+        :return: Response Dict
+        """
+        if domain_id is None:
+            self.logger.error("domain_id cannot be None")
+            raise Exception("domain_id cannot be None")
+
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+
+        domain_schedules = []
+        response = None
+        initial_msg = ''
+        try:
+            domain_schedules_url = url_builder.get_domain_workflow_schedules_url(self.client_config, domain_id) + \
+                                   IWUtils.get_query_params_string_from_dict(params=params)
+
+            response = IWUtils.ejson_deserialize(self.call_api("GET", domain_schedules_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token'])).content)
+            if response:
+                initial_msg = response.get("message", '')
+                result = response.get("result", [])
+
+                while len(result) > 0:
+                    domain_schedules.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            response["result"] = domain_schedules
+            response["message"] = initial_msg
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get domain schedules .')
+            raise WorkflowError('Error occurred while trying to get domain schedules.')
+
+    def get_workflow_schedule(self, domain_id, workflow_id):
+        """
+        Gets Schedules of particular Workflow belonging to the Domain
+        :param domain_id: Domain ID of which Workflow belongs
+        :type domain_id: String
+        :param workflow_id: Workflow ID to fetch schedule for.
+        :type workflow_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or workflow_id is None:
+            self.logger.error("domain_id or workflow_id cannot be None")
+            raise Exception("domain_id or workflow_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_schedule_url(
+                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get workflow schedule.')
+            raise WorkflowError('Error occurred while trying to get workflow schedule.')
+
+    def enable_workflow_schedule(self, domain_id, workflow_id, schedule_config):
+        """
+        Enables Schedule of a particular Workflow belonging to the Domain
+        :param domain_id: Domain ID of which Workflow belongs
+        :type domain_id: String
+        :param workflow_id: Workflow ID to fetch schedule for.
+        :type workflow_id: String
+        :param schedule_config: Schedule Configuration JSON of the Workflow
+        :type schedule_config: JSON
+
+        schedule_config_example = {
+              "start_date": "02/22/2020",
+              "end_date": "02/24/2020",
+              "start_hour": 12,
+              "start_min": 25,
+              "end_hour": 17,
+              "end_min": 30,
+              "repeat_interval_measure": 2,
+              "repeat_interval_unit": "{string}",
+              "ends": true,
+              "is_custom_job": true,
+              "custom_job_details": {
+                "starts_daily_at": "14:00",
+                "ends_daily_at": "15:00",
+                "repeat_interval_unit": "{string}",
+                "repeat_interval_measure": 2
+              },
+              "repeat_on_last_day": "{boolean}",
+              "specified_days": 1
+        }
+
+        :return: Response Dict
+        """
+        if domain_id is None or workflow_id is None or schedule_config is None:
+            self.logger.error("domain_id or workflow_id or schedule_config cannot be None")
+            raise Exception("domain_id or workflow_id or schedule_config cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.get_enable_workflow_schedule_url(
+                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']), schedule_config).content)
+
+            result = response.get('result', None)
+
+            if result is None:
+                self.logger.error('Failed to enable schedule of the workflow')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Failed to enable schedule of the workflow',
+                                                     response=response)
+
+            workflow_id = str(workflow_id)
+            self.logger.info(
+                'Successfully enabled schedule for the workflow {id}.'.format(id=workflow_id))
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to enable workflow schedule.')
+            raise WorkflowError('Error occurred while trying to enable workflow schedule.')
+
+    def disable_workflow_schedule(self, domain_id, workflow_id):
+        """
+        Disables Schedule of a particular Workflow belonging to the Domain
+        :param domain_id: Domain ID of which Workflow belongs
+        :type domain_id: String
+        :param workflow_id: Workflow ID to fetch schedule for.
+        :type workflow_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or workflow_id is None:
+            self.logger.error("domain_id or workflow_id cannot be None")
+            raise Exception("domain_id or workflow_id cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.get_disable_workflow_schedule_url(
+                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            result = response.get('result', None)
+
+            if result is None:
+                self.logger.error('Failed to disable schedule of the workflow')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Failed to disable schedule of the workflow',
+                                                     response=response)
+
+            workflow_id = str(workflow_id)
+            self.logger.info(
+                'Successfully disabled schedule for the workflow {id}.'.format(id=workflow_id))
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to disable workflow schedule.')
+            raise WorkflowError('Error occurred while trying to disable workflow schedule.')
+
+    def update_workflow_schedule_user(self, domain_id, workflow_id):
+        """
+        Changes Workflow Schedule User of a particular Workflow belonging to the Domain
+        :param domain_id: Domain ID of which Workflow belongs
+        :type domain_id: String
+        :param workflow_id: Workflow ID to fetch schedule for.
+        :type workflow_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or workflow_id is None:
+            self.logger.error("domain_id or workflow_id cannot be None")
+            raise Exception("domain_id or workflow_id cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.update_workflow_schedule_user_url(
+                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            result = response.get('result', None)
+
+            if result is None:
+                self.logger.error('Failed to update workflow schedule user')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Failed to update workflow schedule user',
+                                                     response=response)
+
+            workflow_id = str(workflow_id)
+            self.logger.info(
+                'Successfully updated workflow {id} schedule user.'.format(id=workflow_id))
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to update workflow schedule user.')
+            raise WorkflowError('Error occurred while trying to update workflow schedule user.')
+
+
+
     def pause_or_resume_multiple_workflows(self, action_type="pause", workflow_list_body=None):
         """
         Pause/resume Infoworks Data workflow for given workflow ids

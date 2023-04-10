@@ -56,8 +56,91 @@ def test_create_workflow():
         print(str(e))
         assert False
 
-
 @pytest.mark.dependency(depends=["test_create_workflow"])
+def test_update_workflow_schedule_user():
+    try:
+        update_workflow1_user_response = iwx_client.update_workflow_schedule_user(pytest.domain_id,
+                                                                                  pytest.workflows[
+                                                                                      "workflow_api_test_1"])
+        update_workflow2_user_response = iwx_client.update_workflow_schedule_user(pytest.domain_id,
+                                                                                  pytest.workflows[
+                                                                                      "workflow_api_test_2"])
+        update_workflow3_user_response = iwx_client.update_workflow_schedule_user(pytest.domain_id,
+                                                                                  pytest.workflows[
+                                                                                      "workflow_api_test_3"])
+        assert update_workflow1_user_response["result"].get("response", {}).get("result") is not None and \
+               update_workflow2_user_response["result"].get("response", {}).get("result") is not None and \
+               update_workflow3_user_response["result"].get("response", {}).get("result") is not None
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_update_workflow_schedule_user"])
+def test_enable_workflow_schedule():
+    try:
+        schedule_config = {
+            "start_date": "04/07/2023",
+            "end_date": "04/08/2024",
+            "start_hour": 10,
+            "start_min": 0,
+            "end_hour": 23,
+            "end_min": 59,
+            "repeat_interval_measure": 1,
+            "repeat_interval_unit": "MONTH",
+            "ends": True,
+            "is_custom_job": False,
+            "repeat_on_last_day": False,
+            "specified_days": [
+                8
+            ]
+        }
+        print(pytest.domain_id, pytest.workflows["workflow_api_test_1"], pytest.workflows["workflow_api_test_2"])
+        enable_workflow_1 = iwx_client.enable_workflow_schedule(
+            pytest.domain_id, pytest.workflows["workflow_api_test_1"], schedule_config)
+        enable_workflow_2 = iwx_client.enable_workflow_schedule(
+            pytest.domain_id, pytest.workflows["workflow_api_test_2"], schedule_config)
+        print(enable_workflow_1, enable_workflow_2)
+        assert enable_workflow_1.get("result", {}).get("response", {}).get("result") is not None and \
+               enable_workflow_2.get("result", {}).get("response", {}).get("result") is not None
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_enable_workflow_schedule"])
+def test_get_list_of_domain_workflow_schedules():
+    try:
+        workflow_get_response = iwx_client.get_list_of_domain_workflow_schedules(pytest.domain_id)
+        assert (workflow_get_response["result"].get("response", {}).get("result")) is not None
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_enable_workflow_schedule"])
+def test_get_workflow_schedule():
+    try:
+        workflow_get_response = iwx_client.get_workflow_schedule(pytest.domain_id,
+                                                                 pytest.workflows["workflow_api_test_1"])
+        assert (workflow_get_response["result"].get("response", {}).get("result")) is not None
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_get_list_of_domain_workflow_schedules","test_get_workflow_schedule"])
+def test_disable_workflow_schedule():
+    try:
+        workflow_get_response = iwx_client.disable_workflow_schedule(pytest.domain_id,
+                                                                     pytest.workflows["workflow_api_test_1"])
+        assert workflow_get_response["result"].get("response", {}).get("result") is not None
+    except WorkflowError as e:
+        print(str(e))
+        assert False
+
+
+@pytest.mark.dependency(depends=["test_create_workflow","test_disable_workflow_schedule"])
 def test_delete_workflow():
     try:
         workflow_get_response = iwx_client.delete_workflow(pytest.workflows["workflow_api_test_3"], pytest.domain_id)
