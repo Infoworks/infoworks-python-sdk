@@ -873,9 +873,28 @@ class AdminClient(BaseClient):
         Function to create data connection in the domain
         :param config_body: JSON payload
         :type config_body: JSON dict
+        config_body_example = {
+        "name": "Snowflake-connection",
+        "type": "TARGET",
+        "sub_type": "SNOWFLAKE",
+        "properties": {
+            "url": "https://account_name.snowflakecomputing.com",
+            "account": "",
+            "username": "ramesh",
+            "password": {
+                "password_type": "infoworks_managed"
+                "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
+            },
+            "password": "", -->  Needed if the password_type is infoworks_managed
+            "additional_params": "",
+            "warehouse": "TEST_WH"
+        }
+        }
         :return: response dict
         """
         try:
+            if config_body is None:
+                raise Exception("config_body cannot be None/Null")
             create_data_connection_url = url_builder.create_data_connection(self.client_config)
             response = self.call_api("POST", create_data_connection_url,
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
@@ -893,6 +912,52 @@ class AdminClient(BaseClient):
                                                     job_id=None, response=parsed_response)
         except Exception as e:
             raise AdminError(f"Failed to create data connection" + str(e))
+
+    def update_data_connection(self, data_connection_id, config_body):
+        """
+        Function to create data connection in the domain
+        :param data_connection_id: Entity identifier of the data connection id
+        :param config_body: JSON payload
+        :type config_body: JSON dict
+        config_body_example = {
+        "name": "Snowflake-connection",
+        "type": "TARGET",
+        "sub_type": "SNOWFLAKE",
+        "properties": {
+            "url": "https://account_name.snowflakecomputing.com",
+            "account": "",
+            "username": "ramesh",
+            "password": {
+                "password_type": "infoworks_managed",
+                "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
+            },
+            "password": "", -->  Needed if the password_type is infoworks_managed
+            "additional_params": "",
+            "warehouse": "TEST_WH"
+        }
+        }
+        :return: response dict
+        """
+        try:
+            if config_body is None or data_connection_id is None:
+                raise Exception("config_body and data_connection_id cannot be None/Null")
+            create_data_connection_url = url_builder.create_data_connection(self.client_config)
+            response = self.call_api("PUT", create_data_connection_url,
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     config_body)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                self.logger.error("Failed to update the data connection")
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Failed to update data connection"),
+                                                    job_id=None, response=parsed_response)
+        except Exception as e:
+            raise AdminError(f"Failed to update the data connection" + str(e))
 
     def get_data_connection(self, data_connection_id=None, params=None):
         """
@@ -954,6 +1019,8 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if data_connection_id is None:
+                raise Exception("data_connection_id cannot be None")
             create_data_connection_url = url_builder.create_data_connection(self.client_config).strip(
                 "/") + f"/{data_connection_id}"
             response = self.call_api("DELETE", create_data_connection_url,
@@ -971,7 +1038,7 @@ class AdminClient(BaseClient):
                                                                                    "Failed to delete data connection"),
                                                     response=parsed_response)
         except Exception as e:
-            raise AdminError(f"Failed in deleting data connection" + str(e))
+            raise AdminError(f"Failed in delete data connection" + str(e))
 
     def list_secret_stores(self, params=None):
         """

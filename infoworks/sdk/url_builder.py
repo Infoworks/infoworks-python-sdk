@@ -1456,13 +1456,35 @@ def get_table_audit_logs_url(config, source_id, table_id):
     return request
 
 
-def get_source_audit_logs_url(config, source_id, table_group_id):
+def get_table_group_audit_logs_url(config, source_id, table_group_id):
     """
     returns url to get table group audit logs
     """
     request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/table_group_id/audit-logs'.format(
         source_id=source_id,
         table_group_id=table_group_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def accessible_pipeline_extensions_url(config, domain_id):
+    """
+    returns url to get all the Pipeline Extensions associated with this Domain
+    """
+    request = '{protocol}://{ip}:{port}/v3//domains/{domain_id}/accessible-pipeline-extensions'.format(
+        domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def advanced_config_domain_url(config, domain_id):
+    """
+    returns url to get all the Pipeline Extensions associated with this Domain
+    """
+    request = '{protocol}://{ip}:{port}/v3//domains/{domain_id}/accessible-pipeline-extensions'.format(
+        domain_id=domain_id,
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request

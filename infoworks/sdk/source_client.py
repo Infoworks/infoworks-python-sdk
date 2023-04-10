@@ -2629,7 +2629,7 @@ class SourceClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         try:
-            tblgrp_audit_logs_url = url_builder.get_table_audit_logs_url(self.client_config, source_id, table_group_id)
+            tblgrp_audit_logs_url = url_builder.get_table_group_audit_logs_url(self.client_config, source_id, table_group_id)
             tblgrp_audit_logs_url = tblgrp_audit_logs_url + IWUtils.get_query_params_string_from_dict(params=params)
             response = IWUtils.ejson_deserialize(self.call_api("GET", tblgrp_audit_logs_url,
                                                                IWUtils.get_default_header_for_v3(

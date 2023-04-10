@@ -459,7 +459,7 @@ class PipelineGroupClient(BaseClient):
         Gets Infoworks pipeline group details for given pipeline group id
         :param pipeline_group_id: id of the pipeline group whose details are to be fetched
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline  group belongs to
         :type domain_id: String
         :return: response dict
         """
@@ -493,7 +493,7 @@ class PipelineGroupClient(BaseClient):
         Function to delete the pipeline group
         :param pipeline_group_id: id of the pipeline group that has to be deleted
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline group  belongs to
         :type domain_id: String
         :return: response dict
         """
@@ -527,7 +527,7 @@ class PipelineGroupClient(BaseClient):
             Function to update the pipeline group
             :param pipeline_group_id: id of the pipeline group that has to be deleted
             :type pipeline_group_id: String
-            :param domain_id: Domain id to which the pipeline belongs to
+            :param domain_id: Domain id to which the pipeline group belongs to
             :type domain_id: String
             :param pipeline_group_config: a JSON object containing pipeline group configurations
             :type pipeline_group_config: JSON Object
@@ -591,7 +591,7 @@ class PipelineGroupClient(BaseClient):
     def get_accessible_pipeline_groups(self, domain_id, params=None):
         """
             Function to get the accessible pipeline group
-            :param domain_id: Domain id to which the pipeline belongs to
+            :param domain_id: Domain id to which the pipeline  group  belongs to
             :type domain_id: String
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
@@ -640,7 +640,7 @@ class PipelineGroupClient(BaseClient):
     def get_list_of_advanced_config_of_pipeline_groups(self, domain_id, pipeline_group_id, params=None):
         """
             Function to get list of Advance Config pipeline group
-            :param domain_id: Domain id to which the pipeline belongs to
+            :param domain_id: Domain id to which the pipeline  group belongs to
             :type domain_id: String
             param pipeline_group_id: Entity identifier of pipeline group
             :type pipeline_group_id: String
@@ -692,10 +692,10 @@ class PipelineGroupClient(BaseClient):
     def modify_advanced_config_for_pipeline_group(self, domain_id, pipeline_group_id, adv_config_body,
                                                   action_type="update", key=None):
         """
-        Function to add the adv config for the pipeline group
+        Function to add/update the adv config for the pipeline group
         :param pipeline_group_id: id of the pipeline group whose details are to be fetched
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline group belongs to
         :type domain_id: String
         :param action_type: values can be either create/update. default update
         :type action_type: String
@@ -745,8 +745,8 @@ class PipelineGroupClient(BaseClient):
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(e))
-            self.logger.exception('Error occurred while trying to add adv config pipeline group.')
-            raise PipelineError('Error occurred while trying to add adv config pipeline group.')
+            self.logger.exception('Error occurred while trying to add/update adv config pipeline group.')
+            raise PipelineError('Error occurred while trying to add/update adv config pipeline group.')
 
     def get_or_delete_advance_config_details_of_pipeline_group(self, domain_id, pipeline_group_id, key,
                                                                action_type="get"):
@@ -754,7 +754,7 @@ class PipelineGroupClient(BaseClient):
         Gets/Deletes advance configuration of pipeline group
         :param pipeline_group_id: id of the pipeline group whose details are to be fetched
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline group belongs to
         :type domain_id: String
         :param key: name of the advanced configurations
         :param action_type: values can be get/delete
