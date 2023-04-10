@@ -1522,7 +1522,7 @@ def accessible_pipeline_extensions_url(config, domain_id):
     """
     returns url to get all the Pipeline Extensions associated with this Domain
     """
-    request = '{protocol}://{ip}:{port}/v3//domains/{domain_id}/accessible-pipeline-extensions'.format(
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-extensions'.format(
         domain_id=domain_id,
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
@@ -1531,10 +1531,34 @@ def accessible_pipeline_extensions_url(config, domain_id):
 
 def advanced_config_domain_url(config, domain_id):
     """
-    returns url to get all the Pipeline Extensions associated with this Domain
+    returns url to work with adv config of the domain
     """
-    request = '{protocol}://{ip}:{port}/v3//domains/{domain_id}/accessible-pipeline-extensions'.format(
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-extensions'.format(
         domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def table_advanced_base_url(config, source_id, table_id):
+    """
+    returns url to work with table level advanced configuration
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/configurations/advance'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def table_segmentation_base_url(config, source_id, table_id):
+    """
+        returns url to work with table segmentation
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/segmentation'.format(
+        source_id=source_id,
+        table_id=table_id,
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request

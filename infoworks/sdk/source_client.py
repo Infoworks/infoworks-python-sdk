@@ -3,6 +3,7 @@ import traceback
 from infoworks.error import SourceError
 from infoworks.sdk import url_builder, local_configurations
 from infoworks.sdk.base_client import BaseClient
+from infoworks.sdk.generic_response import GenericResponse
 from infoworks.sdk.local_configurations import Response, ErrorCode, SourceMappings
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.utils import IWUtils
@@ -2162,6 +2163,51 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to get the table schema for {table_id} " + str(e))
 
+    def update_table_schema(self, source_id=None, table_id=None, config_body=None):
+        """
+        Function to update the table schema
+        :param table_id: Entity identifier for table
+        :type table_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param config_body: JSON body
+        config_body_example: {
+            "type" : "column",
+            "columns": [
+                    {
+                        "is_deleted": false,
+                        "name": "STATE_ID",
+                        "original_name": "STATE_ID",
+                        "target_sql_type": 12,
+                        "target_scale": 0,
+                        "col_size": 11,
+                        "target_precision": 10
+                    }
+            ]
+        }
+        :return: response dict
+        """
+        if None in {source_id, table_id} or config_body is None:
+            self.logger.error("source id or table_id or config_body cannot be None")
+            raise Exception("source id or table_id or config_body cannot be None")
+        try:
+            table_schema_url = url_builder.source_table_schema_url(self.client_config, source_id, table_id)
+            response = IWUtils.ejson_deserialize(self.call_api("PATCH", table_schema_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']), data=config_body
+                                                               ).content)
+            result = response.get('result', {})
+            if "id" not in result:
+                self.logger.error(f"Failed to update the table schema for {table_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to update the table schema for {table_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to update the table schema for {table_id} " + str(e))
+
     def get_file_mappings_for_json_source(self, source_id=None, file_mapping_id=None, file_mapping_name=None,
                                           params=None):
         """
@@ -2629,7 +2675,8 @@ class SourceClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         try:
-            tblgrp_audit_logs_url = url_builder.get_table_group_audit_logs_url(self.client_config, source_id, table_group_id)
+            tblgrp_audit_logs_url = url_builder.get_table_group_audit_logs_url(self.client_config, source_id,
+                                                                               table_group_id)
             tblgrp_audit_logs_url = tblgrp_audit_logs_url + IWUtils.get_query_params_string_from_dict(params=params)
             response = IWUtils.ejson_deserialize(self.call_api("GET", tblgrp_audit_logs_url,
                                                                IWUtils.get_default_header_for_v3(
@@ -2652,10 +2699,160 @@ class SourceClient(BaseClient):
             else:
                 self.logger.error("Failed to get audit logs of table group")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc="Failed to get audit logs of table group", response=response)
+                                                   error_desc="Failed to get audit logs of table group",
+                                                   response=response)
             response["result"] = audit_logs
             response["message"] = initial_msg
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response, source_id=source_id)
         except Exception as e:
             self.logger.error(f"Failed to get the audit logs of table group {table_group_id} " + str(e))
             raise SourceError(f"Failed to get the audit logs of table group {table_group_id} " + str(e))
+
+    def get_list_of_advanced_config_of_table(self, source_id, table_id, params=None):
+        """
+            Function to get list of Advance Config of the table
+            :param source_id: Entity identifier of the source
+            :param table_id: Entity identifier of the table
+            :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+            :type: JSON dict
+            :return: response dict
+        """
+        if None in {source_id, table_id}:
+            raise Exception(f"source_id, table_id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_get_table_adv_config = url_builder.table_advanced_base_url(self.client_config, source_id,
+                                                                          table_id) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+        adv_config_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_table_adv_config,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                initial_msg = response.get("message", "")
+                while len(result) > 0:
+                    adv_config_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                           error_code=ErrorCode.GENERIC_ERROR,
+                                                           error_desc="Error in listing adv config of table",
+                                                           response=response
+                                                           )
+
+                response["result"] = adv_config_list
+                response["message"] = initial_msg
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing adv config of table")
+            raise SourceError("Error in listing adv config of table" + str(e))
+
+    def modify_advanced_config_of_table(self, source_id, table_id, adv_config_body,
+                                        action_type="update", key=None):
+        """
+        Function to add/update the adv config for the pipeline group
+        :param source_id: Entity identifier of the source
+        :param table_id: Entity identifier of the table
+        :param action_type: values can be either create/update. default update
+        :type action_type: String
+        :param adv_config_body: JSON dict
+        adv_config_body_example = {
+            "key" : "",
+            "value": "",
+            "description": "",
+            "is_active": True
+            }
+        :param key: In case of update, name of the adv config to update
+        :return: response dict
+        """
+        if None in {source_id, table_id} or adv_config_body is None:
+            raise Exception(f"source_id, table_id and adv_config_body cannot be None")
+        try:
+            if action_type.lower() == "create":
+                request_type = "POST"
+                request_url = url_builder.table_advanced_base_url(self.client_config, source_id,
+                                                                  table_id)
+            else:
+                request_type = "PUT"
+                request_url = url_builder.table_advanced_base_url(self.client_config, source_id,
+                                                                  table_id) + f"{key}"
+            response = IWUtils.ejson_deserialize(
+                self.call_api(request_type, request_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              adv_config_body).content)
+            result = response.get('result', {})
+            message = response.get('message', "")
+            adv_config_id = result.get('id', None)
+            if adv_config_id is not None:
+                adv_config_id = str(adv_config_id)
+                self.logger.info(
+                    'Advanced Config has been created {id}.'.format(id=adv_config_id))
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=adv_config_id,
+                                                    response=response)
+            elif message == "Successfully updated Advance configuration":
+                self.logger.info('Advanced Config has been updated')
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                self.logger.error(f'Failed to {action_type} advanced config for pipeline group.')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f'Failed to {action_type} advanced config for table',
+                                                   response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to add/update adv config for table')
+            raise SourceError('Error occurred while trying to add/update adv config for table')
+
+    def get_or_delete_advance_config_of_table(self, source_id, table_id, key,
+                                              action_type="get"):
+        """
+        Gets/Deletes advance configuration of pipeline group
+        :param source_id: Entity identifier of the source
+        :param table_id: Entity identifier of the table
+        :param key: name of the advanced configuration
+        :param action_type: values can be get/delete
+        :return: response dict
+        """
+        try:
+            if None in {source_id, table_id, key}:
+                raise Exception(f"source_id, table_id, key cannot be None")
+            request_type = "GET" if action_type.lower() == "get" else "DELETE"
+            response = IWUtils.ejson_deserialize(
+                self.call_api(request_type, url_builder.table_advanced_base_url(
+                    self.client_config, source_id, table_id) + f"{key}", IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token'])).content)
+            result = response.get('result', {})
+            message = response.get("message", "")
+            if action_type.lower() == "delete" and message == "Successfully removed Advance configuration":
+                self.logger.info(
+                    'Successfully deleted the advanced config')
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                    response=response)
+
+            if result.get('entity_id', None) is None:
+                self.logger.error('Failed to find the advance config details')
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    error_desc='Failed to find the advance config details',
+                                                    response=response)
+
+            self.logger.info(
+                'Successfully got the advanced config details.')
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=result.get('entity_id', ''),
+                                                response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to get/delete adv config details.')
+            raise SourceError('Error occurred while trying to get/delete adv config details.')
