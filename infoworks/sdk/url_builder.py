@@ -1615,4 +1615,12 @@ def get_metrics_prodops_url(config):
         port=config['port'],
         protocol=config['protocol'],
     )
+
+def list_secrets_url(config):
+    """
+        returns url to get secret details in Infoworks
+        """
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
     return request

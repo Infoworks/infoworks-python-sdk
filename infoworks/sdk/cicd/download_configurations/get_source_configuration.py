@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from infoworks.sdk.base_client import BaseClient
 from infoworks.sdk.cicd.download_configurations.utils import Utils
@@ -35,4 +36,5 @@ class DownloadSource(BaseClient):
             except Exception as e:
                 self.logger.error(f"Unable to export configurations for source {source_id} due to {str(e)}")
                 print(f"Unable to export configurations for source {source_id} due to {str(e)}")
+                print(traceback.format_exc())
         f.close()

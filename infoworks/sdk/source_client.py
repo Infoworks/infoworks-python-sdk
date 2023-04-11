@@ -72,7 +72,7 @@ class SourceClient(BaseClient):
                 self.logger.exception("Error occurred during job status poll")
                 self.logger.info(str(e))
                 if failed_count >= retries - 1:
-                    # traceback.print_stack()
+                    print(traceback.print_stack())
                     print(response)
                     raise SourceError(response.get("message", "Error occurred during job status poll"))
                 failed_count = failed_count + 1
@@ -314,6 +314,12 @@ class SourceClient(BaseClient):
                 self.call_api("GET", url_for_browse_source,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             result = response.get('result', {})
+            if result.get("message","")=="Interactive Cluster is not running. Please bring up cluster and retry":
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.GENERIC_ERROR,
+                                                   error_desc=f"Interactive Cluster is not running. Please bring up cluster and retry",
+                                                   response=response, job_id=None,
+                                                   source_id=source_id)
         except Exception as e:
             raise SourceError(f"Failed to create browse table job for {source_id} " + str(e))
         if len(result) == 0 and "id" not in result:
@@ -349,7 +355,7 @@ class SourceClient(BaseClient):
                         job_status = None
                     else:
                         job_status = result["status"]
-                    self.logger.info("Browse source job poll status : " + job_status)
+                    self.logger.info(f"Browse source job poll status : {job_status}" )
                     if job_status in ["completed", "failed", "aborted"]:
                         break
                     if job_status is None:

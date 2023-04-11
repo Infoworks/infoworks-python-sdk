@@ -209,21 +209,8 @@ class Pipeline:
                         item["properties"]["server_path"] = server_path
                     if "upload_option" in item["properties"]:
                         item["properties"]["upload_option"] = "serverLocation"
-                elif item.get("sub_type").upper() in ["SNOWFLAKE", "POSTGRES"] and read_passwords_from_secrets:
-                    if self.secrets["custom_secrets_read"] is True:
-                        encrypted_key_name = f"{env_tag}-dataconnection-{item['name']}"
-                        decrypt_value = self.secrets.get(encrypted_key_name, "")
-                        if IWUtils.is_json(decrypt_value):
-                            decrypt_value_dict = json.loads(decrypt_value)
-                            for key in decrypt_value_dict.keys():
-                                item["properties"][key] = decrypt_value_dict[key]
-                    else:
-                        encrypted_key_name = f"{env_tag}-dataconnection-{item['name']}"
-                        decrypt_value = pipeline_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name)
-                        if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
-                            decrypt_value_dict = json.loads(decrypt_value[0])
-                            for key in decrypt_value_dict.keys():
-                                item["properties"][key] = decrypt_value_dict[key]
+                elif item.get("sub_type").upper() in ["SNOWFLAKE", "POSTGRES"]:
+                    pass
                 data = IWUtils.ejson_serialize(item)
                 response = requests.post(create_data_connection_url,
                                          headers={'Authorization': 'Bearer ' + pipeline_client_obj.client_config[

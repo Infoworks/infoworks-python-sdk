@@ -76,21 +76,6 @@ class CdataSource:
                 override_keys = information["source_details"].get(src_name).keys()
                 for key in override_keys:
                     connection_object[key] = information["source_details"][src_name][key]
-        if read_passwords_from_secrets and self.secrets["custom_secrets_read"] is True:
-            encrypted_key_name = f"{env_tag}-" + src_name
-            decrypt_value = self.secrets.get(encrypted_key_name, "")
-            if IWUtils.is_json(decrypt_value):
-                decrypt_value_dict = json.loads(decrypt_value)
-                for key in decrypt_value_dict.keys():
-                    connection_object[key] = decrypt_value_dict[key]
-        elif read_passwords_from_secrets and self.secrets["custom_secrets_read"] is False:
-            encrypted_key_name = f"{env_tag}-" + src_name
-            decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name)
-            if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
-                decrypt_value_dict = json.loads(decrypt_value[0])
-                for key in decrypt_value_dict.keys():
-                    connection_object[key] = decrypt_value_dict[key]
-
         response = src_client_obj.configure_source_connection(source_id, connection_object=connection_object)
         if response["result"]["status"].upper() != "SUCCESS":
             src_client_obj.logger.info(f"Failed to configure the source {source_id} connection")
@@ -180,28 +165,8 @@ class CdataSource:
                         for key in override_keys:
                             table["configuration"]["export_configuration"]["connection"][key] = \
                                 information["src_export_details"][info_key][key]
-                    if target_type.upper() in ["SNOWFLAKE", "POSTGRES"] and read_passwords_from_secrets:
-                        if self.secrets["custom_secrets_read"] is True:
-                            encrypted_key_name1 = f"{env_tag}-export-configuration-{src_name}-{table['configuration']['name']}"
-                            encrypted_key_name2 = f"{env_tag}-export-configuration-{src_name}"
-                            decrypt_value = self.secrets.get(encrypted_key_name1, "")
-                            if decrypt_value == "" or decrypt_value is None:
-                                decrypt_value = self.secrets.get(encrypted_key_name2, "")
-                            decrypt_value_dict = json.loads(decrypt_value)
-                            for key in decrypt_value_dict.keys():
-                                table["configuration"]["export_configuration"]["connection"][key] = \
-                                    decrypt_value_dict[key]
-                        else:
-                            encrypted_key_name1 = f"{env_tag}-export-configuration-{src_name}-{table['configuration']['name']}"
-                            encrypted_key_name2 = f"{env_tag}-export-configuration-{src_name}"
-                            decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name1)
-                            if len(decrypt_value) == 0:
-                                decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name2)
-                            if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
-                                decrypt_value_dict = json.loads(decrypt_value[0])
-                                for key in decrypt_value_dict.keys():
-                                    table["configuration"]["export_configuration"]["connection"][key] = \
-                                            decrypt_value_dict[key]
+                    if target_type.upper() in ["SNOWFLAKE", "POSTGRES"]:
+                        pass
                     elif target_type.upper() == "BIGQUERY":
                         if "server_path" not in override_keys:
                             server_path = table["configuration"]["export_configuration"].get("connection", {}).get(
