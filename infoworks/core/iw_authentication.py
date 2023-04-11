@@ -5,11 +5,6 @@ import logging
 import infoworks.error
 from infoworks.sdk import url_builder, local_configurations
 from infoworks.sdk.utils import IWUtils
-from Cryptodome.Cipher import AES
-import base64
-from Cryptodome.Random import get_random_bytes
-from Cryptodome.Protocol.KDF import PBKDF2
-from Cryptodome.Hash import SHA256
 
 
 def validate_bearer_token(protocol, ip, port, delegation_token):
@@ -67,26 +62,3 @@ def is_token_valid(client_config, http_client=None):
     except Exception as e:
         logging.error('Failed to check token validity: ' + str(e))
         return False
-
-
-def aes_encrypt(data):
-    salt = get_random_bytes(16)
-    iv = get_random_bytes(12)
-    key = PBKDF2("infoworks", salt, dkLen=256, count=65536, hmac_hash_module=SHA256)
-    key = key[0:32]
-    cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
-    ciphertext, auth_tag = cipher.encrypt_and_digest(bytes(data, 'utf-8'))
-    return base64.b64encode(salt + iv + ciphertext + auth_tag).decode('utf-8')
-
-
-def aes_decrypt(encrypted_data):
-    ciphertext = base64.b64decode(encrypted_data)
-    salt = ciphertext[0:16]
-    iv = ciphertext[16:28]
-    auth_tag = ciphertext[-16:]
-    text = ciphertext[28:-16]
-    key = PBKDF2("infoworks", salt, dkLen=256, count=65536, hmac_hash_module=SHA256)
-    key = key[0:32]
-    cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
-    decrypt_text = cipher.decrypt_and_verify(text, auth_tag)
-    return decrypt_text.decode('utf-8')
