@@ -118,7 +118,7 @@ class WrapperSource(BaseClient):
                     response_to_return["get_storage_entity_response"] = result
             if compute_id is None and "compute_mappings" in self.mappings:
                 iw_mappings = configuration_obj["configuration"]["iw_mappings"]
-                compute_mappings_from_config = dict(self.mappings.items("compute_mappings"))
+                compute_mappings_from_config = dict(self.mappings.get("compute_mappings"))
                 for mapping in iw_mappings:
                     if mapping["entity_type"]=="environment_compute_template":
                         mapping["recommendation"]["compute_name"]=compute_mappings_from_config.get(mapping["recommendation"]["compute_name"],mapping["recommendation"]["compute_name"])
