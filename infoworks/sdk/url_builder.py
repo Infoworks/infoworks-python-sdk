@@ -1312,18 +1312,6 @@ def list_secret_stores_url(config):
     return request
 
 
-def list_secrets_url(config):
-    """
-    returns URL to list secrets using v3 api
-    :param config: client configurations
-    :type config: dict
-    :return: url to list secret
-    """
-    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(ip=config['ip'], port=config['port'],
-                                                                                protocol=config['protocol'])
-    return request
-
-
 def get_query_as_table_url(config, source_id):
     """
         returns URL to create query as table
@@ -1615,6 +1603,7 @@ def get_metrics_prodops_url(config):
         port=config['port'],
         protocol=config['protocol'],
     )
+
 
 def list_secrets_url(config):
     """
