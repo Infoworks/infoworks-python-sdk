@@ -93,6 +93,125 @@ class JobMetricsClient(BaseClient):
         except Exception as e:
             raise AdminError("Unable to get ingestion job metrics info")
 
+    def get_export_metrics(self, job_id, source_id):
+        """
+        Function to get export metrics for the source job
+        :param job_id: Entity identifier of the job
+        :param source_id: Entity identifier of the source
+        :return: List of job metrics
+        """
+        try:
+            combinexportMetric = []
+            url_to_get_export_job_metrics = url_builder.get_export_metrics_source_url(self.client_config, source_id,
+                                                                                      job_id) + "?limit=50&offset=0"
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_export_job_metrics,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                              ).content)
+            if response is not None and "result" in response:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    combinexportMetric.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(self.callurl(nextUrl).content)
+                    result = response.get("result", [])
+                return combinexportMetric
+        except Exception as e:
+            raise AdminError("Unable to get export job metrics info")
+
+    def get_ingestion_metrics_with_job_id(self, job_id):
+        """
+        Function to get ingestion metrics for the job
+        :param job_id: Entity identifier of the job
+        :return: List of job metrics
+        """
+        try:
+            combinedJobMetric = []
+            url_to_get_job_ingestion_metrics = url_builder.get_ingestion_metrics_admin_url(self.client_config,
+                                                                                           job_id) + "?limit=50&offset=0"
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_job_ingestion_metrics,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                              ).content)
+            if response is not None and "result" in response:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    combinedJobMetric.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(self.callurl(nextUrl).content)
+                    result = response.get("result", [])
+                return combinedJobMetric
+        except Exception as e:
+            raise AdminError("Unable to get ingestion job metrics info")
+
+    def get_export_metrics_with_job_id(self, job_id):
+        """
+        Function to get ingestion metrics for the job
+        :param job_id: Entity identifier of the job
+        :return: List of job metrics
+        """
+        try:
+            exportMetric = []
+            url_to_get_job_ingestion_metrics = url_builder.get_export_metrics_url(self.client_config,
+                                                                                  job_id) + "?limit=50&offset=0"
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_job_ingestion_metrics,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                              ).content)
+            if response is not None and "result" in response:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    exportMetric.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(self.callurl(nextUrl).content)
+                    result = response.get("result", [])
+                return exportMetric
+        except Exception as e:
+            raise AdminError("Unable to get export job metrics info")
+
+    def get_metrics_prodops(self, config_body):
+        """
+        Function to Fetch the metrics for a given time period
+        :param config_body: JSON dict
+        config_body = {'limit': 10000, 'date_range': {'type': 'last', 'unit': 'day', 'value': 1}, 'offset': 0}
+        :return: List of job metrics
+        """
+        try:
+            if config_body is None:
+                raise Exception("config_body cannot be None")
+            metrics = []
+            url_to_get_metrics = url_builder.get_metrics_prodops_url(self.client_config) + "?limit=50&offset=0"
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_metrics,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                              ).content)
+            if response is not None and "result" in response:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    metrics.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(self.callurl(nextUrl).content)
+                    result = response.get("result", [])
+                return metrics
+        except Exception as e:
+            raise AdminError("Unable to get job metrics info")
+
     def get_source_file_paths(self, source_id, table_id, job_id):
         try:
             source_files = []
@@ -118,37 +237,11 @@ class JobMetricsClient(BaseClient):
             print(e)
             raise AdminError("Unable to get source file pat metrics info")
 
-    def get_export_metrics(self, job_id):
-        try:
-            combinedJobMetric = []
-            url_to_get_export_metrics = url_builder.get_export_metrics_url(self.client_config,
-                                                                           job_id) + "?limit=50&offset=0"
-
-            response = IWUtils.ejson_deserialize(
-                self.call_api("GET", url_to_get_export_metrics,
-                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
-                              ).content)
-            if response is not None and "result" in response:
-                result = response.get("result", [])
-                while len(result) > 0:
-                    combinedJobMetric.extend(result)
-                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
-                                                                      ip=self.client_config['ip'],
-                                                                      port=self.client_config['port'],
-                                                                      protocol=self.client_config['protocol'],
-                                                                      )
-                    response = IWUtils.ejson_deserialize(self.callurl(nextUrl).content)
-                    result = response.get("result", [])
-                return combinedJobMetric
-        except Exception as e:
-            print(e)
-            raise AdminError("Unable to get export job metrics info")
-
     def get_pipeline_build_metrics(self, job_id):
         try:
             combinedJobMetric = []
             url_to_get_pipeline_build_metrics = url_builder.get_pipeline_build_metrics_url(self.client_config,
-                                                                                   job_id) + "?limit=50&offset=0"
+                                                                                           job_id) + "?limit=50&offset=0"
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_get_pipeline_build_metrics,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
@@ -725,15 +818,20 @@ class JobMetricsClient(BaseClient):
                 executor.shutdown(wait=True)
 
             result = []
-            header = ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time', 'job_end_time', 'job_status', 'source_name', 'source_file_names', 'source_schema_name', 'source_database_name', 'table_group_name', 'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value', 'target_schema_name', 'target_table_name', 'pre_target_count', 'fetch_records_count', 'target_records_count', 'job_link']
-            ui_port = 443 if self.client_config["port"]=='443' else 3000
+            header = ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
+                      'job_end_time', 'job_status', 'source_name', 'source_file_names', 'source_schema_name',
+                      'source_database_name', 'table_group_name', 'iwx_table_name', 'starting_watermark_value',
+                      'ending_watermark_value', 'target_schema_name', 'target_table_name', 'pre_target_count',
+                      'fetch_records_count', 'target_records_count', 'job_link']
+            ui_port = 443 if self.client_config["port"] == '443' else 3000
             if len(self.job_metrics_final) > 0:
                 for item in self.job_metrics_final:
                     dict_temp = {}
                     for i in header:
                         dict_temp[i] = item.get(i)
-                        if i=="job_link" and dict_temp.get("job_id",None)!=None:
-                            dict_temp[i]=f"{self.client_config['protocol']}://{self.client_config['ip']}:{ui_port}/job/logs?jobId={dict_temp.get('job_id','')}"
+                        if i == "job_link" and dict_temp.get("job_id", None) != None:
+                            dict_temp[
+                                i] = f"{self.client_config['protocol']}://{self.client_config['ip']}:{ui_port}/job/logs?jobId={dict_temp.get('job_id', '')}"
                     result.append(copy.deepcopy(dict_temp))
                 return result
             else:
