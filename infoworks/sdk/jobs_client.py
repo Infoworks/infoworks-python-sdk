@@ -29,7 +29,8 @@ class JobsClient(BaseClient):
         url_to_list_jobs = url_builder.get_jobs_url(self.client_config)
         if job_id is not None:
             url_to_list_jobs = url_to_list_jobs + f"/{job_id}"
-        url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
+        else:
+            url_to_list_jobs = url_to_list_jobs + IWUtils.get_query_params_string_from_dict(params=params)
         job_details = []
 
         try:
@@ -167,29 +168,48 @@ class JobsClient(BaseClient):
         if None in {job_id}:
             self.logger.error("job_id cannot be None")
             raise Exception("job_id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+
+        url_to_get_cluster_job_details = url_builder.get_jobs_url(self.client_config) + f"/{job_id}/runs"
+        if run_id:
+            url_to_get_cluster_job_details = url_to_get_cluster_job_details + f"/{run_id}"
+        else:
+            url_to_get_cluster_job_details = url_to_get_cluster_job_details + IWUtils.get_query_params_string_from_dict(params=params)
+        job_details = []
         try:
-            if params is None:
-                params = {"limit": 20, "offset": 0}
-            url_to_get_cluster_job_details = url_builder.get_jobs_url(self.client_config) + f"/{job_id}/runs"
-            if run_id:
-                url_to_get_cluster_job_details = url_to_get_cluster_job_details + f"/{run_id}"
-            url_to_get_cluster_job_details = url_to_get_cluster_job_details + IWUtils.get_query_params_string_from_dict(
-                params=params)
-            response = None
-            response = IWUtils.ejson_deserialize(self.call_api("GET", url_to_get_cluster_job_details,
-                                                               IWUtils.get_default_header_for_v3(
-                                                                   self.client_config['bearer_token']),
-                                                               ).content)
-            result = response.get('result', None)
-            if result is None:
-                self.logger.error(f"Failed to get the cluster job details for {job_id}.")
-                return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                    error_desc=f"Failed to get the cluster job details for {job_id}.",
-                                                    job_id=job_id, response=response)
-            else:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_cluster_job_details,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            initial_msg = ""
+            if response is not None:
+                initial_msg = response.get("message", "")
+                result = response.get("result", None)
+                if result is None:
+                    self.logger.error('Failed to get job details')
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_desc='Failed to get cluster job details',
+                                                        response=response)
+                if run_id is not None:
+                    job_details.extend([result])
+                else:
+                    while len(result) > 0:
+                        job_details.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+            response["result"] = job_details
+            response["message"] = initial_msg
+            return GenericResponse.parse_result(job_id=job_id, status=Response.Status.SUCCESS, response=response)
         except Exception as e:
-            raise JobsError(f"Failed to get the cluster job details for {job_id}." + str(e))
+            self.logger.error("Error in getting cluster job details")
+            raise JobsError("Error in getting cluster job details" + str(e))
 
     def get_admin_job_details(self, params=None):
         """

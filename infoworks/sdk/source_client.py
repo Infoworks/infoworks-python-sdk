@@ -56,7 +56,7 @@ class SourceClient(BaseClient):
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
-                    if job_status in ["completed", "failed", "aborted"]:
+                    if job_status.lower() in ["completed", "failed", "aborted", "canceled"]:
                         return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
                                                            job_id=job_id, response=response)
                 else:
@@ -675,11 +675,13 @@ class SourceClient(BaseClient):
     def submit_source_job(self, source_id=None, body=None, poll=False, poll_timeout=300, polling_frequency=15,
                           retries=3):
         """
-        Function to trigger the jobs related to source
+        Initiates jobs for source and its artifacts.
+        The job types that can be submitted are export_data, streaming_start, segmentation_load, truncate_reload, cdc_merge, truncate_table, source_test_connection, source_fetch_metadata, table_fetch_metadata.
         :param source_id: source entity id
         :type source_id: String
         :param body: JSON body containing type of job to trigger
         :type body: JSON dict
+
 
         metadata_job_body_example = {
                 "job_type": "source_fetch_metadata",

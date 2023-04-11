@@ -474,6 +474,8 @@ class WorkflowClient(BaseClient):
                     self.client_config['bearer_token'])).content)
                 result = response.get('result', {})
                 workflow_status = result['workflow_status']["state"]
+                if workflow_status.lower() in ['success', 'completed', 'failed', 'aborted', 'canceled']:
+                    break
                 print(f"workflow_status : {workflow_status}.Sleeping for {poll_interval} seconds")
                 time.sleep(poll_interval)
 
