@@ -1408,3 +1408,12 @@ def get_workflow_run_id_details_url(config, workflow_id, run_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+def list_secrets_url(config):
+    """
+        returns url to get secret details in Infoworks
+        """
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request

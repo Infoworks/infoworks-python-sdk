@@ -95,6 +95,7 @@ class WrapperSource(BaseClient):
         try:
             env_id = self.client_config.get("default_environment_id", None)
             storage_id = self.client_config.get("default_storage_id", None)
+            compute_id = self.client_config.get("default_compute_id", None)
             with open(configuration_file_path, 'r') as file:
                 json_string = file.read()
             configuration_obj = IWUtils.ejson_deserialize(json_string)
@@ -115,6 +116,12 @@ class WrapperSource(BaseClient):
                                                                 params={"filter": {"name": storage_name}})
                     storage_id = result["result"]["response"][0]["id"] if len(result["result"]["response"]) > 0 else None
                     response_to_return["get_storage_entity_response"] = result
+            if compute_id is None and "compute_mappings" in self.mappings:
+                iw_mappings = configuration_obj["configuration"]["iw_mappings"]
+                compute_mappings_from_config = dict(self.mappings.items("compute_mappings"))
+                for mapping in iw_mappings:
+                    if mapping["entity_type"]=="environment_compute_template":
+                        mapping["recommendation"]["compute_name"]=compute_mappings_from_config.get(mapping["recommendation"]["compute_name"],mapping["recommendation"]["compute_name"])
             if env_id is None or storage_id is None:
                 print("No env id or storage id found")
                 raise Exception("No env id or storage id found")
@@ -130,15 +137,15 @@ class WrapperSource(BaseClient):
                     # Proceed to configure the source connection details
                     source_connection_configurations_response = source_obj.configure_csv_source(self, source_id, self.mappings,
                                                     read_passwords_from_secrets=read_passwords_from_secrets,
-                                                    env_tag=env_tag, secret_type=secret_type,config_ini_path=config_ini_path)
-                    if source_connection_configurations_response["result"]["status"].upper() == "SUCCESS":
+                                                    env_tag=env_tag, secret_type=secret_type,config_ini_path=config_ini_path,dont_skip_step=configuration_obj["steps_to_run"]["configure_rdbms_source_connection"])
+                    if source_connection_configurations_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
                         print("Successfully configured the connection details")
                         self.logger.info("Successfully configured the connection details")
                         # Proceed to configure tables and table groups
                         source_import_configuration_response = source_obj.import_source_configuration(self, source_id, self.mappings,
                                                                         override_configuration_file, export_lookup,
                                                                         read_passwords_from_secrets)
-                        if source_import_configuration_response["result"]["status"].upper() == "SUCCESS":
+                        if source_import_configuration_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
                             self.logger.info("Configured source successfully")
                             print("Configured Source successfully!")
                         else:
@@ -165,9 +172,9 @@ class WrapperSource(BaseClient):
                 response_to_return["create_source_response"] = create_source_response
             elif source_type == "rdbms" and source_sub_type!="snowflake":
                 source_obj = RDBMSSource()
-                source_obj.update_mappings_for_configurations(self.mappings)
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
+                source_obj.update_mappings_for_configurations(self.mappings)
                 source_creation_response = source_obj.create_rdbms_source(self)
                 source_id = source_creation_response["result"]["source_id"]
                 if source_id is not None:
@@ -175,49 +182,67 @@ class WrapperSource(BaseClient):
                     source_connection_configurations_response = source_obj.configure_rdbms_source_connection(self, source_id, override_configuration_file,
                                                                     read_passwords_from_secrets=read_passwords_from_secrets,
                                                                     env_tag=env_tag,
-                                                                    secret_type=secret_type,config_ini_path=config_ini_path)
-                    if source_connection_configurations_response["result"]["status"].upper() == "SUCCESS":
+                                                                    secret_type=secret_type,config_ini_path=config_ini_path,dont_skip_step=configuration_obj["steps_to_run"]["configure_rdbms_source_connection"])
+                    if source_connection_configurations_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
                         print("Successfully configured the connection details")
                         self.logger.info("Successfully configured the connection details")
-                        source_test_connection_response = source_obj.test_source_connection(self, source_id)
-                        if source_test_connection_response["result"]["status"].upper() == "SUCCESS":
-                            source_browse_source_tables_response = source_obj.browse_source_tables(self, source_id)
-                            if source_browse_source_tables_response["result"]["status"].upper() == "SUCCESS":
-                                status = source_obj.add_tables_to_source(self, source_id)
-                                if status == "SUCCESS":
+                        source_test_connection_response = source_obj.test_source_connection(self, source_id,dont_skip_step=configuration_obj["steps_to_run"]["test_source_connection"])
+                        if source_test_connection_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
+                            source_browse_source_tables_response = source_obj.browse_source_tables(self, source_id,configuration_obj["steps_to_run"]["browse_source_tables"])
+                            if source_browse_source_tables_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
+                                add_tables_to_source_response = source_obj.add_tables_to_source(self, source_id,configuration_obj["steps_to_run"]["add_tables_to_source"])
+                                status = add_tables_to_source_response["result"]["status"]
+                                if status == "SUCCESS" or add_tables_to_source_response["result"].get("response",{}).get("result",{}).get("response",{}).get("iw_code","")=="IW10003":
                                     self.logger.info("Added tables to source successfully")
                                     print("Added tables to source successfully")
                                 else:
                                     print("Failed to add tables to source")
+                                    print(add_tables_to_source_response)
                                     self.logger.error("Failed to add tables to source")
+                                    self.logger.error(add_tables_to_source_response)
                                     raise Exception("Failed to add tables to source")
-                                status = source_obj.configure_tables_and_tablegroups(self, source_id,
+                                configure_tables_and_tablegroups_response = source_obj.configure_tables_and_tablegroups(self, source_id,
                                                                                      override_configuration_file,
                                                                                      export_lookup, self.mappings,
                                                                                      read_passwords_from_secrets,
                                                                                      env_tag=env_tag,
-                                                                                     secret_type=secret_type)
+                                                                                     secret_type=secret_type,dont_skip_step=configuration_obj["steps_to_run"]["configure_tables_and_tablegroups"])
+                                status = configure_tables_and_tablegroups_response["result"]["status"]
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
+                                    print(configure_tables_and_tablegroups_response)
+                                    self.logger.info(configure_tables_and_tablegroups_response)
                                     print("Configured source successfully")
                                 else:
                                     self.logger.error("Failed to configure source")
                                     print("Failed to configure source")
+                                    print(configure_tables_and_tablegroups_response)
+                                    self.logger.error(configure_tables_and_tablegroups_response)
                                     raise Exception("Failed to configure source")
+                            else:
+                                self.logger.error("Failed while browsing tables")
+                                self.logger.error(source_browse_source_tables_response)
+                                print("Failed while browsing tables")
+                                print(source_browse_source_tables_response)
+                                self.logger.error(source_browse_source_tables_response)
+                                raise Exception("Failed while browsing tables")
                         else:
                             print(source_test_connection_response)
+                            self.logger.error(source_test_connection_response)
                             raise Exception("Failed to launch test connection job")
                     else:
                         print(source_connection_configurations_response)
+                        self.logger.error(source_connection_configurations_response)
                         raise Exception("Failed to configure source connection details")
                 else:
                     print(source_creation_response)
+                    self.logger.error(source_creation_response)
                     raise Exception("Failed to create source")
             elif source_type == "crm" and source_sub_type == "salesforce":
                 source_obj = SalesforceSource()
-                source_obj.update_mappings_for_configurations(self.mappings)
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
+                source_obj.update_mappings_for_configurations(self.mappings)
                 source_id = source_obj.create_salesforce_source(self)
                 if source_id is not None:
                     # Proceed to configure the source connection details

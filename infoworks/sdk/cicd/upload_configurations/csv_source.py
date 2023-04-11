@@ -1,7 +1,7 @@
 import json
 import requests
 import yaml
-from infoworks.sdk.url_builder import get_source_details_url
+from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
@@ -33,6 +33,23 @@ class CSVSource:
             print(f"section replacement:{d.getval(section.split('$'))}")
         self.configuration_obj = d.data
 
+    def get_secret_id_from_name(self,cicd_client,secret_name):
+        secret_id = None
+        get_secret_details_url = list_secrets_url(cicd_client.client_config)+'?filter={"name":"'+secret_name+'"}'
+        response = cicd_client.call_api("GET", get_secret_details_url,
+                                        IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
+            result = parsed_response.get("result", [])
+
+            if len(result) > 0:
+                secret_id = result[0]["id"]
+                cicd_client.logger.info("Found secret id {} ".format(secret_id))
+                return secret_id
+            else:
+                cicd_client.logger.info("Secret id is {} ".format(None))
+                return None
+
     def create_csv_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]
         create_csv_source_payload = {
@@ -47,6 +64,8 @@ class CSVSource:
         }
         if data.get("target_database_name",""):
             create_csv_source_payload["target_database_name"] = data.get("target_database_name","")
+        if data.get("staging_schema_name",""):
+            create_csv_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
         src_create_response = src_client_obj.create_source(source_config=create_csv_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id_created = src_create_response["result"]["source_id"]
@@ -82,7 +101,9 @@ class CSVSource:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=response['result'][0]['id'],response=response)
 
     def configure_csv_source(self, src_client_obj, source_id, mappings, read_passwords_from_secrets=False, env_tag="",
-                             secret_type="",config_ini_path=None):
+                             secret_type="",config_ini_path=None,dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         data = self.configuration_obj["configuration"]["source_configs"]["connection"]
         src_name = str(self.configuration_obj["configuration"]["source_configs"]["name"])
         storage_type = data["storage"]["storage_type"]
@@ -153,6 +174,36 @@ class CSVSource:
             data = self.configuration_obj["configuration"]["source_configs"]["connection"]
             source_configure_payload = data
             source_configure_payload["source_base_path"]=""
+            if data.get("storage", {}).get("password", {}).get("password_type","") == "secret_store":
+                # for SFTP password auth
+                secret_name = data["storage"]["password"]["secret_name"]
+                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+                if secret_name:
+                    data["storage"]["password"]["secret_id"] = secret_id
+                    data["storage"]["password"].pop('secret_name', None)
+            elif data.get("storage", {}).get("access_key_name", {}).get("password_type","") == "secret_store":
+                # for adls gen2 storage account access key auth
+                secret_name = data["storage"]["access_key_name"]["secret_name"]
+                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+                if secret_name:
+                    data["storage"]["access_key_name"]["secret_id"] = secret_id
+                    data["storage"]["access_key_name"].pop('secret_name', None)
+            elif data.get("storage", {}).get("service_credential", {}).get("password_type","") == "secret_store":
+                # for adls gen2 service credential auth
+                secret_name = data["storage"]["service_credential"]["secret_name"]
+                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+                if secret_name:
+                    data["storage"]["service_credential"]["secret_id"] = secret_id
+                    data["storage"]["service_credential"].pop('secret_name', None)
+            elif data.get("storage", {}).get("account_key", {}).get("password_type","") == "secret_store":
+                #for blob storage account key auth
+                secret_name = data["storage"]["account_key"]["secret_name"]
+                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+                if secret_name:
+                    data["storage"]["account_key"]["secret_id"] = secret_id
+                    data["storage"]["account_key"].pop('secret_name', None)
+            else:
+                pass
         else:
             source_configure_payload = {}
 
@@ -161,7 +212,9 @@ class CSVSource:
 
     def import_source_configuration(self, src_client_obj, source_id,
                                     mappings, export_configuration_file=None, export_config_lookup=True,
-                                    read_passwords_from_secrets=False):
+                                    read_passwords_from_secrets=False,dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         src_name = self.configuration_obj["configuration"]["source_configs"]["name"]
         table_group_compute_mappings = mappings.get("table_group_compute_mappings", {})
         source_import_payload = {"configuration": self.configuration_obj["configuration"]}
