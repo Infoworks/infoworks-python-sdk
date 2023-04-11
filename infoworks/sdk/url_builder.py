@@ -1562,3 +1562,27 @@ def table_segmentation_base_url(config, source_id, table_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+
+def get_source_job_url(config, source_id, job_id):
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/jobs/{job_id}'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        job_id=job_id,
+        source_id=source_id
+    )
+    return request
+
+
+def get_jobs_prodops_url(config):
+    """
+    returns URL to get jobs details
+    :param config: client configurations
+    :type config: dict
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/jobs'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request

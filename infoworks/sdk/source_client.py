@@ -585,7 +585,7 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to update table group" + str(e))
 
-    def get_list_of_table_groups(self, source_id=None, params=None, tg_id=None):
+    def get_table_group_details(self, source_id=None, params=None, tg_id=None):
         """
         Function to list the table groups under source
         :param source_id: entity identifier for source
@@ -2858,3 +2858,142 @@ class SourceClient(BaseClient):
             self.logger.error('Response from server: ' + str(e))
             self.logger.exception('Error occurred while trying to get/delete adv config details.')
             raise SourceError('Error occurred while trying to get/delete adv config details.')
+
+    def update_table_configurations(self, source_id=None, table_id=None, config_body=None):
+        """
+        Function to update the table configurations including columns and ingestion configurations
+        :param table_id: Entity identifier for table
+        :type table_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param config_body: JSON body
+        config_body_example: {
+            "id": "9376bf97a286e35efe86d321",
+            "name": "dim_state",
+            "original_table_name": "dim_state",
+            "data_lake_path": "/iw/sources/customer_360_sql_server_schema/9376bf97a286e35efe86d321",
+            "meta_crawl_performed": true,
+            "columns": [
+                {
+                    "sql_type": 4,
+                    "is_deleted": false,
+                    "name": "STATE_ID",
+                    "original_name": "STATE_ID",
+                    "target_sql_type": 12,
+                    "is_audit_column": false,
+                    "col_size": 11,
+                    "precision": 10,
+                    "target_precision": 10,
+                    "scale": 0
+                },
+                {
+                    "sql_type": 93,
+                    "is_deleted": false,
+                    "name": "ziw_target_timestamp",
+                    "original_name": "ziw_target_timestamp",
+                    "target_sql_type": 93,
+                    "is_audit_column": true,
+                    "target_scale": "6",
+                    "precision": 0,
+                    "target_precision": "0",
+                    "scale": 6,
+                    "format": "yyyy-MM-dd HH:mm:ss"
+                },
+                {
+                    "sql_type": 16,
+                    "is_deleted": false,
+                    "name": "ziw_is_deleted",
+                    "original_name": "ziw_is_deleted",
+                    "target_sql_type": 16,
+                    "is_audit_column": true,
+                    "target_scale": "0",
+                    "precision": 0,
+                    "target_precision": "0",
+                    "scale": 0
+                }
+            ],
+            "configuration": {
+                "exclude_legacy_audit_columns": true,
+                "sync_type": "full-load",
+                "write_supported_engines": [
+                    "SNOWFLAKE",
+                    "SPARK"
+                ],
+                "read_supported_engines": [
+                    "SNOWFLAKE",
+                    "SPARK"
+                ],
+                "target_table_name": "DIM_STATE",
+                "storage_format": "delta",
+                "target_schema_name": "CUSTOMER_360",
+                "is_table_case_sensitive": false,
+                "is_schema_case_sensitive": false,
+                "target_database_name": "CUSTOMER_360",
+                "is_database_case_sensitive": false,
+                "is_scd2_table": false,
+                "is_archive_enabled": false,
+                "natural_keys": [],
+                "generate_history_view": false,
+                "segmented_load_columns": [],
+                "segmentation_status": "disabled"
+            },
+            "source": "1f9dd7b2bc9f656a4743f458",
+            "last_ingested_cdc_value": null,
+            "is_jtds_driver": false,
+            "schema_name_at_source": "dbo",
+            "catalog_name": "customer_360",
+            "catalog_is_database": true,
+            "has_catalog": true
+        }
+        :return: response dict
+        """
+        if None in {source_id, table_id} or config_body is None:
+            self.logger.error("source id or table_id or config_body cannot be None")
+            raise Exception("source id or table_id or config_body cannot be None")
+        try:
+            table_config_url = url_builder.get_table_configuration(self.client_config, source_id, table_id)
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", table_config_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']), data=config_body
+                                                               ).content)
+            result = response.get('result', {})
+            if "id" not in result:
+                self.logger.error(f"Failed to update the table configurations for {table_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to update the table configurations for {table_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to update the table configurations for {table_id} " + str(e))
+
+    def get_source_job_details(self, source_id=None, job_id=None):
+        """
+        Function to get the source job details
+        :param job_id: Entity identifier for the job
+        :type job_id: String
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id, job_id}:
+            self.logger.error("source id or job_id cannot be None")
+            raise Exception("source id or job_id cannot be None")
+        try:
+            source_job_url = url_builder.get_source_job_url(self.client_config, source_id, job_id)
+            response = IWUtils.ejson_deserialize(self.call_api("GET", source_job_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the job details for {job_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the job details for {job_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the job details for {job_id} " + str(e))

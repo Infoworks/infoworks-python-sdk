@@ -280,13 +280,22 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to update workflow.')
             raise WorkflowError('Error occurred while trying to update workflow.')
 
-    def trigger_workflow(self, workflow_id=None, domain_id=None):
+    def trigger_workflow(self, workflow_id=None, domain_id=None, trigger_wf_body=None):
         """
         Triggers Infoworks Data workflow for given workflow id
         :param workflow_id: entity id of the workflow to be triggered
         :type workflow_id: String
         :param domain_id: Domain id to which the workflow belongs to
         :type domain_id: String
+        :param trigger_wf_body: Pass the workflow parameters if any
+        trigger_wf_body = {
+            "workflow_parameters": [
+                {
+                    "key": "name",
+                    "value": "WF_API_TRIGGER"
+                }
+            ]
+        }
         :return: response dict
         """
         if None in {domain_id, workflow_id}:
@@ -296,7 +305,7 @@ class WorkflowClient(BaseClient):
         try:
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.trigger_workflow_url(
                 self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
-                self.client_config['bearer_token'])).content)
+                self.client_config['bearer_token']),data=trigger_wf_body if trigger_wf_body is not None else "").content)
 
             result = response.get('result', {})
             run_id = result.get('id', None)
