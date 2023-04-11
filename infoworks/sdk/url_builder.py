@@ -1359,6 +1359,56 @@ def advance_config_under_pipeline_groups_base_url(config, domain_id, pipeline_gr
     return request
 
 
+def get_domain_workflow_schedules_url(config, domain_id):
+    """
+    Returns URL to get Schedules of Workflows belonging to the Domain.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/schedules'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id
+    )
+    return request
+
+
+def get_workflow_schedule_url(config, domain_id, workflow_id):
+    """
+    Returns URL to get Schedules of particular Workflow belonging to the Domain.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
+def get_enable_workflow_schedule_url(config, domain_id, workflow_id):
+    """
+    Returns URL to Enable Workflow Schedule.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules/enable'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
+def get_disable_workflow_schedule_url(config, domain_id, workflow_id):
+    """
+    Returns URL to Disable Workflow Schedule.
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules/disable'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
+def update_workflow_schedule_user_url(config, domain_id, workflow_id):
+    """
+    Return URL to Change Workflow Schedule User
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/schedules/user'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], domain_id=domain_id, workflow_id=workflow_id
+    )
+    return request
+
+
 def pause_multiple_workflows_url(config):
     """
     returns url to pause multiple workflows
@@ -1409,6 +1459,133 @@ def get_workflow_run_id_details_url(config, workflow_id, run_id):
         protocol=config['protocol'])
     return request
 
+
+def source_table_schema_url(config, source_id, table_id):
+    """
+    returns url to get table schema details
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/configurations/schema'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_file_mappings_for_json_source_url(config, source_id):
+    """
+    returns url to get table schema details
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/file-mappings'.format(
+        source_id=source_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_source_audit_logs_url(config, source_id):
+    """
+    returns url to get source audit logs
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/audit-logs'.format(
+        source_id=source_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_table_audit_logs_url(config, source_id, table_id):
+    """
+    returns url to get table audit logs
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}//tables/table_id/audit-logs'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_table_group_audit_logs_url(config, source_id, table_group_id):
+    """
+    returns url to get table group audit logs
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/table_group_id/audit-logs'.format(
+        source_id=source_id,
+        table_group_id=table_group_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def accessible_pipeline_extensions_url(config, domain_id):
+    """
+    returns url to get all the Pipeline Extensions associated with this Domain
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-extensions'.format(
+        domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def advanced_config_domain_url(config, domain_id):
+    """
+    returns url to work with adv config of the domain
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-extensions'.format(
+        domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def table_advanced_base_url(config, source_id, table_id):
+    """
+    returns url to work with table level advanced configuration
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/configurations/advance'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def table_segmentation_base_url(config, source_id, table_id):
+    """
+        returns url to work with table segmentation
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/segmentation'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_source_job_url(config, source_id, job_id):
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/jobs/{job_id}'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        job_id=job_id,
+        source_id=source_id
+    )
+    return request
+
+
+def get_jobs_prodops_url(config):
+    """
+    returns URL to get jobs details
+    :param config: client configurations
+    :type config: dict
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/jobs'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
 def list_secrets_url(config):
     """
         returns url to get secret details in Infoworks

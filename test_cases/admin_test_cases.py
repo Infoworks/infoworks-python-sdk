@@ -255,6 +255,29 @@ class TestAdminClientSDK:
             assert False
 
     @pytest.mark.dependency(depends=["TestAdminClientSDK::test_create_data_connection"])
+    def test_update_data_connection(self):
+        try:
+            config_body = {
+                "name": "Snowflake-connection_via_api_updated",
+                "type": "TARGET",
+                "sub_type": "SNOWFLAKE",
+                "properties": {
+                    "url": "",
+                    "account": "",
+                    "username": "",
+                    "password": "",
+                    "additional_params": "",
+                    "warehouse": "DEMO_WH"
+                }
+            }
+            response = iwx_client.update_data_connection(pytest.data_connection_id, config_body)
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except Exception as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestAdminClientSDK::test_create_data_connection"])
     def test_get_data_connections(self):
         try:
             response = iwx_client.get_data_connection()
@@ -273,8 +296,8 @@ class TestAdminClientSDK:
         except Exception as e:
             print(str(e))
             assert False
-    @pytest.mark.dependency()
 
+    @pytest.mark.dependency()
     def test_list_service_authentication(self):
         try:
             response = iwx_client.list_service_authentication()
@@ -288,17 +311,17 @@ class TestAdminClientSDK:
     def test_create_service_authentication(self):
         try:
             response = iwx_client.create_service_authentication(data={
-            "name": "iw-azure-cs-db-cluster-sp-iwx",
-            "service_type": "azure",
-            "authentication_type": "service_principal",
-            "authentication_properties": {
-                "subscription_id": "xxx",
-                "client_id": "xxx",
-                "client_secret": "xxx",
-                "object_id": "xxx",
-                "tenant_id": "xxx"
-            }
-        })
+                "name": "iw-azure-cs-db-cluster-sp-iwx",
+                "service_type": "azure",
+                "authentication_type": "service_principal",
+                "authentication_properties": {
+                    "subscription_id": "xxx",
+                    "client_id": "xxx",
+                    "client_secret": "xxx",
+                    "object_id": "xxx",
+                    "tenant_id": "xxx"
+                }
+            })
             print(response)
             pytest.service_auth_id = response["result"]["response"]["result"]["id"]
             assert response["result"]["status"].upper() == "SUCCESS"
@@ -319,15 +342,14 @@ class TestAdminClientSDK:
     @pytest.mark.dependency(depends=["TestAdminClientSDK::test_get_service_authentication_details"])
     def test_update_service_authentication_details(self):
         try:
-            response = iwx_client.update_service_authentication_details(service_auth_id=pytest.service_auth_id,data={
-            "description":"description updated"
-        })
+            response = iwx_client.update_service_authentication_details(service_auth_id=pytest.service_auth_id, data={
+                "description": "description updated"
+            })
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except Exception as e:
             print(str(e))
             assert False
-
 
     @pytest.mark.dependency()
     def test_list_secret_stores(self):
@@ -343,11 +365,11 @@ class TestAdminClientSDK:
     def test_create_secret_store(self):
         try:
             response = iwx_client.create_secret_store(data={
-            "name": "iwx-sp-secret-store-iwx",
-            "service_type": "azure",
-            "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
-            "service_authentication": "64182fac35298f0d05a8b689",
-        })
+                "name": "iwx-sp-secret-store-iwx",
+                "service_type": "azure",
+                "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
+                "service_authentication": "64182fac35298f0d05a8b689",
+            })
             print(response)
             pytest.secret_store_id = response["result"]["response"]["result"]["id"]
             assert response["result"]["status"].upper() == "SUCCESS"
@@ -368,9 +390,9 @@ class TestAdminClientSDK:
     @pytest.mark.dependency(depends=["TestAdminClientSDK::test_get_secret_store_details"])
     def test_update_secret_store_details(self):
         try:
-            response = iwx_client.update_secret_store_details(secret_store_id=pytest.secret_store_id,data={
-            "description":"description updated"
-        })
+            response = iwx_client.update_secret_store_details(secret_store_id=pytest.secret_store_id, data={
+                "description": "description updated"
+            })
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except Exception as e:
@@ -401,10 +423,10 @@ class TestAdminClientSDK:
     def test_create_secret(self):
         try:
             response = iwx_client.create_secret(data={
-            "name": "mongo-pg-pwd-iwx",
-            "secret_store": "64182fd27eeb1c40de2b6007",
-            "secret_name": "mongo-pg-pwd-iwx"
-        })
+                "name": "mongo-pg-pwd-iwx",
+                "secret_store": "64182fd27eeb1c40de2b6007",
+                "secret_name": "mongo-pg-pwd-iwx"
+            })
             print(response)
             pytest.secret_id = response["result"]["response"]["result"]["id"]
             assert response["result"]["status"].upper() == "SUCCESS"
@@ -425,9 +447,9 @@ class TestAdminClientSDK:
     @pytest.mark.dependency(depends=["TestAdminClientSDK::test_get_secret_details"])
     def test_update_secret_details(self):
         try:
-            response = iwx_client.update_secret_details(secret_id=pytest.secret_id,data={
-            "description":"description updated"
-        })
+            response = iwx_client.update_secret_details(secret_id=pytest.secret_id, data={
+                "description": "description updated"
+            })
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except Exception as e:
@@ -453,4 +475,3 @@ class TestAdminClientSDK:
         except Exception as e:
             print(str(e))
             assert False
-

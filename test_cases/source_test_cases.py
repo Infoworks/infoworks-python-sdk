@@ -157,7 +157,7 @@ class TestRDBMSSDKFlow:
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
             tables = response["result"]["response"]["result"]
-            ValueStorage.table_ids=[]
+            ValueStorage.table_ids = []
             for item in tables:
                 print(item["id"])
                 ValueStorage.table_ids.append(item["id"])
@@ -598,7 +598,7 @@ class TestFileSDKFlow:
             f.close()
             table_configurations = data["configuration"]["table_configs"]["configuration"]["configuration"]
             response = iwx_client.configure_table_ingestion_properties_with_payload(ValueStorage.source_id,
-                                                                   configuration_obj=table_configurations)
+                                                                                    table_payload=table_configurations)
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:
@@ -871,7 +871,7 @@ class TestFileSDKFlow:
     def test_update_source_metadata(self):
         try:
             response = iwx_client.update_source_metadata(ValueStorage.source_id,
-                                                         {"description": "test description", "tags": ["test"]})
+                                                         data={"description": "test description", "tags": ["test"]})
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:
@@ -880,7 +880,7 @@ class TestFileSDKFlow:
 
     @pytest.mark.dependency(
         depends=["TestFileSDKFlow::test_update_source_metadata"])
-    def test_update_source_metadata(self):
+    def test_get_source_metadata(self):
         try:
             response = iwx_client.get_source_metadata(source_id=ValueStorage.source_id)
             print(response)
@@ -908,6 +908,18 @@ class TestFileSDKFlow:
         try:
             response = iwx_client.get_table_metadata(source_id=ValueStorage.source_id,
                                                      table_id=ValueStorage.table_ids[0])
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except SourceError as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(
+        depends=["TestFileSDKFlow::test_get_table_metadata"])
+    def test_get_table_schema(self):
+        try:
+            response = iwx_client.get_table_schema(source_id=ValueStorage.source_id,
+                                                   table_id=ValueStorage.table_ids[0])
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except SourceError as e:

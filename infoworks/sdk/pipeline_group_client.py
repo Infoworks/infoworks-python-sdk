@@ -52,14 +52,9 @@ class PipelineGroupClient(BaseClient):
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
-                    if job_status in ["completed", "failed", "aborted", "cancelled"]:
-                        if job_status == "completed":
-                            return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                                entity_id=pipeline_group_id,
-                                                                job_id=job_id)
-                        else:
-                            return GenericResponse.parse_result(status=job_status, entity_id=pipeline_group_id,
-                                                                job_id=job_id)
+                    if job_status.lower() in ["completed", "failed", "aborted", "canceled"]:
+                        return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=pipeline_group_id,
+                                                            job_id=job_id, response=response)
                 else:
                     self.logger.error(f"Error occurred during job {job_id} status poll")
                     if failed_count >= retries - 1:
@@ -89,6 +84,9 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {domain_id, pipeline_group_id}:
+            self.logger.error("domain_id or pipeline_group_id cannot be None")
+            raise Exception("domain_id or pipeline_group_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp_jobs = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
@@ -137,6 +135,9 @@ class PipelineGroupClient(BaseClient):
             :type poll: Boolean
             :return: response dict
         """
+        if None in {domain_id, pipeline_group_id}:
+            self.logger.error("domain_id or pipeline_group_id cannot be None")
+            raise Exception("domain_id or pipeline_group_id cannot be None")
         url_for_pipeline_grp_build = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
                                                                                   pipeline_group_id)
         request_body = {
@@ -209,6 +210,8 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id, job_id}:
+            raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp_jobs = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
@@ -258,6 +261,8 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id, job_id}:
+            raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp_job_runs = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
@@ -306,6 +311,8 @@ class PipelineGroupClient(BaseClient):
             :param job_id: id of the pipeline group job
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id, job_id}:
+            raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
         try:
             if None in {pipeline_group_id, domain_id, job_id}:
                 raise Exception(f"pipeline_group_id, domain_id, job_id cannot be None")
@@ -402,6 +409,8 @@ class PipelineGroupClient(BaseClient):
         :type: JSON dict
         :return: response list
         """
+        if None in {domain_id}:
+            raise Exception(f"domain_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_pipeline_grp = url_builder.get_pipeline_group_base_url(self.client_config,
@@ -445,7 +454,7 @@ class PipelineGroupClient(BaseClient):
         Gets Infoworks pipeline group details for given pipeline group id
         :param pipeline_group_id: id of the pipeline group whose details are to be fetched
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline  group belongs to
         :type domain_id: String
         :return: response dict
         """
@@ -479,7 +488,7 @@ class PipelineGroupClient(BaseClient):
         Function to delete the pipeline group
         :param pipeline_group_id: id of the pipeline group that has to be deleted
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline group  belongs to
         :type domain_id: String
         :return: response dict
         """
@@ -513,7 +522,7 @@ class PipelineGroupClient(BaseClient):
             Function to update the pipeline group
             :param pipeline_group_id: id of the pipeline group that has to be deleted
             :type pipeline_group_id: String
-            :param domain_id: Domain id to which the pipeline belongs to
+            :param domain_id: Domain id to which the pipeline group belongs to
             :type domain_id: String
             :param pipeline_group_config: a JSON object containing pipeline group configurations
             :type pipeline_group_config: JSON Object
@@ -577,12 +586,14 @@ class PipelineGroupClient(BaseClient):
     def get_accessible_pipeline_groups(self, domain_id, params=None):
         """
             Function to get the accessible pipeline group
-            :param domain_id: Domain id to which the pipeline belongs to
+            :param domain_id: Domain id to which the pipeline  group  belongs to
             :type domain_id: String
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
             :return: response dict
         """
+        if domain_id is None:
+            raise Exception(f"domain_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_get_accessible_pl_grp = url_builder.get_accessible_pipeline_groups_url(self.client_config,
@@ -624,7 +635,7 @@ class PipelineGroupClient(BaseClient):
     def get_list_of_advanced_config_of_pipeline_groups(self, domain_id, pipeline_group_id, params=None):
         """
             Function to get list of Advance Config pipeline group
-            :param domain_id: Domain id to which the pipeline belongs to
+            :param domain_id: Domain id to which the pipeline  group belongs to
             :type domain_id: String
             param pipeline_group_id: Entity identifier of pipeline group
             :type pipeline_group_id: String
@@ -632,6 +643,8 @@ class PipelineGroupClient(BaseClient):
             :type: JSON dict
             :return: response dict
         """
+        if None in {pipeline_group_id, domain_id}:
+            raise Exception(f"pipeline_group_id, domain_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_get_adv_config_pl_grp = url_builder.advance_config_under_pipeline_groups_base_url(self.client_config,
@@ -674,10 +687,10 @@ class PipelineGroupClient(BaseClient):
     def modify_advanced_config_for_pipeline_group(self, domain_id, pipeline_group_id, adv_config_body,
                                                   action_type="update", key=None):
         """
-        Function to add the adv config for the pipeline group
+        Function to add/update the adv config for the pipeline group
         :param pipeline_group_id: id of the pipeline group whose details are to be fetched
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline group belongs to
         :type domain_id: String
         :param action_type: values can be either create/update. default update
         :type action_type: String
@@ -691,6 +704,8 @@ class PipelineGroupClient(BaseClient):
         :param key: In case of update, name of the adv config to update
         :return: response dict
         """
+        if None in {pipeline_group_id, domain_id} or adv_config_body is None:
+            raise Exception(f"pipeline_group_id, domain_id and adv_config_body cannot be None")
         try:
             if action_type.lower() == "create":
                 request_type = "POST"
@@ -725,8 +740,8 @@ class PipelineGroupClient(BaseClient):
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(e))
-            self.logger.exception('Error occurred while trying to add adv config pipeline group.')
-            raise PipelineError('Error occurred while trying to add adv config pipeline group.')
+            self.logger.exception('Error occurred while trying to add/update adv config pipeline group.')
+            raise PipelineError('Error occurred while trying to add/update adv config pipeline group.')
 
     def get_or_delete_advance_config_details_of_pipeline_group(self, domain_id, pipeline_group_id, key,
                                                                action_type="get"):
@@ -734,7 +749,7 @@ class PipelineGroupClient(BaseClient):
         Gets/Deletes advance configuration of pipeline group
         :param pipeline_group_id: id of the pipeline group whose details are to be fetched
         :type pipeline_group_id: String
-        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_id: Domain id to which the pipeline group belongs to
         :type domain_id: String
         :param key: name of the advanced configurations
         :param action_type: values can be get/delete
