@@ -114,21 +114,6 @@ class CSVSource:
             if "source_secrets" in mappings:
                 access_id = mappings.get("source_secrets").get("access_id", access_id)
                 secret_key = mappings.get("source_secrets").get("secret_key", secret_key)
-            if read_passwords_from_secrets and self.secrets["custom_secrets_read"] is True:
-                encrypted_key_name = f"{env_tag}-" + src_name
-                decrypt_value = self.secrets.get(encrypted_key_name, "")
-                if IWUtils.is_json(decrypt_value):
-                    decrypt_value_dict = json.loads(decrypt_value)
-                    access_id = decrypt_value_dict["access_id"]
-                    secret_key = decrypt_value_dict["secret_key"]
-            elif read_passwords_from_secrets and self.secrets["custom_secrets_read"] is False:
-                encrypted_key_name = f"{env_tag}-" + src_name
-                decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name,ini_config_file_path=config_ini_path)
-                if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
-                    decrypt_value_dict = json.loads(decrypt_value[0])
-                    access_id = decrypt_value_dict["access_id"]
-                    secret_key = decrypt_value_dict["secret_key"]
-
             source_configure_payload = {
                 "source_base_path_relative": data.get("source_base_path_relative",""),
                 "source_base_path": data.get("source_base_path",""),

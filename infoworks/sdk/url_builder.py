@@ -1586,6 +1586,8 @@ def get_jobs_prodops_url(config):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
+
+
 def list_secrets_url(config):
     """
         returns url to get secret details in Infoworks

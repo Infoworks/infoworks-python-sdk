@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import traceback
-
 import requests
 import logging
 import infoworks.error
