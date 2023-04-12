@@ -3,6 +3,7 @@ import traceback
 from infoworks.sdk import url_builder
 from infoworks.sdk.base_client import BaseClient
 from infoworks.sdk.cicd.upload_configurations.pipelines import Pipeline
+from infoworks.sdk.cicd.upload_configurations.pipeline_group import PipelineGroup
 from pathlib import Path
 from infoworks.sdk.generic_response import GenericResponse
 from infoworks.sdk.utils import IWUtils
@@ -169,13 +170,77 @@ class WrapperPipeline(BaseClient):
                 print("No env id and no mapping found")
                 raise Exception("No env id and no mapping found")
             pl_obj = Pipeline(configuration_file_path, env_id, storage_id, compute_id, replace_words, self.secrets_config)
+            pl_obj.update_mappings_for_configurations(self.mappings)
             pipeline_id, domain_id = pl_obj.create(self, domain_id, domain_name)
             if pipeline_id is not None:
                 status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings, read_passwords_from_secrets,env_tag=env_tag, secret_type=secret_type)
         except Exception as e:
             self.logger.error(str(e))
             print(str(e))
-            traceback.print_stack()
+            print(traceback.format_exc())
+
+    def cicd_create_configure_pipeline_group(self, configuration_file_path, domain_id=None, domain_name=None,
+                                       override_configuration_file=None,
+                                       replace_words="", read_passwords_from_secrets=False, env_tag="", secret_type=""):
+        """
+        Function to create and configure pipeline group using the pipeline group configuration JSON file
+        Pass either domain_id or domain_name.If both are not passed the name of the domain should be first part of the file name
+        :param configuration_file_path: Path of the file with pipeline configurations to be imported
+        :param domain_id: Domain id to which the pipeline belongs to
+        :param domain_name: Domain name to which the pipeline belongs to
+        :param override_configuration_file: Path of the file with override keys for dataconnection properties
+        :param replace_words: Pass the strings to be replaced in the configuration file. Example: DEV->PROD;dev->prod
+        :param read_passwords_from_secrets: True/False. If True all the pipeline related passwords are read from encrypted file name passed
+        """
+        try:
+            if domain_id is None and domain_name is None:
+                domain_name = Path(configuration_file_path).name.split("#")[0]
+            env_id = self.client_config.get("default_environment_id", None)
+            storage_id = self.client_config.get("default_storage_id", None)
+            compute_id = self.client_config.get("default_compute_id", None)
+            with open(configuration_file_path, 'r') as file:
+                json_string = file.read()
+            configuration_obj = IWUtils.ejson_deserialize(json_string)
+            environment_configurations = configuration_obj["environment_configurations"]
+            if env_id is None and "environment_mappings" in self.mappings:
+                env_name = self.mappings["environment_mappings"].get(environment_configurations["environment_name"],
+                                                                     environment_configurations["environment_name"])
+                if env_name is not None:
+                    result = self.__wrapper_get_environment_details(params={"filter": {"name": env_name}})
+                    env_id = result["result"]["response"][0]["id"] if len(result["result"]["response"]) > 0 else None
+            if storage_id is None and "storage_mappings" in self.mappings:
+                storage_name = self.mappings["storage_mappings"].get(
+                    environment_configurations["environment_storage_name"],
+                    environment_configurations["environment_storage_name"])
+                if storage_name is not None:
+                    result = self.__wrapper_get_storage_details(environment_id=env_id,
+                                                                params={"filter": {"name": storage_name}})
+                    storage_id = result["result"]["response"][0]["id"] if len(result["result"]["response"]) > 0 else None
+            if compute_id is None and "compute_mappings" in self.mappings:
+                compute_name = self.mappings["compute_mappings"].get(
+                    environment_configurations["environment_compute_template_name"],
+                    environment_configurations["environment_compute_template_name"])
+                if compute_name is not None:
+                    result = self.__wrapper_get_compute_template_details(environment_id=env_id,
+                                                                         params={"filter": {"name": compute_name}})
+                    if len(result["result"]["response"]) != 0:
+                        compute_id = result["result"]["response"][0]["id"]
+                    else:
+                        result = self.__wrapper_get_compute_template_details(environment_id=env_id, is_interactive=True,
+                                                                             params={"filter": {"name": compute_name}})
+                        if len(result["result"]["response"]) != 0:
+                            compute_id = result["result"]["response"][0]["id"]
+            if env_id is None:
+                print("No env id and no mapping found")
+                raise Exception("No env id and no mapping found")
+            pl_grp_obj = PipelineGroup(configuration_file_path, env_id, storage_id, compute_id, replace_words, self.secrets_config)
+            pl_grp_obj.update_mappings_for_configurations(self.mappings)
+            pipeline_group_id, domain_id = pl_grp_obj.create(self, domain_id, domain_name)
+        except Exception as e:
+            self.logger.error(str(e))
+            print(str(e))
+            print(traceback.format_exc())
+
 
     def __execute(self, thread_number, q):
         while True:

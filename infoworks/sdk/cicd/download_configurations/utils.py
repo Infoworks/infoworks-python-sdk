@@ -5,7 +5,7 @@ from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, c
     configure_workflow_url, \
     configure_source_url, get_environment_details, get_environment_storage_details, get_environment_compute_details, \
     get_environment_interactive_compute_details, get_source_configurations_url, get_pipeline_url, \
-    get_data_connection, source_info, list_users_url, list_secrets_url
+    get_data_connection, source_info, list_users_url, list_secrets_url, get_pipeline_group_base_url,list_pipelines_url
 from infoworks.sdk.cicd.cicd_response import CICDResponse
 import json
 
@@ -154,6 +154,8 @@ class Utils:
             url_to_config = configure_workflow_url(cicd_client.client_config, domain_id, entity_id)
         elif entity_type == "source":
             url_to_config = configure_source_url(cicd_client.client_config, entity_id)
+        elif entity_type == "pipeline_group":
+            url_to_config = get_pipeline_group_base_url(cicd_client.client_config, domain_id) + f"{entity_id}"
         else:
             return None
         cicd_client.logger.info(
@@ -171,7 +173,6 @@ class Utils:
                                                                                             entity_id=entity_id,
                                                                                             response=parsed_response)
         configuration_obj = parsed_response.get('result', {})
-        # print(configuration_obj)
         if len(configuration_obj) > 0:
             if entity_type == "source":
                 get_src_details_url = source_info(cicd_client.client_config, entity_id)
@@ -267,6 +268,7 @@ class Utils:
                                                                                                      entity_id=entity_id,
                                                                                                      response=parsed_response)
             else:
+                entity_name=configuration_obj["configuration"]["entity"]["entity_name"] if entity_type!="pipeline_group" else configuration_obj["name"]
                 if entity_type == "pipeline":
                     environment_id, environment_compute_template_id, environment_storage_id = self.get_env_details(
                         cicd_client, entity_id,
@@ -314,6 +316,18 @@ class Utils:
                                     dataconnection_obj[key] = result[key]
                                 configuration_obj["dataconnection_configurations"].append(
                                     copy.deepcopy(dataconnection_obj))
+                elif entity_type == "pipeline_group":
+                    list_pipelines_under_domain_url = list_pipelines_url(cicd_client.client_config,domain_id=domain_id)
+                    pipeline_name_lookup={}
+                    pipelines_under_domain_response = cicd_client.call_api("GET", list_pipelines_under_domain_url, IWUtils.get_default_header_for_v3(
+            cicd_client.client_config[
+                'bearer_token']))
+                    pipelines_under_domain_parsed_response = IWUtils.ejson_deserialize(pipelines_under_domain_response.content)
+                    for pipeline in pipelines_under_domain_parsed_response["result"]:
+                        pipeline_name_lookup[pipeline["id"]]=pipeline["name"]
+                    for index,pipeline in enumerate(configuration_obj["pipelines"]):
+                        pipeline["name"]=pipeline_name_lookup.get(pipeline["pipeline_id"],None)
+                    environment_id = configuration_obj["environment_id"]
                 domains_url_base = list_domains_url(cicd_client.client_config)
                 filter_condition = IWUtils.ejson_serialize({"_id": domain_id})
                 domains_url = domains_url_base + f"?filter={{filter_condition}}".format(
@@ -338,9 +352,9 @@ class Utils:
                         environment_ids = result[0]["environment_ids"]
                 if existing_domain_name:
                     filename = existing_domain_name + "#{}_".format(entity_type) + \
-                               configuration_obj["configuration"]["entity"][
-                                   "entity_name"] + ".json"
+                               entity_name + ".json"
                     target_file_path = os.path.join(target_file_path, entity_type, filename)
+
 
             if entity_type == "workflow":
                 storage_name, compute_name = None, None
@@ -366,20 +380,21 @@ class Utils:
                                                                    "environment_compute_template_name": compute_name,
                                                                    "environment_storage_name": storage_name}
 
-            filter_condition = IWUtils.ejson_serialize(
-                {"$or": [{"_id": configuration_obj["configuration"]["export"]["exported_by"]},
-                         {"profile.name": configuration_obj["configuration"]["export"]["exported_by"]}]})
-            url_to_list_users_base = list_users_url(cicd_client.client_config)
-            url_to_list_users = url_to_list_users_base + f"?filter={{filter_condition}}".format(
-                filter_condition=filter_condition)
-            response = cicd_client.call_api("GET", url_to_list_users,
-                                            IWUtils.get_default_header_for_v3(
-                                                cicd_client.client_config['bearer_token']))
-            parsed_response = IWUtils.ejson_deserialize(response.content)
-            configuration_obj["user_email"] = self.serviceaccountemail
-            if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
-                result = parsed_response.get("result", [])
-                configuration_obj["user_email"] = result[0]["profile"].get("email", "admin@infoworks.io")
+            if entity_type!="pipeline_group":
+                filter_condition = IWUtils.ejson_serialize(
+                    {"$or": [{"_id": configuration_obj["configuration"]["export"]["exported_by"]},
+                             {"profile.name": configuration_obj["configuration"]["export"]["exported_by"]}]})
+                url_to_list_users_base = list_users_url(cicd_client.client_config)
+                url_to_list_users = url_to_list_users_base + f"?filter={{filter_condition}}".format(
+                    filter_condition=filter_condition)
+                response = cicd_client.call_api("GET", url_to_list_users,
+                                                IWUtils.get_default_header_for_v3(
+                                                    cicd_client.client_config['bearer_token']))
+                parsed_response = IWUtils.ejson_deserialize(response.content)
+                configuration_obj["user_email"] = self.serviceaccountemail
+                if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
+                    result = parsed_response.get("result", [])
+                    configuration_obj["user_email"] = result[0]["profile"].get("email", "admin@infoworks.io")
             try:
                 if filename is not None and target_file_path is not None:
                     cicd_client.logger.info("{} {}".format(filename, target_file_path))
