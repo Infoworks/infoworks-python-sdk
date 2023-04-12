@@ -52,14 +52,9 @@ class PipelineGroupClient(BaseClient):
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
-                    if job_status in ["completed", "failed", "aborted", "cancelled"]:
-                        if job_status == "completed":
-                            return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                                entity_id=pipeline_group_id,
-                                                                job_id=job_id)
-                        else:
-                            return GenericResponse.parse_result(status=job_status, entity_id=pipeline_group_id,
-                                                                job_id=job_id)
+                    if job_status.lower() in ["completed", "failed", "aborted", "canceled"]:
+                        return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=pipeline_group_id,
+                                                            job_id=job_id, response=response)
                 else:
                     self.logger.error(f"Error occurred during job {job_id} status poll")
                     if failed_count >= retries - 1:

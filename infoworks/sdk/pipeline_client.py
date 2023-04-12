@@ -13,8 +13,8 @@ class PipelineClient(BaseClient):
         super(PipelineClient, self).__init__()
 
     def poll_pipeline_job(self, pipeline_id=None, job_id=None, poll_timeout=local_configurations.POLLING_TIMEOUT,
-                 polling_frequency=local_configurations.POLLING_FREQUENCY_IN_SEC,
-                 retries=local_configurations.NUM_POLLING_RETRIES):
+                          polling_frequency=local_configurations.POLLING_FREQUENCY_IN_SEC,
+                          retries=local_configurations.NUM_POLLING_RETRIES):
         """
         Function to poll the pipeline job
         :param pipeline_id: ID of the pipeline
@@ -52,20 +52,17 @@ class PipelineClient(BaseClient):
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
-                    if job_status in ["completed", "failed", "aborted", "cancelled"]:
-                        if job_status == "completed":
-                            return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
-                                                                 pipeline_id=pipeline_id,
-                                                                 job_id=job_id)
-                        else:
-                            return PipelineResponse.parse_result(status=job_status, pipeline_id=pipeline_id,
-                                                                 job_id=job_id)
+                    if job_status in ["completed", "failed", "aborted", "canceled"]:
+                        return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
+                                                             pipeline_id=pipeline_id,
+                                                             job_id=job_id)
                 else:
                     self.logger.error(f"Error occurred during job {job_id} status poll")
                     if failed_count >= retries - 1:
                         return PipelineResponse.parse_result(status=Response.Status.FAILED,
                                                              error_code=ErrorCode.GENERIC_ERROR,
-                                                             error_desc=f"Error occurred during job {job_id} status poll",response=response, job_id=job_id,
+                                                             error_desc=f"Error occurred during job {job_id} status poll",
+                                                             response=response, job_id=job_id,
                                                              pipeline_id=pipeline_id)
                     failed_count = failed_count + 1
             except Exception as e:

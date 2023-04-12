@@ -4,10 +4,12 @@ import json
 import requests
 import yaml
 
-from infoworks.sdk.url_builder import get_source_details_url
+from infoworks.sdk.url_builder import get_source_details_url,list_secrets_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
+import configparser
+from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 
 class RDBMSSource:
     def __init__(self):
@@ -29,6 +31,35 @@ class RDBMSSource:
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
         self.secrets = secrets
 
+    def get_secret_id_from_name(self,cicd_client,secret_name):
+        secret_id = None
+        get_secret_details_url = list_secrets_url(cicd_client.client_config)+'?filter={"name":"'+secret_name+'"}'
+        response = cicd_client.call_api("GET", get_secret_details_url,
+                                        IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
+            result = parsed_response.get("result", [])
+
+            if len(result) > 0:
+                secret_id = result[0]["id"]
+                cicd_client.logger.info("Found secret id {} ".format(secret_id))
+                return secret_id
+            else:
+                cicd_client.logger.info("Secret id is {} ".format(None))
+                return None
+
+    def update_mappings_for_configurations(self, mappings):
+        config = configparser.ConfigParser()
+        config.read_dict(mappings)
+        d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
+        for section in config.sections():
+            if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
+                continue
+            print("section:", section)
+            final = d.setval(section.split("$"), dict(config.items(section)))
+            print(f"section replacement:{d.getval(section.split('$'))}")
+        self.configuration_obj = d.data
+
     def create_rdbms_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]
         create_rdbms_source_payload = {
@@ -43,6 +74,8 @@ class RDBMSSource:
         }
         if data.get("target_database_name",""):
             create_rdbms_source_payload["target_database_name"] = data.get("target_database_name","")
+        if data.get("staging_schema_name",""):
+            create_rdbms_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
         src_create_response = src_client_obj.create_source(source_config=create_rdbms_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             return src_create_response
@@ -78,7 +111,9 @@ class RDBMSSource:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=response['result'][0]['id'],response=response)
 
     def configure_rdbms_source_connection(self, src_client_obj, source_id, override_config_file=None,
-                                          read_passwords_from_secrets=False, env_tag="", secret_type="",config_ini_path=None):
+                                          read_passwords_from_secrets=False, env_tag="", secret_type="",config_ini_path=None,dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         source_configs = self.configuration_obj["configuration"]["source_configs"]
         src_name = str(source_configs["name"])
         connection_object = source_configs["connection"]
@@ -93,21 +128,27 @@ class RDBMSSource:
                 override_keys = information["source_details"].get(src_name).keys()
                 for key in override_keys:
                     connection_object[key] = information["source_details"][src_name][key]
-        if read_passwords_from_secrets and self.secrets["custom_secrets_read"] is True:
-            encrypted_key_name = f"{env_tag}-" + src_name
-            decrypt_value = self.secrets.get(encrypted_key_name, "")
-            if IWUtils.is_json(decrypt_value):
-                decrypt_value_dict = json.loads(decrypt_value)
-                for key in decrypt_value_dict.keys():
-                    connection_object[key] = decrypt_value_dict[key]
-        elif read_passwords_from_secrets and self.secrets["custom_secrets_read"] is False:
-            encrypted_key_name = f"{env_tag}-" + src_name
-            decrypt_value = src_client_obj.get_all_secrets(secret_type,keys=encrypted_key_name,ini_config_file_path=config_ini_path)
-            if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
-                decrypt_value_dict = json.loads(decrypt_value[0])
-                for key in decrypt_value_dict.keys():
-                    connection_object[key] = decrypt_value_dict[key]
-
+        if connection_object.get("password", {}).get("password_type","") == "secret_store":
+                # for RDBMS passwords in keyvault
+                secret_name = connection_object["password"]["secret_name"]
+                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+                if secret_name:
+                    connection_object["password"]["secret_id"] = secret_id
+                    connection_object["password"].pop('secret_name', None)
+        # if read_passwords_from_secrets and self.secrets["custom_secrets_read"] is True:
+        #     encrypted_key_name = f"{env_tag}-" + src_name
+        #     decrypt_value = self.secrets.get(encrypted_key_name, "")
+        #     if IWUtils.is_json(decrypt_value):
+        #         decrypt_value_dict = json.loads(decrypt_value)
+        #         for key in decrypt_value_dict.keys():
+        #             connection_object[key] = decrypt_value_dict[key]
+        # elif read_passwords_from_secrets and self.secrets["custom_secrets_read"] is False:
+        #     encrypted_key_name = f"{env_tag}-" + src_name
+        #     decrypt_value = src_client_obj.get_all_secrets(secret_type,keys=encrypted_key_name,ini_config_file_path=config_ini_path)
+        #     if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
+        #         decrypt_value_dict = json.loads(decrypt_value[0])
+        #         for key in decrypt_value_dict.keys():
+        #             connection_object[key] = decrypt_value_dict[key]
         response = src_client_obj.configure_source_connection(source_id, connection_object=connection_object)
         if response["result"]["status"].upper() != "SUCCESS":
             src_client_obj.logger.info(f"Failed to configure the source {source_id} connection")
@@ -120,18 +161,24 @@ class RDBMSSource:
             print(response)
             return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
 
-    def test_source_connection(self, src_client_obj, source_id):
+    def test_source_connection(self, src_client_obj, source_id,dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         response = src_client_obj.source_test_connection_job_poll(source_id, poll_timeout=300,
                                                                   polling_frequency=15, retries=1)
         return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
 
-    def browse_source_tables(self, src_client_obj, source_id):
+    def browse_source_tables(self, src_client_obj, source_id,dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         filter_tables_properties = self.configuration_obj["filter_tables_properties"]
         response = src_client_obj.browse_source_tables(source_id, filter_tables_properties=filter_tables_properties,
                                                        poll_timeout=300, polling_frequency=15, retries=1)
-        return response["result"]["status"].upper()
+        return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,response=response)
 
-    def add_tables_to_source(self, src_client_obj, source_id):
+    def add_tables_to_source(self, src_client_obj, source_id,dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         tables_already_added_in_source = src_client_obj.list_tables_in_source(source_id)["result"]["response"]
         tables_list = []
         tables = self.configuration_obj["configuration"]["table_configs"]
@@ -161,11 +208,14 @@ class RDBMSSource:
                 tables_list.append(copy.deepcopy(temp))
                 src_client_obj.logger.info(f"Adding table {temp['table_name']} to source {source_id} config payload")
         response = src_client_obj.add_tables_to_source(source_id, tables_list)
-        return response["result"]["status"].upper()
+        return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
+                                           response=response)
 
     def configure_tables_and_tablegroups(self, src_client_obj, source_id, export_configuration_file=None,
                                          export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,
-                                         env_tag="", secret_type=""):
+                                         env_tag="", secret_type="",dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         if mappings is None:
             mappings = {}
         iw_mappings = self.configuration_obj["configuration"]["iw_mappings"]
@@ -199,28 +249,9 @@ class RDBMSSource:
                         for key in override_keys:
                             table["configuration"]["export_configuration"]["connection"][key] = \
                                 information["src_export_details"][info_key][key]
-                    if target_type.upper() in ["SNOWFLAKE", "POSTGRES"] and read_passwords_from_secrets:
-                        if self.secrets["custom_secrets_read"] is True:
-                            encrypted_key_name1 = f"{env_tag}-export-configuration-{src_name}-{table['configuration']['name']}"
-                            encrypted_key_name2 = f"{env_tag}-export-configuration-{src_name}"
-                            decrypt_value = self.secrets.get(encrypted_key_name1, "")
-                            if decrypt_value == "" or decrypt_value is None:
-                                decrypt_value = self.secrets.get(encrypted_key_name2, "")
-                            decrypt_value_dict = json.loads(decrypt_value)
-                            for key in decrypt_value_dict.keys():
-                                table["configuration"]["export_configuration"]["connection"][key] = \
-                                    decrypt_value_dict[key]
-                        else:
-                            encrypted_key_name1 = f"{env_tag}-export-configuration-{src_name}-{table['configuration']['name']}"
-                            encrypted_key_name2 = f"{env_tag}-export-configuration-{src_name}"
-                            decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name1)
-                            if len(decrypt_value) == 0:
-                                decrypt_value = src_client_obj.get_all_secrets(secret_type, keys=encrypted_key_name2)
-                            if len(decrypt_value) > 0 and IWUtils.is_json(decrypt_value[0]):
-                                decrypt_value_dict = json.loads(decrypt_value[0])
-                                for key in decrypt_value_dict.keys():
-                                    table["configuration"]["export_configuration"]["connection"][key] = \
-                                            decrypt_value_dict[key]
+                    if target_type.upper() in ["SNOWFLAKE", "POSTGRES"]:
+                        pass
+
                     elif target_type.upper() == "BIGQUERY":
                         if "server_path" not in override_keys:
                             server_path = table["configuration"]["export_configuration"].get("connection", {}).get(
@@ -245,7 +276,11 @@ class RDBMSSource:
                                         .format(source_id, self.source_config_path))
             src_client_obj.logger.error(response.get("message", "") + "(source config path : {})"
                                         .format(self.source_config_path))
-            return "FAILED"
+            return SourceResponse.parse_result(status="FAILED", source_id=source_id,
+                                               response=response)
+
         else:
             src_client_obj.logger.info(f"Successfully imported source configurations to {source_id}")
-            return "SUCCESS"
+            return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
+                                               response=response)
+

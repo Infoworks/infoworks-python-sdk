@@ -5,7 +5,7 @@ from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, c
     configure_workflow_url, \
     configure_source_url, get_environment_details, get_environment_storage_details, get_environment_compute_details, \
     get_environment_interactive_compute_details, get_source_configurations_url, get_pipeline_url, \
-    get_data_connection, source_info, list_users_url
+    get_data_connection, source_info, list_users_url, list_secrets_url
 from infoworks.sdk.cicd.cicd_response import CICDResponse
 import json
 
@@ -13,6 +13,23 @@ import json
 class Utils:
     def __init__(self, serviceaccountemail):
         self.serviceaccountemail = serviceaccountemail
+
+    def get_secret_name_from_id(self,cicd_client,secret_id):
+        secret_name = None
+        get_secret_details_url = list_secrets_url(cicd_client.client_config)+'?filter={"_id":"'+secret_id+'"}'
+        response = cicd_client.call_api("GET", get_secret_details_url,
+                                        IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        if response.status_code == 200 and len(parsed_response.get("result", [])) > 0:
+            result = parsed_response.get("result", [])
+
+            if len(result) > 0:
+                secret_name = result[0]["name"]
+                cicd_client.logger.info("Found secret name {} ".format(secret_name))
+                return secret_name
+            else:
+                cicd_client.logger.info("Secret Name is {} ".format(None))
+                return None
 
     def get_domain_id(self, cicd_client, json_obj):
         parent_entity_url = get_parent_entity_url(cicd_client.client_config)
@@ -176,7 +193,43 @@ class Utils:
                         data_lake_path = result["data_lake_path"]
                         configuration_obj["configuration"]["source_configs"]["data_lake_path"] = data_lake_path
                         configuration_obj["filter_tables_properties"] = result.get("filter_tables_properties", {})
-
+                        source_connection_objects = configuration_obj["configuration"]["source_configs"]["connection"]
+                        if source_connection_objects.get("storage",None) is not None:
+                            # for File based sources
+                            if source_connection_objects.get("storage",{}).get("password",{}).get("password_type","")=="secret_store":
+                                # for SFTP password auth
+                                secret_id = source_connection_objects["storage"]["password"]["secret_id"]
+                                secret_name = self.get_secret_name_from_id(cicd_client,secret_id)
+                                if secret_name:
+                                    source_connection_objects["storage"]["password"]["secret_name"] = secret_name
+                            elif source_connection_objects.get("storage",{}).get("access_key_name",{}).get("password_type","")=="secret_store":
+                                # for adls gen2 storage account access key auth
+                                secret_id = source_connection_objects["storage"]["access_key_name"]["secret_id"]
+                                secret_name = self.get_secret_name_from_id(cicd_client,secret_id)
+                                if secret_name:
+                                    source_connection_objects["storage"]["access_key_name"]["secret_name"] = secret_name
+                            elif source_connection_objects.get("storage",{}).get("service_credential",{}).get("password_type","")=="secret_store":
+                                # for adls gen2 service credential auth
+                                secret_id = source_connection_objects["storage"]["service_credential"]["secret_id"]
+                                secret_name = self.get_secret_name_from_id(cicd_client,secret_id)
+                                if secret_name:
+                                    source_connection_objects["storage"]["service_credential"]["secret_name"] = secret_name
+                            elif source_connection_objects.get("storage",{}).get("account_key",{}).get("password_type","")=="secret_store":
+                                # for blob storage account key auth
+                                secret_id = source_connection_objects["storage"]["account_key"]["secret_id"]
+                                secret_name = self.get_secret_name_from_id(cicd_client,secret_id)
+                                if secret_name:
+                                    source_connection_objects["storage"]["account_key"]["secret_name"] = secret_name
+                            else:
+                                pass
+                        else:
+                            #for RDBMS sources
+                            if source_connection_objects.get("password",{}).get("password_type","")=="secret_store":
+                                # for SFTP password auth
+                                secret_id = source_connection_objects["password"]["secret_id"]["$oid"]
+                                secret_name = self.get_secret_name_from_id(cicd_client,secret_id)
+                                if secret_name:
+                                    source_connection_objects["password"]["secret_name"] = secret_name
                 # Check if any table has export configurations. Works for postgres/snowflake/synapse
                 # Did not test for cosmos,delimited
                 for table_config in configuration_obj["configuration"]["table_configs"]:

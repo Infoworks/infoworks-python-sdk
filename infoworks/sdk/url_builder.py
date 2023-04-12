@@ -1083,6 +1083,27 @@ def get_job_metrics_url(config, source_id, job_id):
     return request
 
 
+def get_ingestion_metrics_admin_url(config, job_id):
+    request = '{protocol}://{ip}:{port}/v3/admin/jobs/{job_id}/reports/ingestion-metrics'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        job_id=job_id,
+    )
+    return request
+
+
+def get_export_metrics_source_url(config, source_id, job_id):
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/jobs/{job_id}/reports/export-metrics'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        job_id=job_id,
+        source_id=source_id
+    )
+    return request
+
+
 def get_source_file_paths_url(config, source_id, table_id, job_id):
     request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/jobs/{job_id}/reports/sourceFilesPath'.format(
         ip=config['ip'],
@@ -1288,18 +1309,6 @@ def list_secret_stores_url(config):
     request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secret-store'.format(ip=config['ip'],
                                                                                      port=config['port'],
                                                                                      protocol=config['protocol'])
-    return request
-
-
-def list_secrets_url(config):
-    """
-    returns URL to list secrets using v3 api
-    :param config: client configurations
-    :type config: dict
-    :return: url to list secret
-    """
-    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(ip=config['ip'], port=config['port'],
-                                                                                protocol=config['protocol'])
     return request
 
 
@@ -1522,7 +1531,7 @@ def accessible_pipeline_extensions_url(config, domain_id):
     """
     returns url to get all the Pipeline Extensions associated with this Domain
     """
-    request = '{protocol}://{ip}:{port}/v3//domains/{domain_id}/accessible-pipeline-extensions'.format(
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-extensions'.format(
         domain_id=domain_id,
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
@@ -1531,10 +1540,76 @@ def accessible_pipeline_extensions_url(config, domain_id):
 
 def advanced_config_domain_url(config, domain_id):
     """
-    returns url to get all the Pipeline Extensions associated with this Domain
+    returns url to work with adv config of the domain
     """
-    request = '{protocol}://{ip}:{port}/v3//domains/{domain_id}/accessible-pipeline-extensions'.format(
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-extensions'.format(
         domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def table_advanced_base_url(config, source_id, table_id):
+    """
+    returns url to work with table level advanced configuration
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/configurations/advance'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def table_segmentation_base_url(config, source_id, table_id):
+    """
+        returns url to work with table segmentation
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/segmentation'.format(
+        source_id=source_id,
+        table_id=table_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_source_job_url(config, source_id, job_id):
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/jobs/{job_id}'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        job_id=job_id,
+        source_id=source_id
+    )
+    return request
+
+
+def get_jobs_prodops_url(config):
+    """
+    returns URL to get jobs details
+    :param config: client configurations
+    :type config: dict
+    :return: URL to get jobs details
+    """
+    request = '{protocol}://{ip}:{port}/v3/prodops/jobs'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_metrics_prodops_url(config):
+    request = '{protocol}://{ip}:{port}/v3/prodops/metrics'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+    )
+
+
+def list_secrets_url(config):
+    """
+        returns url to get secret details in Infoworks
+        """
+    request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
