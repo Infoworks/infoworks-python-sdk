@@ -48,6 +48,7 @@ class PipelineClient(BaseClient):
                 result = response.get('result', {})
                 if len(result) != 0:
                     job_status = result["status"]
+                    print(f"pipeline_status : {job_status}.Sleeping for {polling_frequency} seconds")
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
