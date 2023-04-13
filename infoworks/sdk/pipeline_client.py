@@ -54,6 +54,7 @@ class PipelineClient(BaseClient):
                             "percentage", 0)))
                     if job_status in ["completed", "failed", "aborted", "canceled"]:
                         return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
+                                                             response=response,
                                                              pipeline_id=pipeline_id,
                                                              job_id=job_id)
                 else:
