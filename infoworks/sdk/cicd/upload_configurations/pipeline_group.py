@@ -42,6 +42,7 @@ class PipelineGroup:
 
         pipeline_group_name = self.configuration_obj["name"]
         pipeline_group_id = None
+        final_domain_id=domain_id
         if self.environment_id is not None:
             self.configuration_obj["environment_id"]=self.environment_id
         if domain_name is not None and domain_id is None:
@@ -56,7 +57,6 @@ class PipelineGroup:
                     {'Authorization': 'Bearer ' + pipeline_group_obj.client_config["bearer_token"],
                      'Content-Type': 'application/json'})
                 response = requests.request("GET", domains_url, headers=headers, verify=False)
-            final_domain_id = None
             if response is not None:
                 result = response.json().get("result", [])
                 if len(result) > 0:
