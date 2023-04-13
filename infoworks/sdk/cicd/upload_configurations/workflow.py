@@ -24,8 +24,11 @@ class Workflow:
             if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
                 continue
             print("section:", section)
-            final = d.setval(section.split("$"), dict(config.items(section)))
-            print(f"section replacement:{d.getval(section.split('$'))}")
+            try:
+                final = d.setval(section.split("$"), dict(config.items(section)))
+                print(f"section replacement:{d.getval(section.split('$'))}")
+            except KeyError as e:
+                pass
         self.configuration_obj = d.data
 
     def create(self, wf_client_obj, domain_id, domain_name):

@@ -131,13 +131,14 @@ class WrapperWorkflow(BaseClient):
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
             wf_obj = Workflow(configuration_file_path, replace_words)
+            wf_obj.update_mappings_for_configurations(self.mappings)
             wf_id, domain_id = wf_obj.create(self, domain_id, domain_name)
             if wf_id is not None:
                 status = wf_obj.configure(self, wf_id, domain_id)
         except Exception as e:
             self.logger.error(str(e))
             print(str(e))
-            traceback.print_stack()
+            print(traceback.format_exc())
 
     def __execute(self, thread_number, q):
         while True:
