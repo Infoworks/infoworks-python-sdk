@@ -138,7 +138,7 @@ class WrapperWorkflow(BaseClient):
         except Exception as e:
             self.logger.error(str(e))
             print(str(e))
-            traceback.print_stack()
+            print(traceback.format_exc())
 
     def __execute(self, thread_number, q):
         while True:
