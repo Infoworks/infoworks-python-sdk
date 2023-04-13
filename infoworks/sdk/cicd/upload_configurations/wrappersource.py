@@ -311,7 +311,8 @@ class WrapperSource(BaseClient):
             return response_to_return
         except Exception as e:
             self.logger.error(str(e))
-            traceback.print_exc()
+            self.logger.error(traceback.format_exc())
+            print(traceback.format_exc())
             print(str(e))
             return response_to_return
 

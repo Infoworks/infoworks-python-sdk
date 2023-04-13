@@ -177,6 +177,7 @@ class WrapperPipeline(BaseClient):
         except Exception as e:
             self.logger.error(str(e))
             print(str(e))
+            self.logger.error(traceback.format_exc())
             print(traceback.format_exc())
 
     def cicd_create_configure_pipeline_group(self, configuration_file_path, domain_id=None, domain_name=None,
@@ -239,6 +240,7 @@ class WrapperPipeline(BaseClient):
         except Exception as e:
             self.logger.error(str(e))
             print(str(e))
+            self.logger.error(traceback.format_exc())
             print(traceback.format_exc())
 
 
