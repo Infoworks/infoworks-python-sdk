@@ -303,10 +303,14 @@ class WorkflowClient(BaseClient):
             raise Exception("domain_id or workflow_id cannot be None")
         response = None
         try:
-            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.trigger_workflow_url(
-                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
-                self.client_config['bearer_token']),data=trigger_wf_body if trigger_wf_body is not None else "").content)
-
+            if trigger_wf_body:
+                response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.trigger_workflow_url(
+                    self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token']), data=trigger_wf_body).content)
+            else:
+                response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.trigger_workflow_url(
+                    self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token'])).content)
             result = response.get('result', {})
             run_id = result.get('id', None)
             if result.get('id', None) is None:
