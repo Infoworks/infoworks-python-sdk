@@ -128,7 +128,7 @@ class WrapperSource(BaseClient):
 
             source_type = configuration_obj["configuration"]["source_configs"]["type"]
             source_sub_type = configuration_obj["configuration"]["source_configs"]["sub_type"]
-            if source_type == "file" and source_sub_type == "structured":
+            if source_type == "file" and (source_sub_type == "structured" or source_sub_type == "fixedwidth"):
                 source_obj = CSVSource(env_id, storage_id, configuration_file_path, self.secrets_config, replace_words)
                 source_obj.update_mappings_for_configurations(self.mappings)
                 create_source_response = source_obj.create_csv_source(self)
