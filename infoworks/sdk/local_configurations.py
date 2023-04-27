@@ -64,7 +64,12 @@ class ErrorCode(object):
 class SourceMappings(object):
     oracle = {"sub_type": "oracle", "driver_name": "oracle.jdbc.driver.OracleDriver", "driver_version": "v2",
               "database": "ORACLE"}
+    mysql = {"sub_type": "mysql", "driver_name": "org.mariadb.jdbc.Driver", "driver_version": "v2",
+              "database": "MYSQL"}
+    sqlserver = {"sub_type": "sqlserver", "driver_name": "com.microsoft.sqlserver.jdbc.SQLServerDriver", "driver_version": "v2",
+              "database": "SQL Server"}
     teradata = {"sub_type": "teradata", "driver_name": "com.teradata.jdbc.TeraDriver", "driver_version": "v2",
                 "database": "TERADATA"}
     netezza = {"sub_type": "netezza", "driver_name": "org.netezza.Driver", "driver_version": "v2",
                "database": "NETEZZA"}
+
