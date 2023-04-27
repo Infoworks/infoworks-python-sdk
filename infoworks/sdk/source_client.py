@@ -1643,6 +1643,7 @@ class SourceClient(BaseClient):
         elif src_type.lower() == "sqlserver":
             sub_type = SourceMappings.sqlserver.get("sub_type")
             driver_name = SourceMappings.sqlserver.get("driver_name")
+            driver_version = SourceMappings.sqlserver.get("driver_version")
             database = SourceMappings.sqlserver.get("database")
         elif src_type.lower() == "teradata":
             sub_type = SourceMappings.teradata.get("sub_type")
@@ -1652,10 +1653,12 @@ class SourceClient(BaseClient):
         elif src_type.lower() == "mysql":
             sub_type = SourceMappings.mysql.get("sub_type")
             driver_name = SourceMappings.mysql.get("driver_name")
+            driver_version = SourceMappings.mysql.get("driver_version")
             database = SourceMappings.mysql.get("database")
         elif src_type.lower() == "netezza":
             sub_type = SourceMappings.netezza.get("sub_type")
             driver_name = SourceMappings.netezza.get("driver_name")
+            driver_version = SourceMappings.netezza.get("driver_version")
             database = SourceMappings.netezza.get("database")
         else:
             sub_type = SourceMappings.oracle.get("sub_type")
