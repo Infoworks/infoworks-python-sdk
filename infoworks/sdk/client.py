@@ -14,11 +14,12 @@ from infoworks.sdk.jobmetrics import JobMetricsClient
 from infoworks.sdk.admin_client import AdminClient
 from infoworks.sdk.jobs_client import JobsClient
 from infoworks.sdk.pipeline_group_client import PipelineGroupClient
+from infoworks.sdk.replicator_client import ReplicatorClient
 
 
 class InfoworksClientSDK(SourceClient, PipelineClient, WorkflowClient, DomainClient, AdminClient, JobMetricsClient,
                          DownloadSource, DownloadPipeline, DownloadWorkflow, DownloadEntityWithLineage,
                          DownloadAllEntitiesFromDomain, WrapperSource, WrapperPipeline, WrapperWorkflow, JobsClient,
-                         PipelineGroupClient):
+                         PipelineGroupClient, ReplicatorClient):
     def __init__(self):
         super().__init__()
