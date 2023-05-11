@@ -1,5 +1,7 @@
 import copy
 import os
+import traceback
+
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, configure_pipeline_url, \
     configure_workflow_url, \
@@ -302,6 +304,7 @@ class Utils:
                             else:
                                 status = "FAILED"
                                 print("Get Data Connection Details failed " + json.dumps(response))
+                                cicd_client.logger.error("Get Data Connection Details failed " + json.dumps(response))
 
                             response_to_return["get_data_connection_details_response"] = CICDResponse.parse_result(
                                 status=status,
@@ -318,11 +321,18 @@ class Utils:
                                     copy.deepcopy(dataconnection_obj))
                 elif entity_type == "pipeline_group":
                     list_pipelines_under_domain_url = list_pipelines_url(cicd_client.client_config,domain_id=domain_id)
+                    cicd_client.logger.info(f"Calling the api: {list_pipelines_under_domain_url}")
                     pipeline_name_lookup={}
                     pipelines_under_domain_response = cicd_client.call_api("GET", list_pipelines_under_domain_url, IWUtils.get_default_header_for_v3(
             cicd_client.client_config[
                 'bearer_token']))
                     pipelines_under_domain_parsed_response = IWUtils.ejson_deserialize(pipelines_under_domain_response.content)
+                    if pipelines_under_domain_parsed_response.get("result","")=="":
+                        cicd_client.logger.error(f"Failed to list the pipelines under domain {domain_id}")
+                        cicd_client.logger.error(pipelines_under_domain_parsed_response)
+                        print(f"Failed to list the pipelines under domain {domain_id}")
+                        print(pipelines_under_domain_parsed_response)
+                        raise Exception(f"Failed to list the pipelines under domain {domain_id}")
                     for pipeline in pipelines_under_domain_parsed_response["result"]:
                         pipeline_name_lookup[pipeline["id"]]=pipeline["name"]
                     for index,pipeline in enumerate(configuration_obj["pipelines"]):
@@ -338,6 +348,7 @@ class Utils:
                 parsed_response = IWUtils.ejson_deserialize(response.content)
                 if response.status_code == 200:
                     status = "SUCCESS"
+                    cicd_client.logger.info("Got domain details successfully")
                 else:
                     status = "FAILED"
                     print("Get Domains Details failed " + json.dumps(response))

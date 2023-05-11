@@ -40,10 +40,13 @@ class DownloadPipeline(BaseClient):
                 print(f"Unable to export configurations for pipeline {pipeline_id} due to {str(e)}")
         if pipeline_grp_config is not None:
             pipeline_group_id = pipeline_grp_config["id"]
-            filename, configuration_obj = utils_obj.dump_to_file(self, "pipeline_group", domain_id, pipeline_group_id,
+            json_obj = {"entity_id": pipeline_group_id, "entity_type": "pipeline_group"}
+            domain_id = utils_obj.get_domain_id(self, json_obj)
+            if domain_id:
+                filename, configuration_obj = utils_obj.dump_to_file(self, "pipeline_group", domain_id, pipeline_group_id,
                                                                  replace_words, config_file_dump_path)
-            if filename is not None:
-                f_pipeline_group.write(filename)
-                f_pipeline_group.write("\n")
+                if filename is not None:
+                    f_pipeline_group.write(filename)
+                    f_pipeline_group.write("\n")
         f.close()
         f_pipeline_group.close()
