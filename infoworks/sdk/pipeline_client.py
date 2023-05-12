@@ -3,6 +3,7 @@ import time
 from infoworks.error import PipelineError
 from infoworks.sdk import url_builder, local_configurations
 from infoworks.sdk.base_client import BaseClient
+from infoworks.sdk.generic_response import GenericResponse
 from infoworks.sdk.local_configurations import Response, ErrorCode
 from infoworks.sdk.pipeline_response import PipelineResponse
 from infoworks.sdk.utils import IWUtils
@@ -643,3 +644,163 @@ class PipelineClient(BaseClient):
                 f"Failed to get pipeline lineage for pipeline {pipeline_id} and column {column_name} " + str(e))
             raise PipelineError(
                 f"Failed to get pipeline lineage for pipeline {pipeline_id} and column {column_name} " + str(e))
+
+    def create_pipeline_version(self, domain_id, pipeline_id, body=None):
+        """
+        Create a new Pipeline Version
+        :param body: a JSON object containing pipeline version
+        :type body: JSON Object
+        :param domain_id: Entity identifier of domain
+        :param pipeline_id: Entity identifier of pipeline_id
+        :return: response dict
+        """
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.pipeline_version_base_url(
+                self.client_config, domain_id, pipeline_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']),
+                                                               body).content)
+            result = response.get('result', {})
+            pipeline_version_id = result.get('id', None)
+            if pipeline_version_id is None:
+                self.logger.error('Pipeline version failed to create.')
+                return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Pipeline version failed to create.',
+                                                     response=response)
+
+            pipeline_version_id = str(pipeline_version_id)
+            self.logger.info(
+                'Pipeline version {id} has been created under domain {domain_id}.'.format(id=pipeline_version_id,
+                                                                                          domain_id=domain_id))
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=pipeline_version_id,
+                                                response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to create a new pipeline version.')
+            raise PipelineError('Error occurred while trying to create a new pipeline version.')
+
+    def update_pipeline_version(self, domain_id, pipeline_id, pipeline_version_id, body=None):
+        """
+        Updates the Pipeline Version
+        :param body: a JSON object containing pipeline version
+        :type body: JSON Object
+        :param domain_id: Entity identifier of domain
+        :param pipeline_id: Entity identifier of pipeline_id
+        :param pipeline_version_id: Entity identifier of pipeline_version_id
+        :return: response dict
+        """
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("PATCH", url_builder.pipeline_version_base_url(
+                self.client_config, domain_id, pipeline_id) + f"/{pipeline_version_id}",
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']), body).content)
+            message = response.get('message', "")
+            if message != "Pipeline Version Updated Successfully":
+                self.logger.error('Pipeline version failed to update.')
+                return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Pipeline version failed to update.',
+                                                     response=response)
+
+            else:
+                self.logger.info(
+                    'Pipeline version {id} has been updated.'.format(id=pipeline_version_id))
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=pipeline_version_id,
+                                                    response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to update a pipeline version.')
+            raise PipelineError('Error occurred while trying to update a pipeline version.')
+
+    def set_pipeline_version_as_active(self, domain_id, pipeline_id, pipeline_version_id):
+        """
+        Sets the pipeline version as active
+        :param domain_id: Entity identifier of domain
+        :param pipeline_id: Entity identifier of pipeline_id
+        :param pipeline_version_id: Entity identifier of pipeline_version_id
+        :return: response dict
+        """
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.pipeline_version_base_url(
+                self.client_config, domain_id, pipeline_id) + f"/{pipeline_version_id}/set-active",
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token'])).content)
+            message = response.get('message', "")
+            if message != "Successfully set active version":
+                self.logger.error('Pipeline version failed to be set active.')
+                return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Pipeline version failed to be set active.',
+                                                     response=response)
+
+            else:
+                self.logger.info(
+                    'Pipeline version {id} has been set as active.'.format(id=pipeline_version_id))
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=pipeline_version_id,
+                                                    response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to set a pipeline version as active.')
+            raise PipelineError('Error occurred while trying to set a pipeline version as active.')
+
+    def modify_advanced_config_for_pipeline(self, domain_id, pipeline_id, adv_config_body,
+                                            action_type="update", key=None):
+        """
+        Function to add/update the adv config for the pipeline
+        :param pipeline_id: id of the pipeline
+        :type pipeline_id: String
+        :param domain_id: Domain id to which the pipeline belongs to
+        :type domain_id: String
+        :param action_type: values can be either create/update. default update
+        :type action_type: String
+        :param adv_config_body: JSON dict
+        adv_config_body_example = {
+            "key" : "",
+            "value": "",
+            "description": "",
+            "is_active": True
+            }
+        :param key: In case of update, name of the adv config to update
+        :return: response dict
+        """
+        if None in {pipeline_id, domain_id} or adv_config_body is None:
+            raise Exception(f"pipeline_id, domain_id and adv_config_body cannot be None")
+        try:
+            if action_type.lower() == "create":
+                request_type = "POST"
+                request_url = url_builder.advanced_config_pipeline_url(self.client_config, domain_id,
+                                                                       pipeline_id)
+            else:
+                request_type = "PUT"
+                request_url = url_builder.advanced_config_pipeline_url(self.client_config, domain_id,
+                                                                       pipeline_id) + f"{key}"
+            response = IWUtils.ejson_deserialize(
+                self.call_api(request_type, request_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              adv_config_body).content)
+            result = response.get('result', {})
+            message = response.get('message', "")
+            adv_config_id = result.get('id', None)
+            if adv_config_id is not None:
+                adv_config_id = str(adv_config_id)
+                self.logger.info(
+                    'Advanced Config has been created {id}.'.format(id=adv_config_id))
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=adv_config_id,
+                                                    response=response)
+            elif message == "Successfully updated Advance configuration":
+                self.logger.info('Advanced Config has been updated')
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                self.logger.error(f'Failed to {action_type} advanced config for pipeline.')
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    error_desc=f'Failed to {action_type} advanced config for pipeline',
+                                                    response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to add/update adv config pipeline.')
+            raise PipelineError('Error occurred while trying to add/update adv config pipeline.')

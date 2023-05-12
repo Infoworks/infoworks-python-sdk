@@ -1542,8 +1542,19 @@ def advanced_config_domain_url(config, domain_id):
     """
     returns url to work with adv config of the domain
     """
-    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipeline-extensions'.format(
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/configurations/advance'.format(
         domain_id=domain_id,
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def advanced_config_pipeline_url(config, domain_id, pipeline_id):
+    """
+    returns url to work with adv config of the pipeline
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/configurations/advance'.format(
+        domain_id=domain_id, pipeline_id=pipeline_id,
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
@@ -1612,4 +1623,24 @@ def list_secrets_url(config):
     request = '{protocol}://{ip}:{port}/v3/admin/manage-secrets/secrets'.format(
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
+    return request
+
+
+def pipeline_version_base_url(config, domain_id, pipeline_id):
+    """
+    returns URL to work on pipeline versions using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param pipeline_id: Identifier for pipeline
+    :return: url to work on pipeline version
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/versions'.format(ip=config['ip'],
+                                                                                                        port=config[
+                                                                                                            'port'],
+                                                                                                        protocol=config[
+                                                                                                            'protocol'],
+                                                                                                        domain_id=domain_id,
+                                                                                                        pipeline_id=pipeline_id)
     return request
