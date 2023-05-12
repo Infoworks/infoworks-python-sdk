@@ -31,7 +31,6 @@ class Pipeline:
         for section in config.sections():
             if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
                 continue
-            print("section:", section)
             try:
                 final = d.setval(section.split("$"), dict(config.items(section)))
                 print(f"section replacement:{d.getval(section.split('$'))}")
@@ -238,6 +237,8 @@ class Pipeline:
             "include_optional_properties": True
         }
         url_for_importing_pipeline = configure_pipeline_url(pipeline_client_obj.client_config, domain_id, pipeline_id)
+        pipeline_client_obj.logger.info(f"URL to configure pipeline: {url_for_importing_pipeline}")
+        print(f"URL to configure pipeline: {url_for_importing_pipeline}")
         del self.configuration_obj["environment_configurations"]
         del self.configuration_obj["user_email"]
         json_string = IWUtils.ejson_serialize(
@@ -257,5 +258,7 @@ class Pipeline:
         response = IWUtils.ejson_deserialize(response.content)
         if response is not None:
             pipeline_client_obj.logger.info(response.get("message", "") + " Done")
+            pipeline_client_obj.logger.info(response)
             print(f'{response.get("message", "")} Done')
+            print(response)
             return "SUCCESS"
