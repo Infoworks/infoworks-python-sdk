@@ -6,6 +6,7 @@ from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
+from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 import configparser
 
 class CSVSource:
@@ -44,7 +45,7 @@ class CSVSource:
         config.read_dict(mappings)
         d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
         for section in config.sections():
-            if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
+            if section in PRE_DEFINED_MAPPINGS:
                 continue
             print("section:", section)
             try:

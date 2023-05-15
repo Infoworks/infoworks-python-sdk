@@ -5,7 +5,7 @@ from infoworks.sdk.url_builder import list_domains_url, list_users_url, add_user
     add_sources_to_domain_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.core.iw_authentication import get_bearer_token
-
+from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 
 class Domain:
     def __init__(self, environment_id):

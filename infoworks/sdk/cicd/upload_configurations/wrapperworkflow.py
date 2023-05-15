@@ -130,6 +130,10 @@ class WrapperWorkflow(BaseClient):
         try:
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
+                domain_mappings = self.mappings.get("domain_name_mappings", {})
+                if domain_mappings != {}:
+                    if domain_name.lower() in domain_mappings.keys():
+                        domain_name = domain_mappings.get(domain_name.lower(),domain_name)
             wf_obj = Workflow(configuration_file_path, replace_words)
             wf_obj.update_mappings_for_configurations(self.mappings)
             wf_id, domain_id = wf_obj.create(self, domain_id, domain_name)
@@ -178,6 +182,10 @@ class WrapperWorkflow(BaseClient):
                     if i != "root":
                         wf_name = graph._node[i]['filename'].strip()
                         domain_name = wf_name.split("#")[0]
+                        domain_mappings = self.mappings.get("domain_name_mappings", {})
+                        if domain_mappings != {}:
+                            if domain_name.lower() in domain_mappings.keys():
+                                domain_name = domain_mappings.get(domain_name.lower(), domain_name)
                         wf_args = {"entity_type": "workflow",
                                    "workflow_config_path": os.path.join("configurations/workflow", wf_name),
                                    "domain_name": domain_name}
@@ -190,6 +198,10 @@ class WrapperWorkflow(BaseClient):
                 for workflow_file in workflow_file_fp.readlines():
                     wf_name = workflow_file.strip()
                     domain_name = wf_name.split("#")[0]
+                    domain_mappings = self.mappings.get("domain_name_mappings", {})
+                    if domain_mappings != {}:
+                        if domain_name.lower() in domain_mappings.keys():
+                            domain_name = domain_mappings.get(domain_name.lower(), domain_name)
                     wf_args = {"entity_type": "workflow",
                                "workflow_config_path": os.path.join("configurations/workflow", wf_name),
                                "domain_name": domain_name, "replace_words": wf_replace_words, }

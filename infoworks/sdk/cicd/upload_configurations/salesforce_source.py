@@ -5,7 +5,9 @@ import yaml
 
 from infoworks.sdk.url_builder import get_source_details_url
 from infoworks.sdk.utils import IWUtils
-
+import configparser
+from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
+from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 
 class SalesforceSource:
     def __init__(self):
@@ -26,6 +28,45 @@ class SalesforceSource:
                     json_string = json_string.replace(key, value)
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
         self.secrets = secrets
+
+    def update_table_schema_and_database(self,type,mappings):
+        data=self.configuration_obj
+        for table in data.get("configuration",{}).get("table_configs",[]):
+            if type=="target_schema":
+                schema_from_config=table.get("configuration",{}).get("configuration",{}).get("target_schema_name","")
+                if schema_from_config!="" and schema_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["target_schema_name"]=mappings.get(schema_from_config.lower())
+            elif type=="stage_schema":
+                schema_from_config=table.get("configuration",{}).get("configuration",{}).get("staging_schema_name","")
+                if schema_from_config!="" and schema_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["staging_schema_name"]=mappings.get(schema_from_config.lower())
+            elif type=="database":
+                database_from_config=table.get("configuration",{}).get("configuration",{}).get("target_database_name","")
+                if database_from_config!="" and database_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["target_database_name"]=mappings.get(database_from_config.lower())
+            else:
+                pass
+
+    def update_mappings_for_configurations(self, mappings):
+        config = configparser.ConfigParser()
+        config.read_dict(mappings)
+        d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
+        for section in config.sections():
+            if section in PRE_DEFINED_MAPPINGS:
+                continue
+            print("section:", section)
+            try:
+                final = d.setval(section.split("$"), dict(config.items(section)))
+                print(f"section replacement:{d.getval(section.split('$'))}")
+            except KeyError as e:
+                pass
+        self.configuration_obj = d.data
+        if "configuration$source_configs$data_lake_schema" in config.sections():
+            self.update_table_schema_and_database("target_schema",dict(config.items("configuration$source_configs$data_lake_schema")))
+        if "configuration$source_configs$staging_schema_name" in config.sections():
+            self.update_table_schema_and_database("stage_schema",dict(config.items("configuration$source_configs$staging_schema_name")))
+        if "configuration$source_configs$target_database_name" in config.sections():
+            self.update_table_schema_and_database("database",dict(config.items("configuration$source_configs$target_database_name")))
 
     def create_salesforce_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]

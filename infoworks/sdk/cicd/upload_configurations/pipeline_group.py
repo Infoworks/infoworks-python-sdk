@@ -8,6 +8,7 @@ from infoworks.core.iw_authentication import get_bearer_token
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import get_pipeline_group_base_url,list_domains_url,list_pipelines_url
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
+from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 
 class PipelineGroup:
     def __init__(self, pipeline_group_config_path, environment_id, storage_id, interactive_id,
@@ -28,7 +29,7 @@ class PipelineGroup:
         config.read_dict(mappings)
         d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
         for section in config.sections():
-            if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
+            if section in PRE_DEFINED_MAPPINGS:
                 continue
             print("section:", section)
             try:

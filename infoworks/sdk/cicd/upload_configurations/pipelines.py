@@ -9,6 +9,7 @@ from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create
     configure_pipeline_url
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
+from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 
 class Pipeline:
     def __init__(self, pipeline_config_path, environment_id, storage_id, interactive_id,
@@ -29,7 +30,7 @@ class Pipeline:
         config.read_dict(mappings)
         d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
         for section in config.sections():
-            if section in ["environment_mappings","storage_mappings","compute_mappings","table_group_compute_mappings","api_mappings","azure_keyvault","aws_secrets"]:
+            if section in PRE_DEFINED_MAPPINGS:
                 continue
             try:
                 final = d.setval(section.split("$"), dict(config.items(section)))
@@ -37,6 +38,14 @@ class Pipeline:
             except KeyError as e:
                 pass
         self.configuration_obj = d.data
+        iw_mappings = self.configuration_obj.get("configuration", {}).get("iw_mappings", [])
+        domain_mappings = dict(config.items("domain_name_mappings"))
+        if domain_mappings != {}:
+            for mapping in iw_mappings:
+                domain_name=mapping.get("recommendation",{}).get("domain_name","")
+                if domain_name!="" and domain_mappings!={}:
+                    mapping["recommendation"]["domain_name"]=domain_mappings.get(domain_name.lower(),domain_name)
+            self.configuration_obj["configuration"]["iw_mappings"] = iw_mappings
 
     def create(self, pipeline_client_obj, domain_id, domain_name):
         pipeline_name = self.configuration_obj["configuration"]["entity"]["entity_name"]

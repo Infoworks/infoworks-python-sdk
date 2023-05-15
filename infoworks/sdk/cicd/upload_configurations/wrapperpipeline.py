@@ -131,6 +131,11 @@ class WrapperPipeline(BaseClient):
         try:
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
+                domain_mappings = self.mappings.get("domain_name_mappings", {})
+                print("domain_mappings:",domain_mappings)
+                if domain_mappings != {}:
+                    if domain_name.lower() in domain_mappings.keys():
+                        domain_name = domain_mappings.get(domain_name.lower(), domain_name)
             env_id = self.client_config.get("default_environment_id", None)
             storage_id = self.client_config.get("default_storage_id", None)
             compute_id = self.client_config.get("default_compute_id", None)
@@ -196,6 +201,11 @@ class WrapperPipeline(BaseClient):
         try:
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
+                domain_mappings = self.mappings.get("domain_name_mappings", {})
+                print("domain_mappings:", domain_mappings)
+                if domain_mappings != {}:
+                    if domain_name.lower() in domain_mappings.keys():
+                        domain_name = domain_mappings.get(domain_name.lower(), domain_name)
             env_id = self.client_config.get("default_environment_id", None)
             storage_id = self.client_config.get("default_storage_id", None)
             compute_id = self.client_config.get("default_compute_id", None)
@@ -293,6 +303,10 @@ class WrapperPipeline(BaseClient):
                     if i != "root":
                         pipeline_file = graph._node[i]['filename'].strip()
                         domain_name = pipeline_file.split("#")[0]
+                        domain_mappings = self.mappings.get("domain_name_mappings", {})
+                        if domain_mappings != {}:
+                            if domain_name.lower() in domain_mappings.keys():
+                                domain_name = domain_mappings.get(domain_name.lower(), domain_name)
                         pipeline_args = {"entity_type": "pipeline",
                                          "pipeline_config_path": os.path.join(configurations_base_path, "pipeline",
                                                                               pipeline_file.strip()),
@@ -308,6 +322,11 @@ class WrapperPipeline(BaseClient):
                 for pipeline_file in pipeline_files_fp.readlines():
                     pl_name = pipeline_file.strip()
                     domain_name = pl_name.split("#")[0]
+                    domain_mappings = self.mappings.get("domain_name_mappings", {})
+                    print("domain_mappings:", domain_mappings)
+                    if domain_mappings != {}:
+                        if domain_name.lower() in domain_mappings.keys():
+                            domain_name = domain_mappings.get(domain_name.lower(), domain_name)
                     pipeline_args = {"entity_type": "pipeline",
                                      "pipeline_config_path": os.path.join(configurations_base_path, "pipeline",
                                                                           pipeline_file.strip()),
