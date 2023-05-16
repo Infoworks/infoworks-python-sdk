@@ -1,3 +1,5 @@
+import traceback
+
 from infoworks.sdk.url_builder import list_sources_url, create_workflow_url, list_domains_url, configure_workflow_url
 from infoworks.sdk.utils import IWUtils
 import sys
@@ -32,13 +34,35 @@ class Workflow:
                 pass
         self.configuration_obj = d.data
         iw_mappings = self.configuration_obj.get("configuration", {}).get("iw_mappings", [])
-        domain_mappings = dict(config.items("domain_name_mappings"))
-        if domain_mappings!={}:
-            for mapping in iw_mappings:
-                domain_name = mapping.get("recommendation", {}).get("domain_name", "")
-                if domain_name != "" and domain_mappings != {}:
-                    mapping["recommendation"]["domain_name"] = domain_mappings.get(domain_name.lower(), domain_name)
-            self.configuration_obj["configuration"]["iw_mappings"]=iw_mappings
+        if "domain_name_mappings" in config.sections():
+            domain_mappings = dict(config.items("domain_name_mappings"))
+            if domain_mappings!={}:
+                for mapping in iw_mappings:
+                    domain_name = mapping.get("recommendation", {}).get("domain_name", "")
+                    if domain_name != "" and domain_mappings != {}:
+                        mapping["recommendation"]["domain_name"] = domain_mappings.get(domain_name.lower(), domain_name)
+                self.configuration_obj["configuration"]["iw_mappings"]=iw_mappings
+        # handle any other generic name mappings like iw_mappings$recommendation$source_name
+        try:
+            generic_mappings = [i for i in config.sections() if i.lower().startswith("iw_mappings$")]
+            for mapping in generic_mappings:
+                lineage_list = mapping.split("$")
+                lineage_list.remove("iw_mappings")
+                if "recommendation" in lineage_list:
+                    lineage_list.remove("recommendation")
+                artifact_type = lineage_list[0]
+                artifact_mappings = dict(config.items(f"iw_mappings$recommendation${artifact_type}"))
+                if artifact_mappings != {}:
+                    for mapping in iw_mappings:
+                        artifact_name = mapping.get("recommendation", {}).get(artifact_type, "")
+                        if artifact_name != "" and artifact_mappings != {}:
+                            mapping["recommendation"][artifact_type] = artifact_mappings.get(artifact_name.lower(),
+                                                                                             artifact_name)
+                    self.configuration_obj["configuration"]["iw_mappings"] = iw_mappings
+        except Exception as e:
+            print("Failed while doing the generic mappings")
+            print(str(e))
+            print(traceback.format_exc())
 
     def create(self, wf_client_obj, domain_id, domain_name):
         sources_in_wfs = []
