@@ -50,7 +50,6 @@ class CSVSource:
             print("section:", section)
             try:
                 final = d.setval(section.split("$"), dict(config.items(section)))
-                print(f"section replacement:{d.getval(section.split('$'))}")
             except KeyError as e:
                 pass
         self.configuration_obj = d.data

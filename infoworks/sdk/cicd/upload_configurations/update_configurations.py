@@ -23,14 +23,19 @@ class InfoworksDynamicAccessNestedDict:
         self.flatten_json_list = [*get_keys(data)]
 
     def getval(self, keys: List):
+        replacement_string = ".".join(keys)
+        r = re.compile(replacement_string)
+        matched_replacements = list(filter(r.match, self.flatten_json_list))
         data = self.data
-        for k in keys:
-            try:
-                data = data[k]
-            except KeyError as e:
-                print(f"Did not find the key {k} in artifact json")
-                return None
-        return data
+        for item in matched_replacements:
+            section_keys=item.split(".")
+            for k in section_keys:
+                try:
+                    data = data[k]
+                except KeyError as e:
+                    print(f"Did not find the key {k} in artifact json")
+                    return None
+            return data
 
     def setval(self, keys: List,rename_dict) -> None:
         replacement_string = ".".join(keys)
