@@ -299,3 +299,6 @@ class Pipeline:
             print(f'{response.get("message", "")} Done')
             print(response)
             return "SUCCESS"
+        else:
+            print(response)
+            return "FAILED"

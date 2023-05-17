@@ -132,7 +132,6 @@ class WrapperPipeline(BaseClient):
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
                 domain_mappings = self.mappings.get("domain_name_mappings", {})
-                print("domain_mappings:",domain_mappings)
                 if domain_mappings != {}:
                     if domain_name.lower() in domain_mappings.keys():
                         domain_name = domain_mappings.get(domain_name.lower(), domain_name)
@@ -202,7 +201,6 @@ class WrapperPipeline(BaseClient):
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
                 domain_mappings = self.mappings.get("domain_name_mappings", {})
-                print("domain_mappings:", domain_mappings)
                 if domain_mappings != {}:
                     if domain_name.lower() in domain_mappings.keys():
                         domain_name = domain_mappings.get(domain_name.lower(), domain_name)
@@ -323,7 +321,6 @@ class WrapperPipeline(BaseClient):
                     pl_name = pipeline_file.strip()
                     domain_name = pl_name.split("#")[0]
                     domain_mappings = self.mappings.get("domain_name_mappings", {})
-                    print("domain_mappings:", domain_mappings)
                     if domain_mappings != {}:
                         if domain_name.lower() in domain_mappings.keys():
                             domain_name = domain_mappings.get(domain_name.lower(), domain_name)
