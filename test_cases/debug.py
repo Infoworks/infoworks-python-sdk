@@ -15,7 +15,10 @@ from infoworks.sdk.client import InfoworksClientSDK
 refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 iwx_client_prd = InfoworksClientSDK()
 #iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
-iwx_client_prd.initialize_client_with_defaults("https", "gke-qa-540.infoworks.technology", "443", refresh_token)
+iwx_client_prd.initialize_client_with_defaults("https", "aks-qa-542.infoworks.technology", "443", refresh_token)
+response = iwx_client_prd.list_pipeline_versions(domain_id="0bf4211970af3d1688263eef", pipeline_id="6460b78e0d5a37068c1ca792",params={"filter":{"is_active":True,"type":"sql"}})
+for item in response["result"]["response"]["result"]:
+    print(item)
 #iwx_client_prd.initialize_client_with_defaults("http", "10.18.1.32", "3000", refresh_token)
 # print(iwx_client_prd.get_pipeline("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c"))
 # print(iwx_client_prd.get_pipeline_version_details("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c","6298cb771086072f3633bdd9"))
@@ -130,5 +133,3 @@ iwx_client_prd.initialize_client_with_defaults("https", "gke-qa-540.infoworks.te
 
 #print(iwx_client_prd.get_table_metadata(source_id="32677a5ba6794e91215167df",table_id="27bfea936fbc88a2cfdc443c"))
 #print(iwx_client_prd.update_table_metadata(source_id="32677a5ba6794e91215167df",table_id="27bfea936fbc88a2cfdc443c",data={"description":"updated desc via api"}))
-print(iwx_client_prd.get_source_metadata(source_id="32677a5ba6794e91215167df"))
-print(iwx_client_prd.update_source_metadata(source_id="32677a5ba6794e91215167df",data={"description":"bqLabelCSV"}))
