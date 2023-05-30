@@ -268,7 +268,7 @@ class Pipeline:
                 print(response)
 
         import_configs = {
-            "run_pipeline_metadata_build": False,
+            "run_pipeline_metadata_build": True,
             "is_pipeline_version_active": True,
             "import_data_connection": True,
             "include_optional_properties": True
