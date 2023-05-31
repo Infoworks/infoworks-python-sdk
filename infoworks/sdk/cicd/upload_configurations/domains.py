@@ -25,8 +25,10 @@ class Domain:
                                        domain_json_object)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
-            if response.status_code != 200:
+            if response.status_code!=200:
                 client.logger.info('Cant create domain')
+                client.logger.info(parsed_response.get("message",""))
+                client.logger.info(parsed_response.get("details", ""))
                 client.logger.info('Getting the existing domain_id with given name.')
                 domains_url_base = list_domains_url(client.client_config)
                 filter_condition = str({"name": domain_name})
