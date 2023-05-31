@@ -309,7 +309,7 @@ class SourceClient(BaseClient):
         try:
             url_for_browse_source = url_builder.browse_source_tables_url(self.client_config, source_id)
             if filter_tables_properties is not None:
-                filter_condition = f"?is_filter_enabled=true&tables_filter={filter_tables_properties['tables_filter']}&catalogs_filter={filter_tables_properties['catalogs_filter']}&schemas_filter={filter_tables_properties['schemas_filter']}"
+                filter_condition = f"?is_filter_enabled=true&tables_filter={filter_tables_properties.get('tables_filter','')}&catalogs_filter={filter_tables_properties.get('catalogs_filter','')}&schemas_filter={filter_tables_properties.get('schemas_filter','')}"
                 url_for_browse_source = url_for_browse_source + filter_condition
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_for_browse_source,
