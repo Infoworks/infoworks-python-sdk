@@ -480,32 +480,36 @@ class WorkflowClient(BaseClient):
                 self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
             result = response.get('result', {})
-            workflow_status = result['workflow_status']["state"]
-            while workflow_status.lower() not in ['success', 'completed', 'failed', 'aborted', 'canceled']:
-                response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_status_url(
-                    self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
-                    self.client_config['bearer_token'])).content)
-                result = response.get('result', {})
+            if result:
                 workflow_status = result['workflow_status']["state"]
-                if workflow_status.lower() in ['success', 'completed', 'failed', 'aborted', 'canceled']:
-                    break
-                print(f"workflow_status : {workflow_status}.Sleeping for {poll_interval} seconds")
-                time.sleep(poll_interval)
+                while workflow_status.lower() not in ['success', 'completed', 'failed', 'aborted', 'canceled']:
+                    response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_status_url(
+                        self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
+                        self.client_config['bearer_token'])).content)
+                    result = response.get('result', {})
+                    workflow_status = result['workflow_status']["state"]
+                    if workflow_status.lower() in ['success', 'completed', 'failed', 'aborted', 'canceled']:
+                        break
+                    print(f"workflow_status : {workflow_status}.Sleeping for {poll_interval} seconds")
+                    time.sleep(poll_interval)
 
-            run_id = result.get('id', None)
-            if result.get('id', None) is None:
-                self.logger.error(f'Failed to poll status of the workflow {workflow_id}')
-                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_code=ErrorCode.USER_ERROR,
-                                                     error_desc=f'Failed to poll status of the workflow {workflow_id}',
+                run_id = result.get('id', None)
+                if result.get('id', None) is None:
+                    self.logger.error(f'Failed to poll status of the workflow {workflow_id}')
+                    return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                         error_code=ErrorCode.USER_ERROR,
+                                                         error_desc=f'Failed to poll status of the workflow {workflow_id}',
+                                                         response=response)
+
+                workflow_id = str(workflow_id)
+                self.logger.info(
+                    'Successfully polled status of the workflow {id} with run id {run_id}.'.format(id=workflow_id,
+                                                                                                   run_id=run_id))
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
                                                      response=response)
-
-            workflow_id = str(workflow_id)
-            self.logger.info(
-                'Successfully polled status of the workflow {id} with run id {run_id}.'.format(id=workflow_id,
-                                                                                               run_id=run_id))
-            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
-                                                 response=response)
+            else:
+                print(response)
+                raise Exception("Returned API Result is None")
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
