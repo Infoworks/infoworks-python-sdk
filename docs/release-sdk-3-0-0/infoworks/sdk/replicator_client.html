@@ -169,27 +169,28 @@
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>source_config</strong>:  a JSON object containing source configurations</li>
+<li><strong>source_config</strong>:  a JSON object containing source configurations
+'''
+source_config_example = {
+"name": "Sample source",
+"type": "hive",
+"properties": {
+"hadoop_version": "2.x",
+"hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
+"hive_metastore_url": "thrift://microsoft.com:9083",
+"network_throttling": 20000,
+"temp_directory": "/root/iwxr/temp",
+"output_directory": "/root/iwxr/output"
+},
+"advanced_configurations": [
+{
+  "key": "DATABASE_FILTER",
+  "value": ".*"
+}
+]
+}
+'''</li>
 </ul>
-
-<p>source_config_example = {
-  "name": "Sample source",
-  "type": "hive",
-  "properties": {
-    "hadoop_version": "2.x",
-    "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
-    "hive_metastore_url": "thrift://microsoft.com:9083",
-    "network_throttling": 20000,
-    "temp_directory": "/root/iwxr/temp",
-    "output_directory": "/root/iwxr/output"
-  },
-  "advanced_configurations": [
-    {
-      "key": "DATABASE_FILTER",
-      "value": ".*"
-    }
-  ]
-}</p>
 
 <h6 id="returns">Returns</h6>
 
@@ -266,26 +267,27 @@
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>destination_config</strong>:  a JSON object containing destination configurations</li>
+<li><strong>destination_config</strong>:  a JSON object containing destination configurations
+'''
+destination_config_example = {
+"name": "Sample Destination",
+"type": "hive",
+"properties": {
+"hadoop_version": "2.x",
+"hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
+"hive_metastore_url": "thrift://microsoft.com:9083",
+"temp_directory": "/root/iwxr/temp",
+"output_directory": "/root/iwxr/output"
+},
+"advanced_configurations": [
+    {
+      "key": "DATABASE_FILTER",
+      "value": ".*"
+    }
+]
+}
+'''</li>
 </ul>
-
-<p>destination_config_example = {
-    "name": "Sample Destination",
-    "type": "hive",
-    "properties": {
-    "hadoop_version": "2.x",
-    "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
-    "hive_metastore_url": "thrift://microsoft.com:9083",
-    "temp_directory": "/root/iwxr/temp",
-    "output_directory": "/root/iwxr/output"
-    },
-    "advanced_configurations": [
-        {
-          "key": "DATABASE_FILTER",
-          "value": ".*"
-        }
-    ]
-}</p>
 
 <h6 id="returns">Returns</h6>
 
@@ -363,27 +365,28 @@
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>definition_config</strong>:  a JSON object containing definition configurations</li>
+<li><strong>definition_config</strong>:  a JSON object containing definition configurations
+'''
+definition_config_example = {
+"name": "Sample replicator definition",
+"replicator_source_name": "Sample source name",
+"replicator_destination_name": "Sample destination name",
+"replicator_source_id": "6303aea5beda7f1484c74f49",
+"replicator_destination_id": "6303aedfbeda7f1484c74f4a",
+"domain_id": "195ebb5847e08c1eca8368e4",
+"job_bandwidth_mb": 1000,
+"replication_type": "batch",
+"copy_parallelism_factor": 4,
+"metastore_parallelism_factor": 4,
+"advanced_configurations": [
+    {
+      "key": "DATABASE_FILTER",
+      "value": ".*"
+    }
+]
+}
+'''</li>
 </ul>
-
-<p>definition_config_example = {
-    "name": "Sample replicator definition",
-    "replicator_source_name": "Sample source name",
-    "replicator_destination_name": "Sample destination name",
-    "replicator_source_id": "6303aea5beda7f1484c74f49",
-    "replicator_destination_id": "6303aedfbeda7f1484c74f4a",
-    "domain_id": "195ebb5847e08c1eca8368e4",
-    "job_bandwidth_mb": 1000,
-    "replication_type": "batch",
-    "copy_parallelism_factor": 4,
-    "metastore_parallelism_factor": 4,
-    "advanced_configurations": [
-        {
-          "key": "DATABASE_FILTER",
-          "value": ".*"
-        }
-    ]
-}</p>
 
 <h6 id="returns">Returns</h6>
 
@@ -410,18 +413,19 @@
 <ul>
 <li><strong>domain_id</strong>:  Identifier of domain</li>
 <li><strong>definition_id</strong>:  Identifier of Replication Definition</li>
-<li><strong>tables_config</strong>:  a JSON object containing tables configurations</li>
+<li><strong>tables_config</strong>:  a JSON object containing tables configurations
+'''
+tables_config_example = {
+"selected_objects": [
+{
+  "id": "e77850ad5127a2d7dab870ff",
+  "table_name": "Sample table name",
+  "schema_name": "Sample schema name"
+}
+]
+}
+'''</li>
 </ul>
-
-<p>tables_config_example = {
-  "selected_objects": [
-    {
-      "id": "e77850ad5127a2d7dab870ff",
-      "table_name": "Sample table name",
-      "schema_name": "Sample schema name"
-    }
-  ]
-}</p>
 
 <h6 id="returns">Returns</h6>
 
@@ -552,17 +556,18 @@
 
 <ul>
 <li><strong>domain_id</strong>:  Identifier of domain</li>
-<li><strong>config</strong>:  Configurations</li>
+<li><strong>config</strong>:  Configurations
+'''
+sample_config = {
+"entity_details": [
+{
+  "entity_id": "e77850ad5127a2d7dab870ff",
+  "schema_filter": ".*ss"
+}
+]
+}
+'''</li>
 </ul>
-
-<p>sample_config = {
-  "entity_details": [
-    {
-      "entity_id": "e77850ad5127a2d7dab870ff",
-      "schema_filter": ".*ss"
-    }
-  ]
-}</p>
 
 <h6 id="returns">Returns</h6>
 
@@ -588,16 +593,17 @@
 
 <ul>
 <li><strong>domain_id</strong>:  Identifier of domain</li>
-<li><strong>config</strong>:  Configurations</li>
+<li><strong>config</strong>:  Configurations
+'''
+sample_config = {
+"entity_details": [
+{
+  "entity_id": "e77850ad5127a2d7dab870ff",
+}
+]
+}
+'''</li>
 </ul>
-
-<p>sample_config = {
-  "entity_details": [
-    {
-      "entity_id": "e77850ad5127a2d7dab870ff",
-    }
-  ]
-}</p>
 
 <h6 id="returns">Returns</h6>
 
@@ -624,26 +630,27 @@
 <ul>
 <li><strong>domain_id</strong>:  Identifier of domain</li>
 <li><strong>definition_id</strong>:  Identifier of replication definition</li>
-<li><strong>schedule_config</strong>:  Schedule Configurations</li>
+<li><strong>schedule_config</strong>:  Schedule Configurations
+'''
+schedule_sample_config = {
+"entity_type": "replicate_definition",
+"properties": {
+"schedule_status": "enabled",
+"repeat_interval": "[hour,minute,day,week,month]",
+"starts_on": "08/30/2022",
+"time_hour": 7,
+"time_min": 20,
+"ends": "on",
+"repeat_every": "1",
+"ends_on": "{number}",
+"end_hour": "{number}",
+"end_min": "{number}"
+},
+"scheduler_username": "admin@infoworks.io",
+"scheduler_auth_token": "1TGf748u1I0mvZj3efuwr8y"
+}
+'''</li>
 </ul>
-
-<p>schedule_sample_config = {
-  "entity_type": "replicate_definition",
-  "properties": {
-    "schedule_status": "enabled",
-    "repeat_interval": "[hour,minute,day,week,month]",
-    "starts_on": "08/30/2022",
-    "time_hour": 7,
-    "time_min": 20,
-    "ends": "on",
-    "repeat_every": "1",
-    "ends_on": "{number}",
-    "end_hour": "{number}",
-    "end_min": "{number}"
-  },
-  "scheduler_username": "admin@infoworks.io",
-  "scheduler_auth_token": "1TGf748u1I0mvZj3efuwr8y"
-}</p>
 
 <h6 id="returns">Returns</h6>
 
