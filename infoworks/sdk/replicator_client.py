@@ -20,7 +20,7 @@ class ReplicatorClient(BaseClient):
         """
         Function to list the replicator sources
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
-        :type: JSON dict
+        :type params: JSON dict
         :return: response dict
         """
         response = None
@@ -119,7 +119,7 @@ class ReplicatorClient(BaseClient):
         """
         Function to retrieve the details of a specific replicator source
         :param source_id: Identifier of Source
-        :type: str
+        :type source_id: String
         :return: response dict
         """
         response = None
@@ -149,7 +149,7 @@ class ReplicatorClient(BaseClient):
         """
         Function to list the replicator destinations
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
-        :type: JSON dict
+        :type params: JSON dict
         :return: response dict
         """
         response = None
@@ -246,7 +246,7 @@ class ReplicatorClient(BaseClient):
         """
         Function to retrieve the details of a specific replicator destination
         :param destination_id: Identifier of Destination
-        :type: str
+        :type destination_id: String
         :return: response dict
         """
         response = None
@@ -277,8 +277,9 @@ class ReplicatorClient(BaseClient):
         """
         Function to list the replicator definitions
         :param domain_id: Identifier of Domain
+        :type domain_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
-        :type: JSON dict
+        :type params: JSON dict
         :return: response dict
         """
         response = None
@@ -552,9 +553,9 @@ class ReplicatorClient(BaseClient):
         :param poll_timeout: meta crawl job timeout in seconds
         :type poll_timeout: integer. Default 300 seconds
         :param polling_frequency: polling frequency for the job in seconds. Default 15 seconds
-        :type polling_frequency: integer
+        :type polling_frequency: Integer
         :param retries: Number of retries during job poll. Default is 3
-        :type retries: integer
+        :type retries: Integer
         :return: response dict
         """
         data_config = {
