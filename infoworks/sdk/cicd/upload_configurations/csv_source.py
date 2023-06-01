@@ -228,7 +228,6 @@ class CSVSource:
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         src_name = self.configuration_obj["configuration"]["source_configs"]["name"]
-        table_group_compute_mappings = mappings.get("table_group_compute_mappings", {})
         source_import_payload = {"configuration": self.configuration_obj["configuration"]}
         modified_table_configs = self.configuration_obj["configuration"]["table_configs"]
         index = 0
@@ -242,12 +241,6 @@ class CSVSource:
                     modified_table_configs[index]["configuration"]["meta_crawl_performed"] = True
                 index = index + 1
         source_import_payload["configuration"]["table_configs"] = modified_table_configs
-        iw_mappings = source_import_payload["configuration"]["iw_mappings"]
-        for item in iw_mappings:
-            if item.get("entity_type", "") == "environment_compute_template":
-                item["recommendation"]["compute_name"] = table_group_compute_mappings.get(
-                    item["recommendation"]["compute_name"], item["recommendation"]["compute_name"])
-        source_import_payload["configuration"]["iw_mappings"] = iw_mappings
         if export_config_lookup and (export_configuration_file is not None or read_passwords_from_secrets):
             for table in source_import_payload.get("configuration")["table_configs"]:
                 # Check if there are any export configurations and passwords to replace

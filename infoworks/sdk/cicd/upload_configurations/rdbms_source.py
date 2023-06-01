@@ -245,15 +245,8 @@ class RDBMSSource:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         if mappings is None:
             mappings = {}
-        iw_mappings = self.configuration_obj["configuration"]["iw_mappings"]
-        table_group_compute_mappings = mappings.get("table_group_compute_mappings", {})
         source_configs = self.configuration_obj["configuration"]["source_configs"]
         src_name = str(source_configs["name"])
-        for item in iw_mappings:
-            if item.get("entity_type", "") == "environment_compute_template":
-                item["recommendation"]["compute_name"] = table_group_compute_mappings.get(
-                    item["recommendation"]["compute_name"], item["recommendation"]["compute_name"])
-        self.configuration_obj["configuration"]["iw_mappings"] = iw_mappings
         # Update the service account json file mappings if any
         if export_config_lookup and (export_configuration_file is not None or read_passwords_from_secrets):
             for table in self.configuration_obj["configuration"]["table_configs"]:

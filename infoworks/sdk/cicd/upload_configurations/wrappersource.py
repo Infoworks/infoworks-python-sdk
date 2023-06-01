@@ -130,6 +130,8 @@ class WrapperSource(BaseClient):
             source_sub_type = configuration_obj["configuration"]["source_configs"]["sub_type"]
             if source_type == "file" and (source_sub_type == "structured" or source_sub_type == "fixedwidth"):
                 source_obj = CSVSource(env_id, storage_id, configuration_file_path, self.secrets_config, replace_words)
+                # adding below line to prevent missing out mappings done above (compute_mappings,environment_mappings etc
+                source_obj.configuration_obj=configuration_obj
                 source_obj.update_mappings_for_configurations(self.mappings)
                 create_source_response = source_obj.create_csv_source(self)
                 source_id=create_source_response["result"]["source_id"]
@@ -174,6 +176,7 @@ class WrapperSource(BaseClient):
                 source_obj = RDBMSSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
+                source_obj.configuration_obj = configuration_obj
                 source_obj.update_mappings_for_configurations(self.mappings)
                 source_creation_response = source_obj.create_rdbms_source(self)
                 source_id = source_creation_response["result"]["source_id"]
@@ -242,6 +245,7 @@ class WrapperSource(BaseClient):
                 source_obj = SalesforceSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
+                source_obj.configuration_obj = configuration_obj
                 source_obj.update_mappings_for_configurations(self.mappings)
                 source_id = source_obj.create_salesforce_source(self)
                 if source_id is not None:
@@ -273,9 +277,10 @@ class WrapperSource(BaseClient):
                     raise Exception("Failed to create source")
             else:    #assumes to be cdata source
                 source_obj = CdataSource()
-                source_obj.update_mappings_for_configurations(self.mappings)
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
+                source_obj.update_mappings_for_configurations(self.mappings)
+                source_obj.configuration_obj = configuration_obj
                 source_id = source_obj.create_cdata_source(self)
                 if source_id is not None:
                     # Proceed to configure the source connection details

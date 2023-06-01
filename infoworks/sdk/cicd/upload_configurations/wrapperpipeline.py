@@ -174,6 +174,7 @@ class WrapperPipeline(BaseClient):
                 print("No env id and no mapping found")
                 raise Exception("No env id and no mapping found")
             pl_obj = Pipeline(configuration_file_path, env_id, storage_id, compute_id, replace_words, self.secrets_config)
+            pl_obj.configuration_obj = configuration_obj
             pl_obj.update_mappings_for_configurations(self.mappings)
             pipeline_id, domain_id = pl_obj.create(self, domain_id, domain_name)
             if pipeline_id is not None:
@@ -243,6 +244,7 @@ class WrapperPipeline(BaseClient):
                 print("No env id and no mapping found")
                 raise Exception("No env id and no mapping found")
             pl_grp_obj = PipelineGroup(configuration_file_path, env_id, storage_id, compute_id, replace_words, self.secrets_config)
+            pl_grp_obj.configuration_obj = configuration_obj
             pl_grp_obj.update_mappings_for_configurations(self.mappings)
             pipeline_group_id, domain_id = pl_grp_obj.create(self, domain_id, domain_name)
         except Exception as e:
