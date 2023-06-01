@@ -69,7 +69,7 @@ class AdminClient(BaseClient):
         :type roles: List
         :param password: Password of the user
         :type password: String
-
+        ```
         example_data = {
             "profile": {
                 "name": "iwx_sdk_user",
@@ -79,7 +79,7 @@ class AdminClient(BaseClient):
             "roles": ["modeller"],
             "password": ""
         }
-
+        ```
         :return: response dict
         """
         if roles is None:
@@ -873,6 +873,7 @@ class AdminClient(BaseClient):
         Function to create data connection in the domain
         :param config_body: JSON payload
         :type config_body: JSON dict
+        ```
         config_body_example = {
         "name": "Snowflake-connection",
         "type": "TARGET",
@@ -890,6 +891,7 @@ class AdminClient(BaseClient):
             "warehouse": "TEST_WH"
         }
         }
+        ```
         :return: response dict
         """
         try:
@@ -919,6 +921,7 @@ class AdminClient(BaseClient):
         :param data_connection_id: Entity identifier of the data connection id
         :param config_body: JSON payload
         :type config_body: JSON dict
+        ```
         config_body_example = {
         "name": "Snowflake-connection",
         "type": "TARGET",
@@ -936,6 +939,7 @@ class AdminClient(BaseClient):
             "warehouse": "TEST_WH"
         }
         }
+        ```
         :return: response dict
         """
         try:
@@ -1089,12 +1093,14 @@ class AdminClient(BaseClient):
         Function to create new secret store in Infoworks
         :param data: JSON Payload with secret store details
         :type data: JSON
+        ```
         example_data = {
             "name": "iwx-sp-secret-store",
             "service_type": "azure",
             "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
             "service_authentication": "64182fac35298f0d05a8b689",
         }
+        ```
         :return: response dict
         """
         try:
@@ -1150,12 +1156,14 @@ class AdminClient(BaseClient):
         :type secret_store_id: String
         :param data: JSON Payload with secret store details
         :type data: JSON
+        ```
         example_data = {
             "name": "iwx-sp-secret-store",
             "service_type": "azure",
             "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
             "service_authentication": "64182fac35298f0d05a8b689",
         }
+        ```
         :return: response dict
         """
         try:
@@ -1252,6 +1260,7 @@ class AdminClient(BaseClient):
         Function to create new service authentication in Infoworks
         :param data: JSON Payload with service auth details
         :type data: JSON
+        ```
         example_data = {
             "name": "iw-azure-cs-db-cluster-sp",
             "service_type": "azure",
@@ -1263,6 +1272,7 @@ class AdminClient(BaseClient):
                 "tenant_id": "xxx"
             }
         }
+        ```
         :return: response dict
         """
         try:
@@ -1319,6 +1329,7 @@ class AdminClient(BaseClient):
         :type service_auth_id: String
         :param data: JSON Payload with service auth details
         :type data: JSON
+        ```
         example_data = {
             "name": "iw-azure-cs-db-cluster-sp",
             "service_type": "azure",
@@ -1330,6 +1341,7 @@ class AdminClient(BaseClient):
                 "tenant_id": "xxx"
             }
         }
+        ```
         :return: response dict
         """
         try:
@@ -1428,11 +1440,13 @@ class AdminClient(BaseClient):
         Function to create new secret in Infoworks
         :param data: JSON Payload with secret details
         :type data: JSON
+        ```
         example_data = {
             "name": "mongo-pg-pwd",
             "secret_store": "64182fd27eeb1c40de2b6007",
             "secret_name": "mongo-pg-pwd"
         }
+        ```
         :return: response dict
         """
         try:
@@ -1488,11 +1502,13 @@ class AdminClient(BaseClient):
         :type secret_id: String
         :param data: JSON Payload with secret store details
         :type data: JSON
+        ```
         example_data = {
             "name": "mongo-pg-pwd",
             "secret_store": "64182fd27eeb1c40de2b6007",
             "secret_name": "mongo-pg-pwd"
         }
+        ```
         :return: response dict
         """
         try:

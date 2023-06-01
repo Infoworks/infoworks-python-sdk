@@ -18,11 +18,13 @@ class DomainClient(BaseClient):
         Function to create domain
         :param config_body: JSON payload for the domain creation
         :type config_body: JSON dict
+        ```
         config_body_example = {
          "name": "Abhi",
          "description": "Example Domain",
          "environment_id": "d60a47e2c8438a3d6daf7958"
         }
+        ```
         :return: response dict
         """
         try:
@@ -224,10 +226,12 @@ class DomainClient(BaseClient):
         :type domain_id: String
         :param config_body: JSON payload
         :type config_body: JSON dict
+        ```
         config_body_example =
             {
              "entity_ids": ["33164bbaa811058db5c3941d"]
             }
+        ```
         :return: response dict
         """
         if domain_id is None or config_body is None:
@@ -258,11 +262,12 @@ class DomainClient(BaseClient):
         :type domain_id: String
         :param config_body: JSON payload
         :type config_body: JSON dict
-
+        ```
         config_body_example =
             {
              "entity_ids": ["33164bbaa811058db5c3941d"]
             }
+        ```
         :return: response dict
         """
         if domain_id is None or config_body is None:
@@ -397,10 +402,12 @@ class DomainClient(BaseClient):
         :type domain_id: String
         :param config_body: JSON payload
         :type config_body: JSON dict
+        ```
         config_body_example =
             {
              "entity_ids": ["33164bbaa811058db5c3941d"]
             }
+        ```
         :param action_type: Pass either create/update
         :return: response dict
         :return: response dict
@@ -437,10 +444,12 @@ class DomainClient(BaseClient):
         :type domain_id: String
         :param config_body: JSON payload
         :type config_body: JSON dict
+        ```
         config_body_example =
             {
              "entity_ids": ["33164bbaa811058db5c3941d"]
             }
+        ```
         :return: response dict
         """
         if domain_id is None or config_body is None:
@@ -476,12 +485,14 @@ class DomainClient(BaseClient):
         :param action_type: values can be either create/update. default update
         :type action_type: String
         :param adv_config_body: JSON dict
+        ```
         adv_config_body_example = {
             "key" : "",
             "value": "",
             "description": "",
             "is_active": True
             }
+        ```
         :param key: In case of update, name of the adv config to update
         :return: response dict
         """

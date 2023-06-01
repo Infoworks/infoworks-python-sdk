@@ -86,10 +86,11 @@ class WorkflowClient(BaseClient):
         :type domain_id:String
         :param workflow_config: a JSON object containing workflow configurations
         :type workflow_config: JSON Object
-
+        ```
         workflow_config_example = {
         "name": "workflow_name"
         }
+        ```
         :return: response dict
         """
         if None in {domain_id} and workflow_config is None:
@@ -212,7 +213,7 @@ class WorkflowClient(BaseClient):
         :type domain_id: String
         :param workflow_config: a JSON object containing workflow configurations
         :type workflow_config: JSON Object
-
+        ```
         workflow_config_example = {
          "name": "{string}",
          "description": "{string}",
@@ -247,6 +248,7 @@ class WorkflowClient(BaseClient):
           ]
          }
         }
+        ```
         :return: response dict
         """
         if None in {domain_id, workflow_id} and workflow_config is None:
@@ -288,6 +290,7 @@ class WorkflowClient(BaseClient):
         :param domain_id: Domain id to which the workflow belongs to
         :type domain_id: String
         :param trigger_wf_body: Pass the workflow parameters if any
+        ```
         trigger_wf_body = {
             "workflow_parameters": [
                 {
@@ -296,6 +299,7 @@ class WorkflowClient(BaseClient):
                 }
             ]
         }
+        ```
         :return: response dict
         """
         if None in {domain_id, workflow_id}:
@@ -337,6 +341,7 @@ class WorkflowClient(BaseClient):
         :param action_type: restart/cancel
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart/cancel
         :type workflow_list_body: JSON Dict
+        ```
         example: {
                   "ids": [
                     {
@@ -345,6 +350,7 @@ class WorkflowClient(BaseClient):
                     }
                   ]
                 }
+        ```
         :return: response dict
         """
         if workflow_list_body is None:
@@ -385,6 +391,7 @@ class WorkflowClient(BaseClient):
         Cancels Infoworks Data workflow for given workflow id
         :param workflow_list_body: JSON object containing array of ids(workflow_id,run_id) to restart
         :type workflow_list_body: JSON dict
+        ```
         example: {
                   "ids": [
                     {
@@ -393,6 +400,7 @@ class WorkflowClient(BaseClient):
                     }
                   ]
                 }
+        ```
         :return: response dict
         """
         response = None
@@ -601,8 +609,9 @@ class WorkflowClient(BaseClient):
         :param domain_id: Entity identifier of the domain
         :param domain_name: Entity name of the domain
         :return: Workflow ID
-
+        ```
         example response : {"id": "884236e85b9b1a69b2907e4c"}
+        ```
         """
         if None in {workflow_name}:
             self.logger.error("workflow_name cannot be None")
@@ -649,8 +658,9 @@ class WorkflowClient(BaseClient):
         :param domain_id: Entity identifier of the domain
         :type domain_id: String
         :return: Workflow name
-
+        ```
         example response : {"name": "sample_workflow"}
+        ```
         """
         if None in {workflow_id, domain_id}:
             self.logger.error("workflow_id or domain_id cannot be None")
@@ -680,7 +690,10 @@ class WorkflowClient(BaseClient):
         :type: JSON dict
         :param api_body_for_filter: dict of API body
         :type api_body_for_filter: JSON dict
-        example: {'limit': 10000, 'date_range': {'type': 'last', 'unit': 'day', 'value': 1}, 'offset': 0}
+        ```
+        example:
+        {'limit': 10000, 'date_range': {'type': 'last', 'unit': 'day', 'value': 1}, 'offset': 0}
+        ```
         :return: response List
         """
         response = None
@@ -901,7 +914,7 @@ class WorkflowClient(BaseClient):
         :type workflow_id: String
         :param schedule_config: Schedule Configuration JSON of the Workflow
         :type schedule_config: JSON
-
+        ```
         schedule_config_example = {
               "start_date": "02/22/2020",
               "end_date": "02/24/2020",
@@ -922,7 +935,7 @@ class WorkflowClient(BaseClient):
               "repeat_on_last_day": "{boolean}",
               "specified_days": 1
         }
-
+        ```
         :return: Response Dict
         """
         if domain_id is None or workflow_id is None or schedule_config is None:

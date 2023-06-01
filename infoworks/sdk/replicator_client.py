@@ -69,26 +69,26 @@ class ReplicatorClient(BaseClient):
         Create a new Infoworks Replicator source
         :param source_config: a JSON object containing source configurations
         :type source_config: JSON Object
-        '''
-        source_config_example = {
-          "name": "Sample source",
-          "type": "hive",
-          "properties": {
-            "hadoop_version": "2.x",
-            "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
-            "hive_metastore_url": "thrift://microsoft.com:9083",
-            "network_throttling": 20000,
-            "temp_directory": "/root/iwxr/temp",
-            "output_directory": "/root/iwxr/output"
-          },
-          "advanced_configurations": [
-            {
-              "key": "DATABASE_FILTER",
-              "value": ".*"
+        ```
+            source_config_example = {
+              "name": "Sample source",
+              "type": "hive",
+              "properties": {
+                "hadoop_version": "2.x",
+                "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
+                "hive_metastore_url": "thrift://microsoft.com:9083",
+                "network_throttling": 20000,
+                "temp_directory": "/root/iwxr/temp",
+                "output_directory": "/root/iwxr/output"
+              },
+              "advanced_configurations": [
+                {
+                  "key": "DATABASE_FILTER",
+                  "value": ".*"
+                }
+              ]
             }
-          ]
-        }
-        '''
+        ```
         :return: response dict
         """
         response = None
@@ -199,25 +199,25 @@ class ReplicatorClient(BaseClient):
         Create a new Infoworks Replicator destination
         :param destination_config: a JSON object containing destination configurations
         :type destination_config: JSON Object
-        '''
-        destination_config_example = {
-            "name": "Sample Destination",
-            "type": "hive",
-            "properties": {
-            "hadoop_version": "2.x",
-            "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
-            "hive_metastore_url": "thrift://microsoft.com:9083",
-            "temp_directory": "/root/iwxr/temp",
-            "output_directory": "/root/iwxr/output"
-            },
-            "advanced_configurations": [
-                {
-                  "key": "DATABASE_FILTER",
-                  "value": ".*"
-                }
-            ]
-        }
-        '''
+        ```
+            destination_config_example = {
+                "name": "Sample Destination",
+                "type": "hive",
+                "properties": {
+                "hadoop_version": "2.x",
+                "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
+                "hive_metastore_url": "thrift://microsoft.com:9083",
+                "temp_directory": "/root/iwxr/temp",
+                "output_directory": "/root/iwxr/output"
+                },
+                "advanced_configurations": [
+                    {
+                      "key": "DATABASE_FILTER",
+                      "value": ".*"
+                    }
+                ]
+            }
+        ```
         :return: response dict
         """
         response = None
@@ -330,7 +330,7 @@ class ReplicatorClient(BaseClient):
         Create a new Infoworks Replicator definition
         :param definition_config: a JSON object containing definition configurations
         :type definition_config: JSON Object
-        '''
+        ```
         definition_config_example = {
             "name": "Sample replicator definition",
             "replicator_source_name": "Sample source name",
@@ -349,7 +349,7 @@ class ReplicatorClient(BaseClient):
                 }
             ]
         }
-        '''
+        ```
         :return: response dict
         """
         response = None
@@ -386,7 +386,7 @@ class ReplicatorClient(BaseClient):
         :type definition_id: String
         :param tables_config: a JSON object containing tables configurations
         :type tables_config: JSON Object
-        '''
+        ```
         tables_config_example = {
           "selected_objects": [
             {
@@ -396,7 +396,7 @@ class ReplicatorClient(BaseClient):
             }
           ]
         }
-        '''
+        ```
         :return: response dict
         """
         response = None
@@ -603,7 +603,7 @@ class ReplicatorClient(BaseClient):
         :type domain_id: String
         :param config: Configurations
         :type config: JSON
-        '''
+        ```
         sample_config = {
           "entity_details": [
             {
@@ -612,7 +612,7 @@ class ReplicatorClient(BaseClient):
             }
           ]
         }
-        '''
+        ```
         :return: response dict
         """
         response = None
@@ -651,7 +651,7 @@ class ReplicatorClient(BaseClient):
         :type domain_id: String
         :param config: Configurations
         :type config: JSON
-        '''
+        ```
         sample_config = {
           "entity_details": [
             {
@@ -659,7 +659,7 @@ class ReplicatorClient(BaseClient):
             }
           ]
         }
-        '''
+        ```
         :return: response dict
         """
         response = None
@@ -702,7 +702,7 @@ class ReplicatorClient(BaseClient):
         :type definition_id: String
         :param schedule_config: Schedule Configurations
         :type schedule_config: JSON
-        '''
+        ```
         schedule_sample_config = {
           "entity_type": "replicate_definition",
           "properties": {
@@ -720,7 +720,7 @@ class ReplicatorClient(BaseClient):
           "scheduler_username": "admin@infoworks.io",
           "scheduler_auth_token": "1TGf748u1I0mvZj3efuwr8y"
         }
-        '''
+        ```
         :return: response dict
         """
         response = None
