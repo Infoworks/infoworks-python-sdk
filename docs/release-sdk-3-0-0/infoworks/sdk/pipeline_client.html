@@ -222,7 +222,7 @@
 <li><strong>pipeline_config</strong>:  a JSON object containing pipeline configurations</li>
 </ul>
 
-<p>pipeline_config_example = {
+<pre><code>pipeline_config_example = {
 "name": "pipeline_name",
 "batch_engine": "spark",
 "domain_id": "domain_id",
@@ -230,7 +230,8 @@
 "storage_id": "environment_storage_id",
 "compute_template_id": "environment_compute_id",
 "ml_engine": "SparkML"
-}</p>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -314,11 +315,12 @@
 <li><strong>pipeline_config</strong>:  a JSON object containing pipeline configurations</li>
 </ul>
 
-<p>pipeline_config_example = {
+<pre><code>pipeline_config_example = {
 "name": "pipeline_name",
 "compute_template_id": "environment_compute_id",
 "active_version_id": "pipeline_version_id"
-}</p>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -346,15 +348,17 @@
 <li><strong>pipeline_id</strong>:  Id of the pipeline</li>
 <li><strong>domain_id</strong>:  Domain Id to which the pipeline belongs to</li>
 <li><strong>import_configs</strong>:  a JSON object containing configurations to import the SQL</li>
-<li><strong>sql_query</strong>:  SQL query
-import_configs_example = {
-"dry_run": "{boolean}",
-"sql": "select * from employee",
-"sql_import_configuration": {
-"quoted_identifier": "DOUBLE_QUOTE",
-"sql_dialect": "LENIENT"
-}</li>
+<li><strong>sql_query</strong>:  SQL query</li>
 </ul>
+
+<pre><code>import_configs_example = {
+"dry_run": "{boolean}",
+ "sql": "select * from employee",
+ "sql_import_configuration": {
+  "quoted_identifier": "DOUBLE_QUOTE",
+  "sql_dialect": "LENIENT"
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -701,13 +705,18 @@ import_configs_example = {
 <li><strong>pipeline_id</strong>:  id of the pipeline</li>
 <li><strong>domain_id</strong>:  Domain id to which the pipeline belongs to</li>
 <li><strong>action_type</strong>:  values can be either create/update. default update</li>
-<li><strong>adv_config_body</strong>:  JSON dict
-adv_config_body_example = {
-"key" : "",
-"value": "",
-"description": "",
-"is_active": True
-}</li>
+<li><strong>adv_config_body</strong>:  JSON dict</li>
+</ul>
+
+<pre><code>adv_config_body_example = {
+    "key" : "",
+    "value": "",
+    "description": "",
+    "is_active": True
+    }
+</code></pre>
+
+<ul>
 <li><strong>key</strong>:  In case of update, name of the adv config to update</li>
 </ul>
 

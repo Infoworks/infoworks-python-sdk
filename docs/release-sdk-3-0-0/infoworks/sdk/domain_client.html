@@ -140,13 +140,15 @@
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>config_body</strong>:  JSON payload for the domain creation
-config_body_example = {
-"name": "Abhi",
-"description": "Example Domain",
-"environment_id": "d60a47e2c8438a3d6daf7958"
-}</li>
+<li><strong>config_body</strong>:  JSON payload for the domain creation</li>
 </ul>
+
+<pre><code>config_body_example = {
+ "name": "Abhi",
+ "description": "Example Domain",
+ "environment_id": "d60a47e2c8438a3d6daf7958"
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -304,12 +306,14 @@ config_body_example = {
 
 <ul>
 <li><strong>domain_id</strong>:  Entity identifier for the domain</li>
-<li><strong>config_body</strong>:  JSON payload
-config_body_example =
-{
- "entity_ids": ["33164bbaa811058db5c3941d"]
-}</li>
+<li><strong>config_body</strong>:  JSON payload</li>
 </ul>
+
+<pre><code>config_body_example =
+    {
+     "entity_ids": ["33164bbaa811058db5c3941d"]
+    }
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -338,10 +342,11 @@ config_body_example =
 <li><strong>config_body</strong>:  JSON payload</li>
 </ul>
 
-<p>config_body_example =
+<pre><code>config_body_example =
     {
      "entity_ids": ["33164bbaa811058db5c3941d"]
-    }</p>
+    }
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -446,11 +451,16 @@ config_body_example =
 
 <ul>
 <li><strong>domain_id</strong>:  Entity identifier for the domain</li>
-<li><strong>config_body</strong>:  JSON payload
-config_body_example =
-{
- "entity_ids": ["33164bbaa811058db5c3941d"]
-}</li>
+<li><strong>config_body</strong>:  JSON payload</li>
+</ul>
+
+<pre><code>config_body_example =
+    {
+     "entity_ids": ["33164bbaa811058db5c3941d"]
+    }
+</code></pre>
+
+<ul>
 <li><strong>action_type</strong>:  Pass either create/update</li>
 </ul>
 
@@ -484,12 +494,14 @@ config_body_example =
 
 <ul>
 <li><strong>domain_id</strong>:  Entity identifier for the domain</li>
-<li><strong>config_body</strong>:  JSON payload
-config_body_example =
-{
- "entity_ids": ["33164bbaa811058db5c3941d"]
-}</li>
+<li><strong>config_body</strong>:  JSON payload</li>
 </ul>
+
+<pre><code>config_body_example =
+    {
+     "entity_ids": ["33164bbaa811058db5c3941d"]
+    }
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -516,13 +528,18 @@ config_body_example =
 <ul>
 <li><strong>domain_id</strong>:  Domain id to which the pipeline belongs to</li>
 <li><strong>action_type</strong>:  values can be either create/update. default update</li>
-<li><strong>adv_config_body</strong>:  JSON dict
-adv_config_body_example = {
-"key" : "",
-"value": "",
-"description": "",
-"is_active": True
-}</li>
+<li><strong>adv_config_body</strong>:  JSON dict</li>
+</ul>
+
+<pre><code>adv_config_body_example = {
+    "key" : "",
+    "value": "",
+    "description": "",
+    "is_active": True
+    }
+</code></pre>
+
+<ul>
 <li><strong>key</strong>:  In case of update, name of the adv config to update</li>
 </ul>
 

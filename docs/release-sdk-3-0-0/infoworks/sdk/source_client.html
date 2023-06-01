@@ -333,7 +333,7 @@
 <li><strong>source_config</strong>:  a JSON object containing source configurations</li>
 </ul>
 
-<p>source_config_example = {
+<pre><code>source_config_example = {
     "name": "source_name",
     "type": "rdbms",
     "sub_type": "subtype",
@@ -341,7 +341,8 @@
     "environment_id": "environment_id",
     "storage_id": "storage_id",
     "is_source_ingested": True
-}</p>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -376,7 +377,7 @@
 <li><strong>connection_object</strong>:  The json dict containing the source connection details</li>
 </ul>
 
-<p>"connection_obj_rdbms": {
+<pre><code>"connection_obj_rdbms": {
         "enable_log_based_cdc": false,
         "driver_name": "oracle.jdbc.driver.OracleDriver",
         "driver_version": "v2",
@@ -385,9 +386,9 @@
         "password": "eEBcRuPkw0zh9oIPvKnal+1BNKmFH5TfdI1ieDinruUv47Z5+f/oPjb+uyqUmfcQusM2DjoHc3OM", # can be iwx encrypted password or plain text password
         "connection_mode": "JDBC",
         "database": "ORACLE"
-        }</p>
+        }
 
-<p>"connection_obj_csv" = {
+"connection_obj_csv" = {
         "source_base_path_relative": "",
         "source_base_path": "",
         "storage": {
@@ -398,7 +399,8 @@
             "account_type": "",
             "access_type": ""
         }
-    }</p>
+    }
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -505,13 +507,14 @@
 <li><strong>filter_tables_properties</strong>: </li>
 </ul>
 
-<p>filter_tables_properties = {
+<pre><code>filter_tables_properties = {
     "schemas_filter" : "%dbo",
     "catalogs_filter" : "%",
     "tables_filter" : "%csv_incremental_test",
     "is_data_sync_with_filter" : true,
     "is_filter_enabled" : true
-}</p>
+}
+</code></pre>
 
 <ul>
 <li><strong>poll_timeout</strong>:  test connection job timeout in seconds</li>
@@ -555,13 +558,14 @@
 <li><strong>tables_to_add_config</strong>:  Array of JSON configuration object</li>
 </ul>
 
-<p>tables_to_add_config = [{
+<pre><code>tables_to_add_config = [{
         "table_name": "",
         "schema_name": "",
         "table_type": "TABLE",
         "target_table_name": "",
         "target_schema_name": ""
-}]</p>
+}]
+</code></pre>
 
 <ul>
 <li><strong>poll_timeout</strong>:  test connection job timeout in seconds</li>
@@ -622,17 +626,19 @@ The configuration_obj should be similar to the json object that is the output of
 
 <ul>
 <li><strong>source_id</strong>:  entity identifier for source</li>
-<li><strong>table_group_obj</strong>:  JSON object containing create table group payload
-table_group_obj = {
-"environment_compute_template": {"environment_compute_template_id": "536592c8ceb69bbbe730d452"},
-"name": "tg_name",
-"max_connections": 1,
-"max_parallel_entities": 1,
-"tables": [
-{"table_id":"1123","connection_quota":100}
-]
-}</li>
+<li><strong>table_group_obj</strong>:  JSON object containing create table group payload</li>
 </ul>
+
+<pre><code>table_group_obj = {
+ "environment_compute_template": {"environment_compute_template_id": "536592c8ceb69bbbe730d452"},
+ "name": "tg_name",
+ "max_connections": 1,
+ "max_parallel_entities": 1,
+ "tables": [
+  {"table_id":"1123","connection_quota":100}
+ ]
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -662,7 +668,7 @@ table_group_obj = {
 <li><strong>table_group_obj</strong>:  JSON object containing update table group body</li>
 </ul>
 
-<p>table_group_obj = {
+<pre><code>table_group_obj = {
  "environment_compute_template": {"environment_compute_template_id": "536592c8ceb69bbbe730d452"},
  "name": "tg_name",
  "max_connections": 1,
@@ -670,7 +676,8 @@ table_group_obj = {
  "tables": [
   {"table_id":"1123","connection_quota":100}
  ]
-}</p>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -763,24 +770,25 @@ The job types that can be submitted are export_data, streaming_start, segmentati
 <li><strong>body</strong>:  JSON body containing type of job to trigger</li>
 </ul>
 
-<p>metadata_job_body_example = {
+<pre><code>metadata_job_body_example = {
         "job_type": "source_fetch_metadata",
         "overwrite": true
-    }</p>
+    }
 
-<p>ingest_table_body_example = {
+ingest_table_body_example = {
     "job_type": "cdc_merge" or "truncate_reload",
     "job_name": "testing",
     "interactive_cluster_id": "536592c8ceb69bbbe730d452",
     "table_ids": [
              "614618debf711275204a1b1f"
         ]
-}</p>
+}
 
-<p>ingest_table_group_body_example = {
+ingest_table_group_body_example = {
     "job_type": "truncate_reload",
     "table_group_id": "efb9d3e810c643b9930e1a00"
-}</p>
+}
+</code></pre>
 
 <ul>
 <li><strong>poll_timeout</strong>:  test connection job timeout in seconds</li>
@@ -1388,7 +1396,7 @@ The job types that can be submitted are export_data, streaming_start, segmentati
 :file_mappings_config : Configurations for file_mappings</li>
 </ul>
 
-<p>file_mappings_config example = {
+<pre><code>file_mappings_config example = {
         "configuration": {
             "source_file_properties": {
                 "column_enclosed_by": """,
@@ -1410,7 +1418,8 @@ The job types that can be submitted are export_data, streaming_start, segmentati
         },
         "source": "src_id",
         "name": "table_name"
-    }</p>
+    }
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -1985,17 +1994,19 @@ config_body_example: {
 <li><strong>source_id</strong>:  Entity identifier for source</li>
 <li><strong>file_mappings_id</strong>:  Entity identifier of the file mapping. Pass this incase you want to update the file mapping</li>
 <li><strong>action_type</strong>:  create/update</li>
-<li><strong>config_body</strong>:  JSON dict with necessary keys
-config_body_example =
-{       "name" :"xyz",
-    "source_relative_path": "/test",
-    "record_scope": "file",
-    "include_subdirectories": true,
-    "character_encoding": "UTF-8",
-    "include_filename_regex": ".*",
-    "exclude_filename_regex": ""
-}</li>
+<li><strong>config_body</strong>:  JSON dict with necessary keys</li>
 </ul>
+
+<pre><code>config_body_example =
+    {       "name" :"xyz",
+        "source_relative_path": "/test",
+        "record_scope": "file",
+        "include_subdirectories": true,
+        "character_encoding": "UTF-8",
+        "include_filename_regex": ".*",
+        "exclude_filename_regex": ""
+    }
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -2312,13 +2323,18 @@ config_body_example =
 <li><strong>source_id</strong>:  Entity identifier of the source</li>
 <li><strong>table_id</strong>:  Entity identifier of the table</li>
 <li><strong>action_type</strong>:  values can be either create/update. default update</li>
-<li><strong>adv_config_body</strong>:  JSON dict
-adv_config_body_example = {
-"key" : "",
-"value": "",
-"description": "",
-"is_active": True
-}</li>
+<li><strong>adv_config_body</strong>:  JSON dict</li>
+</ul>
+
+<pre><code>adv_config_body_example = {
+    "key" : "",
+    "value": "",
+    "description": "",
+    "is_active": True
+    }
+</code></pre>
+
+<ul>
 <li><strong>key</strong>:  In case of update, name of the adv config to update</li>
 </ul>
 
@@ -2376,86 +2392,88 @@ adv_config_body_example = {
 <ul>
 <li><strong>table_id</strong>:  Entity identifier for table</li>
 <li><strong>source_id</strong>:  Entity identifier for source</li>
-<li><strong>config_body</strong>:  JSON body
-config_body_example: {
-"id": "9376bf97a286e35efe86d321",
-"name": "dim_state",
-"original_table_name": "dim_state",
-"data_lake_path": "/iw/sources/customer_360_sql_server_schema/9376bf97a286e35efe86d321",
-"meta_crawl_performed": true,
-"columns": [
-    {
-        "sql_type": 4,
-        "is_deleted": false,
-        "name": "STATE_ID",
-        "original_name": "STATE_ID",
-        "target_sql_type": 12,
-        "is_audit_column": false,
-        "col_size": 11,
-        "precision": 10,
-        "target_precision": 10,
-        "scale": 0
-    },
-    {
-        "sql_type": 93,
-        "is_deleted": false,
-        "name": "ziw_target_timestamp",
-        "original_name": "ziw_target_timestamp",
-        "target_sql_type": 93,
-        "is_audit_column": true,
-        "target_scale": "6",
-        "precision": 0,
-        "target_precision": "0",
-        "scale": 6,
-        "format": "yyyy-MM-dd HH:mm:ss"
-    },
-    {
-        "sql_type": 16,
-        "is_deleted": false,
-        "name": "ziw_is_deleted",
-        "original_name": "ziw_is_deleted",
-        "target_sql_type": 16,
-        "is_audit_column": true,
-        "target_scale": "0",
-        "precision": 0,
-        "target_precision": "0",
-        "scale": 0
-    }
-],
-"configuration": {
-    "exclude_legacy_audit_columns": true,
-    "sync_type": "full-load",
-    "write_supported_engines": [
-        "SNOWFLAKE",
-        "SPARK"
-    ],
-    "read_supported_engines": [
-        "SNOWFLAKE",
-        "SPARK"
-    ],
-    "target_table_name": "DIM_STATE",
-    "storage_format": "delta",
-    "target_schema_name": "CUSTOMER_360",
-    "is_table_case_sensitive": false,
-    "is_schema_case_sensitive": false,
-    "target_database_name": "CUSTOMER_360",
-    "is_database_case_sensitive": false,
-    "is_scd2_table": false,
-    "is_archive_enabled": false,
-    "natural_keys": [],
-    "generate_history_view": false,
-    "segmented_load_columns": [],
-    "segmentation_status": "disabled"
-},
-"source": "1f9dd7b2bc9f656a4743f458",
-"last_ingested_cdc_value": null,
-"is_jtds_driver": false,
-"schema_name_at_source": "dbo",
-"catalog_name": "customer_360",
-"catalog_is_database": true,
-"has_catalog": true
-}</li>
+<li><strong>config_body</strong>:  JSON body</li>
 </ul>
+
+<pre><code>config_body_example: {
+    "id": "9376bf97a286e35efe86d321",
+    "name": "dim_state",
+    "original_table_name": "dim_state",
+    "data_lake_path": "/iw/sources/customer_360_sql_server_schema/9376bf97a286e35efe86d321",
+    "meta_crawl_performed": true,
+    "columns": [
+        {
+            "sql_type": 4,
+            "is_deleted": false,
+            "name": "STATE_ID",
+            "original_name": "STATE_ID",
+            "target_sql_type": 12,
+            "is_audit_column": false,
+            "col_size": 11,
+            "precision": 10,
+            "target_precision": 10,
+            "scale": 0
+        },
+        {
+            "sql_type": 93,
+            "is_deleted": false,
+            "name": "ziw_target_timestamp",
+            "original_name": "ziw_target_timestamp",
+            "target_sql_type": 93,
+            "is_audit_column": true,
+            "target_scale": "6",
+            "precision": 0,
+            "target_precision": "0",
+            "scale": 6,
+            "format": "yyyy-MM-dd HH:mm:ss"
+        },
+        {
+            "sql_type": 16,
+            "is_deleted": false,
+            "name": "ziw_is_deleted",
+            "original_name": "ziw_is_deleted",
+            "target_sql_type": 16,
+            "is_audit_column": true,
+            "target_scale": "0",
+            "precision": 0,
+            "target_precision": "0",
+            "scale": 0
+        }
+    ],
+    "configuration": {
+        "exclude_legacy_audit_columns": true,
+        "sync_type": "full-load",
+        "write_supported_engines": [
+            "SNOWFLAKE",
+            "SPARK"
+        ],
+        "read_supported_engines": [
+            "SNOWFLAKE",
+            "SPARK"
+        ],
+        "target_table_name": "DIM_STATE",
+        "storage_format": "delta",
+        "target_schema_name": "CUSTOMER_360",
+        "is_table_case_sensitive": false,
+        "is_schema_case_sensitive": false,
+        "target_database_name": "CUSTOMER_360",
+        "is_database_case_sensitive": false,
+        "is_scd2_table": false,
+        "is_archive_enabled": false,
+        "natural_keys": [],
+        "generate_history_view": false,
+        "segmented_load_columns": [],
+        "segmentation_status": "disabled"
+    },
+    "source": "1f9dd7b2bc9f656a4743f458",
+    "last_ingested_cdc_value": null,
+    "is_jtds_driver": false,
+    "schema_name_at_source": "dbo",
+    "catalog_name": "customer_360",
+    "catalog_is_database": true,
+    "has_catalog": true
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
