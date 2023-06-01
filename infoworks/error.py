@@ -38,3 +38,9 @@ class JobsError(Exception):
     def __init__(self, message):
         self.message = message
         super(JobsError, self).__init__(self.message)
+
+
+class GenericError(Exception):
+    def __init__(self, message):
+        self.message = message
+        super(GenericError, self).__init__(self.message)
