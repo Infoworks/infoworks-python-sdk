@@ -2805,7 +2805,7 @@ class SourceClient(BaseClient):
             else:
                 request_type = "PUT"
                 request_url = url_builder.table_advanced_base_url(self.client_config, source_id,
-                                                                  table_id) + f"{key}"
+                                                                  table_id) + f"/{key}"
             response = IWUtils.ejson_deserialize(
                 self.call_api(request_type, request_url,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
