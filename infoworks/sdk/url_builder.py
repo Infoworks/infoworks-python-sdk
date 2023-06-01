@@ -1626,6 +1626,231 @@ def list_secrets_url(config):
     return request
 
 
+def list_replicator_sources_url(config):
+    """
+    returns URL to list replicator sources using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list sources
+    """
+    request = '{protocol}://{ip}:{port}/v3/replicator/sources'.format(ip=config['ip'], port=config['port'],
+                                                                      protocol=config['protocol'])
+    return request
+
+
+def get_replicator_source_url(config, source_id):
+    """
+    returns URL to the details of a specific replicator source using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param source_id: Identifier of Source
+    :type source_id: str
+    :return: url to the details of a specific replicator source
+    """
+    request = '{protocol}://{ip}:{port}/v3/replicator/sources/{source_id}'.format(
+        ip=config['ip'], port=config['port'], protocol=config['protocol'], source_id=source_id)
+    return request
+
+
+def create_replicator_source_url(config):
+    """
+    returns URL to create a replicator source using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url for the replicator source creation
+    """
+    request = '{protocol}://{ip}:{port}/v3/replicator/sources'.format(ip=config['ip'], port=config['port'],
+                                                                      protocol=config['protocol'])
+    return request
+
+
+def list_replicator_destinations_url(config):
+    """
+    returns URL to list replicator destinations using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list destinations
+    """
+    request = '{protocol}://{ip}:{port}/v3/replicator/destinations'.format(ip=config['ip'], port=config['port'],
+                                                                           protocol=config['protocol'])
+    return request
+
+
+def get_replicator_destination_url(config, destination_id):
+    """
+    returns URL to the details of a specific replicator destination using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param destination_id: Identifier of Destination
+    :type destination_id: str
+    :return: url to the details of a specific replicator destination
+    """
+    request = '{protocol}://{ip}:{port}/v3/replicator/destinations/{destination_id}'.format(
+        ip=config['ip'], port=config['port'], protocol=config['protocol'], destination_id=destination_id)
+    return request
+
+
+def create_replicator_destination_url(config):
+    """
+    returns URL to create a replicator destination using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url for the replicator destination creation
+    """
+    request = '{protocol}://{ip}:{port}/v3/replicator/destinations'.format(ip=config['ip'], port=config['port'],
+                                                                           protocol=config['protocol'])
+    return request
+
+
+def list_replicator_definitions_url(config, domain_id):
+    """
+    returns URL to list replicator definitions using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier of Domain
+    :type domain_id: String
+    :return: url to list definitions
+    """
+
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions' \
+        .format(ip=config['ip'], port=config['port'], domain_id=domain_id,
+                protocol=config['protocol'])
+    return request
+
+
+def create_replicator_definition_url(config, domain_id):
+    """
+    returns URL to create a replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :return: url for the replicator definition creation
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions'.format(ip=config['ip'],
+                                                                                   port=config['port'],
+                                                                                   protocol=config['protocol'],
+                                                                                   domain_id=domain_id)
+    return request
+
+
+def add_replicator_definition_tables_url(config, domain_id, definition_id):
+    """
+    returns URL to add tables to replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param definition_id: Identifier for Replicator definition
+    :type definition_id: string
+    :return: url to add tables to replicator definition
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions/{definition_id}/tables' \
+        .format(ip=config['ip'], port=config['port'], protocol=config['protocol'], domain_id=domain_id,
+                definition_id=definition_id)
+
+    return request
+
+
+def submit_replication_metacrawl_job_url(config, domain_id, replicator_source_id):
+    """
+    returns URL to add tables to replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param replicator_source_id: Identifier for Source
+    :type replicator_source_id: string
+    :return: url to submit replication metacrawl job
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/replicator-sources/{replicator_source_id}/jobs' \
+        .format(ip=config['ip'], port=config['port'], protocol=config['protocol'], domain_id=domain_id,
+                replicator_source_id=replicator_source_id)
+
+    return request
+
+
+def submit_replication_data_job_url(config, domain_id, definition_id):
+    """
+    returns URL to add tables to replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param definition_id: Identifier for Definition
+    :type definition_id: string
+    :return: url to submit replication data job
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions/{definition_id}/jobs' \
+        .format(ip=config['ip'], port=config['port'], protocol=config['protocol'], domain_id=domain_id,
+                definition_id=definition_id)
+
+    return request
+
+
+def add_replicator_sources_to_domain_url(config, domain_id):
+    """
+    returns URL to add replicator sources to domains
+
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :return: url to add replicator sources to domains
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-replicator-sources' \
+        .format(ip=config['ip'], port=config['port'], domain_id=domain_id, protocol=config['protocol'])
+    return request
+
+
+def add_replicator_destinations_to_domain_url(config, domain_id):
+    """
+    returns URL to add replicator destinations to domains
+
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :return: url to add replicator destinations to domains
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-replicator-destinations' \
+        .format(ip=config['ip'], port=config['port'], domain_id=domain_id, protocol=config['protocol'])
+    return request
+
+
+def get_replication_schedules_url(config, domain_id, definition_id):
+    """
+    returns replication schedules URL
+
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param definition_id : Identifier for Replicator definition
+    :type definition_id: string
+    :return: replication schedules URL
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions/{definition_id}/schedules' \
+        .format(ip=config['ip'], port=config['port'], domain_id=domain_id, protocol=config['protocol'],
+                definition_id=definition_id)
+    return request
+
+
+def get_replicator_source_tables_url(config, source_id):
+    """
+    returns replicator source tables URL
+
+    :param config: client configurations
+    :type config: dict
+    :param source_id: Identifier for replicator source
+    :type source_id: string
+    :return: replicator source tables url
+    """
+    request = '{protocol}://{ip}:{port}/v3//replicator/sources/{source_id}/tables' \
+        .format(ip=config['ip'], port=config['port'], source_id=source_id, protocol=config['protocol'])
+    return request
+
+
 def pipeline_version_base_url(config, domain_id, pipeline_id):
     """
     returns URL to work on pipeline versions using v3 api
