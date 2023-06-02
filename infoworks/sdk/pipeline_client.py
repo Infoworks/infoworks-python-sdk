@@ -173,7 +173,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to create a new pipeline.')
             raise PipelineError('Error occurred while trying to create a new pipeline.')
 
-    def get_pipeline(self, pipeline_id, domain_id):
+    def get_pipeline(self, pipeline_id=None, domain_id=None):
         """
         Gets Infoworks Data pipeline details for given pipeline id
         :param pipeline_id: id of the pipeline whose details are to be fetched
@@ -208,7 +208,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to get pipeline details.')
             raise PipelineError('Error occurred while trying to get pipeline details.')
 
-    def delete_pipeline(self, pipeline_id, domain_id):
+    def delete_pipeline(self, pipeline_id=None, domain_id=None):
         """
         Deletes Infoworks Data pipeline  for given pipeline id
         :param pipeline_id: entity id of the pipeline to be deleted
@@ -244,7 +244,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to delete pipeline.')
             raise PipelineError('Error occurred while trying to delete pipeline.')
 
-    def update_pipeline(self, pipeline_id, domain_id, pipeline_config):
+    def update_pipeline(self, pipeline_id=None, domain_id=None, pipeline_config=None):
         """
         Updates Infoworks Data pipeline details for given pipeline id
         :param pipeline_id: entity id of the pipeline to be updated
@@ -285,7 +285,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to update pipeline.')
             raise PipelineError('Error occurred while trying to update pipeline.')
 
-    def sql_import_into_pipeline(self, pipeline_id, domain_id, import_configs=None, sql_query=None):
+    def sql_import_into_pipeline(self, pipeline_id=None, domain_id=None, import_configs=None, sql_query=None):
         """
         Import SQL into given pipeline id
         :param pipeline_id: Id of the pipeline
@@ -341,7 +341,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to update pipeline with the given sql.')
             raise PipelineError('Error occurred while trying to update pipeline with the given sql.')
 
-    def get_pipeline_version_details(self, pipeline_id, domain_id, pipeline_version_id):
+    def get_pipeline_version_details(self, pipeline_id=None, domain_id=None, pipeline_version_id=None):
         """
         Gets a pipelineVersion details for a pipeline version
         :param pipeline_id: id of the pipeline whose details are to be fetched
@@ -376,7 +376,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to get pipeline version details.')
             raise PipelineError('Error occurred while trying to get pipeline version details.')
 
-    def delete_pipeline_version(self, pipeline_id, domain_id, pipeline_version_id):
+    def delete_pipeline_version(self, pipeline_id=None, domain_id=None, pipeline_version_id=None):
         """
         Deletes a pipelineVersion
         :param pipeline_id: id of the pipeline
@@ -412,8 +412,8 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to delete pipeline version details.')
             raise PipelineError('Error occurred while trying to delete pipeline version details.')
 
-    def update_pipeline_version_details(self, pipeline_id, domain_id, pipeline_version_id,
-                                        pipeline_version_config):
+    def update_pipeline_version_details(self, pipeline_id=None, domain_id=None, pipeline_version_id=None,
+                                        pipeline_version_config=None):
         """
         Update a pipelineVersion with pipeline version config
         :param pipeline_id: id of the pipeline
@@ -451,7 +451,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to update pipeline version details.')
             raise PipelineError('Error occurred while trying to update pipeline version details.')
 
-    def export_pipeline_configurations(self, pipeline_id, domain_id):
+    def export_pipeline_configurations(self, pipeline_id=None, domain_id=None):
         """
         Get exported config for pipeline
         :param pipeline_id: id of the pipeline whose details are to be fetched
@@ -484,7 +484,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to get pipeline configuration json.')
             raise PipelineError('Error occurred while trying to get pipeline configuration json.')
 
-    def import_pipeline_configurations(self, pipeline_id, domain_id, pipeline_config):
+    def import_pipeline_configurations(self, pipeline_id=None, domain_id=None, pipeline_config=None):
         """
         Import configurations for the pipeline
         :param pipeline_id: id of the pipeline
@@ -520,7 +520,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to update pipeline configuration json.')
             raise PipelineError('Error occurred while trying to update pipeline configuration json.')
 
-    def trigger_pipeline_job(self, domain_id, pipeline_id, pipeline_version_id=None, poll=False):
+    def trigger_pipeline_job(self, domain_id=None, pipeline_id=None, pipeline_version_id=None, poll=False):
         """
            Trigger the pipeline build job
            :param pipeline_id: entity id of the pipeline
@@ -633,6 +633,8 @@ class PipelineClient(BaseClient):
                                                                            column_name,
                                                                            node)
         try:
+            if None in {pipeline_id, pipeline_version_id, domain_id}:
+                raise Exception(f"pipeline_id, pipeline_version_id, domain_id cannot be None")
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_get_pipeline_lineage,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
@@ -649,7 +651,7 @@ class PipelineClient(BaseClient):
             raise PipelineError(
                 f"Failed to get pipeline lineage for pipeline {pipeline_id} and column {column_name} " + str(e))
 
-    def create_pipeline_version(self, domain_id, pipeline_id, body=None):
+    def create_pipeline_version(self, domain_id=None, pipeline_id=None, body=None):
         """
         Create a new Pipeline Version
         :param body: a JSON object containing pipeline version
@@ -659,6 +661,8 @@ class PipelineClient(BaseClient):
         :return: response dict
         """
         try:
+            if None in {pipeline_id, domain_id}:
+                raise Exception(f"pipeline_id, domain_id cannot be None")
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.pipeline_version_base_url(
                 self.client_config, domain_id, pipeline_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token']),
@@ -684,7 +688,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to create a new pipeline version.')
             raise PipelineError('Error occurred while trying to create a new pipeline version.')
 
-    def update_pipeline_version(self, domain_id, pipeline_id, pipeline_version_id, body=None):
+    def update_pipeline_version(self, domain_id=None, pipeline_id=None, pipeline_version_id=None, body=None):
         """
         Updates the Pipeline Version
         :param body: a JSON object containing pipeline version
@@ -695,6 +699,8 @@ class PipelineClient(BaseClient):
         :return: response dict
         """
         try:
+            if None in {pipeline_id, pipeline_version_id, domain_id}:
+                raise Exception(f"pipeline_id, pipeline_version_id, domain_id cannot be None")
             response = IWUtils.ejson_deserialize(self.call_api("PATCH", url_builder.pipeline_version_base_url(
                 self.client_config, domain_id, pipeline_id) + f"/{pipeline_version_id}",
                                                                IWUtils.get_default_header_for_v3(
@@ -718,7 +724,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to update a pipeline version.')
             raise PipelineError('Error occurred while trying to update a pipeline version.')
 
-    def set_pipeline_version_as_active(self, domain_id, pipeline_id, pipeline_version_id):
+    def set_pipeline_version_as_active(self, domain_id=None, pipeline_id=None, pipeline_version_id=None):
         """
         Sets the pipeline version as active
         :param domain_id: Entity identifier of domain
@@ -727,6 +733,8 @@ class PipelineClient(BaseClient):
         :return: response dict
         """
         try:
+            if None in {pipeline_id, pipeline_version_id, domain_id}:
+                raise Exception(f"pipeline_id, pipeline_version_id, domain_id cannot be None")
             response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.pipeline_version_base_url(
                 self.client_config, domain_id, pipeline_id) + f"/{pipeline_version_id}/set-active",
                                                                IWUtils.get_default_header_for_v3(
@@ -750,7 +758,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to set a pipeline version as active.')
             raise PipelineError('Error occurred while trying to set a pipeline version as active.')
 
-    def modify_advanced_config_for_pipeline(self, domain_id, pipeline_id, adv_config_body,
+    def modify_advanced_config_for_pipeline(self, domain_id=None, pipeline_id=None, adv_config_body=None,
                                             action_type="update", key=None):
         """
         Function to add/update the adv config for the pipeline

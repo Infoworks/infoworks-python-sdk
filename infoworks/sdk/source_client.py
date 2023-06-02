@@ -2735,7 +2735,7 @@ class SourceClient(BaseClient):
             self.logger.error(f"Failed to get the audit logs of table group {table_group_id} " + str(e))
             raise SourceError(f"Failed to get the audit logs of table group {table_group_id} " + str(e))
 
-    def get_list_of_advanced_config_of_table(self, source_id, table_id, params=None):
+    def get_list_of_advanced_config_of_table(self, source_id=None, table_id=None, params=None):
         """
             Function to get list of Advance Config of the table
             :param source_id: Entity identifier of the source
@@ -2784,7 +2784,7 @@ class SourceClient(BaseClient):
             self.logger.error("Error in listing adv config of table")
             raise SourceError("Error in listing adv config of table" + str(e))
 
-    def modify_advanced_config_of_table(self, source_id, table_id, adv_config_body,
+    def modify_advanced_config_of_table(self, source_id=None, table_id=None, adv_config_body=None,
                                         action_type="update", key=None):
         """
         Function to add/update the adv config for the pipeline group
@@ -2843,7 +2843,7 @@ class SourceClient(BaseClient):
             self.logger.exception('Error occurred while trying to add/update adv config for table')
             raise SourceError('Error occurred while trying to add/update adv config for table')
 
-    def get_or_delete_advance_config_of_table(self, source_id, table_id, key,
+    def get_or_delete_advance_config_of_table(self, source_id=None, table_id=None, key=None,
                                               action_type="get"):
         """
         Gets/Deletes advance configuration of pipeline group
