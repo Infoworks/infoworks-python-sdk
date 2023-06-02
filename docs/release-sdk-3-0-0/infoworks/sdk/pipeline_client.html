@@ -81,6 +81,21 @@
                         <li>
                                 <a class="function" href="#PipelineClient.get_pipeline_lineage">get_pipeline_lineage</a>
                         </li>
+                        <li>
+                                <a class="function" href="#PipelineClient.create_pipeline_version">create_pipeline_version</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#PipelineClient.update_pipeline_version">update_pipeline_version</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#PipelineClient.set_pipeline_version_as_active">set_pipeline_version_as_active</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#PipelineClient.modify_advanced_config_for_pipeline">modify_advanced_config_for_pipeline</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#PipelineClient.list_pipeline_versions">list_pipeline_versions</a>
+                        </li>
                 </ul>
 
             </li>
@@ -207,7 +222,7 @@
 <li><strong>pipeline_config</strong>:  a JSON object containing pipeline configurations</li>
 </ul>
 
-<p>pipeline_config_example = {
+<pre><code>pipeline_config_example = {
 "name": "pipeline_name",
 "batch_engine": "spark",
 "domain_id": "domain_id",
@@ -215,7 +230,8 @@
 "storage_id": "environment_storage_id",
 "compute_template_id": "environment_compute_id",
 "ml_engine": "SparkML"
-}</p>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -299,11 +315,12 @@
 <li><strong>pipeline_config</strong>:  a JSON object containing pipeline configurations</li>
 </ul>
 
-<p>pipeline_config_example = {
+<pre><code>pipeline_config_example = {
 "name": "pipeline_name",
 "compute_template_id": "environment_compute_id",
 "active_version_id": "pipeline_version_id"
-}</p>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -331,15 +348,17 @@
 <li><strong>pipeline_id</strong>:  Id of the pipeline</li>
 <li><strong>domain_id</strong>:  Domain Id to which the pipeline belongs to</li>
 <li><strong>import_configs</strong>:  a JSON object containing configurations to import the SQL</li>
-<li><strong>sql_query</strong>:  SQL query
-import_configs_example = {
-"dry_run": "{boolean}",
-"sql": "select * from employee",
-"sql_import_configuration": {
-"quoted_identifier": "DOUBLE_QUOTE",
-"sql_dialect": "LENIENT"
-}</li>
+<li><strong>sql_query</strong>:  SQL query</li>
 </ul>
+
+<pre><code>import_configs_example = {
+"dry_run": "{boolean}",
+ "sql": "select * from employee",
+ "sql_import_configuration": {
+  "quoted_identifier": "DOUBLE_QUOTE",
+  "sql_dialect": "LENIENT"
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -572,6 +591,167 @@ import_configs_example = {
 
 <blockquote>
   <p>response dict</p>
+</blockquote>
+</div>
+
+
+                            </div>
+                            <div id="PipelineClient.create_pipeline_version" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#PipelineClient.create_pipeline_version">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">create_pipeline_version</span><span class="signature">(self, domain_id, pipeline_id, body=None)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>Create a new Pipeline Version</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>body</strong>:  a JSON object containing pipeline version</li>
+<li><strong>domain_id</strong>:  Entity identifier of domain</li>
+<li><strong>pipeline_id</strong>:  Entity identifier of pipeline_id</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>response dict</p>
+</blockquote>
+</div>
+
+
+                            </div>
+                            <div id="PipelineClient.update_pipeline_version" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#PipelineClient.update_pipeline_version">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">update_pipeline_version</span><span class="signature">(self, domain_id, pipeline_id, pipeline_version_id, body=None)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>Updates the Pipeline Version</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>body</strong>:  a JSON object containing pipeline version</li>
+<li><strong>domain_id</strong>:  Entity identifier of domain</li>
+<li><strong>pipeline_id</strong>:  Entity identifier of pipeline_id</li>
+<li><strong>pipeline_version_id</strong>:  Entity identifier of pipeline_version_id</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>response dict</p>
+</blockquote>
+</div>
+
+
+                            </div>
+                            <div id="PipelineClient.set_pipeline_version_as_active" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#PipelineClient.set_pipeline_version_as_active">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">set_pipeline_version_as_active</span><span class="signature">(self, domain_id, pipeline_id, pipeline_version_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>Sets the pipeline version as active</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>domain_id</strong>:  Entity identifier of domain</li>
+<li><strong>pipeline_id</strong>:  Entity identifier of pipeline_id</li>
+<li><strong>pipeline_version_id</strong>:  Entity identifier of pipeline_version_id</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>response dict</p>
+</blockquote>
+</div>
+
+
+                            </div>
+                            <div id="PipelineClient.modify_advanced_config_for_pipeline" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#PipelineClient.modify_advanced_config_for_pipeline">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">modify_advanced_config_for_pipeline</span><span class="signature">(
+    self,
+    domain_id,
+    pipeline_id,
+    adv_config_body,
+    action_type=&#39;update&#39;,
+    key=None
+)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>Function to add/update the adv config for the pipeline</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>pipeline_id</strong>:  id of the pipeline</li>
+<li><strong>domain_id</strong>:  Domain id to which the pipeline belongs to</li>
+<li><strong>action_type</strong>:  values can be either create/update. default update</li>
+<li><strong>adv_config_body</strong>:  JSON dict</li>
+</ul>
+
+<pre><code>adv_config_body_example = {
+    "key" : "",
+    "value": "",
+    "description": "",
+    "is_active": True
+    }
+</code></pre>
+
+<ul>
+<li><strong>key</strong>:  In case of update, name of the adv config to update</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>response dict</p>
+</blockquote>
+</div>
+
+
+                            </div>
+                            <div id="PipelineClient.list_pipeline_versions" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#PipelineClient.list_pipeline_versions">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">list_pipeline_versions</span><span class="signature">(self, domain_id=None, pipeline_id=None, params=None)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>Function to list the pipeline versions</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>domain_id</strong>:  Entity identified for domain</li>
+<li><strong>pipeline_id</strong>:  Entity identified for pipeline</li>
+<li><strong>params</strong>:  Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>response list</p>
 </blockquote>
 </div>
 

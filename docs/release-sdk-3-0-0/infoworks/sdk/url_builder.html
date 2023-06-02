@@ -334,6 +334,9 @@
                     <a class="function" href="#advanced_config_domain_url">advanced_config_domain_url</a>
             </li>
             <li>
+                    <a class="function" href="#advanced_config_pipeline_url">advanced_config_pipeline_url</a>
+            </li>
+            <li>
                     <a class="function" href="#table_advanced_base_url">table_advanced_base_url</a>
             </li>
             <li>
@@ -350,6 +353,54 @@
             </li>
             <li>
                     <a class="function" href="#list_secrets_url">list_secrets_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#list_replicator_sources_url">list_replicator_sources_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#get_replicator_source_url">get_replicator_source_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#create_replicator_source_url">create_replicator_source_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#list_replicator_destinations_url">list_replicator_destinations_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#get_replicator_destination_url">get_replicator_destination_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#create_replicator_destination_url">create_replicator_destination_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#list_replicator_definitions_url">list_replicator_definitions_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#create_replicator_definition_url">create_replicator_definition_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#add_replicator_definition_tables_url">add_replicator_definition_tables_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#submit_replication_metacrawl_job_url">submit_replication_metacrawl_job_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#submit_replication_data_job_url">submit_replication_data_job_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#add_replicator_sources_to_domain_url">add_replicator_sources_to_domain_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#add_replicator_destinations_to_domain_url">add_replicator_destinations_to_domain_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#get_replication_schedules_url">get_replication_schedules_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#get_replicator_source_tables_url">get_replicator_source_tables_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#pipeline_version_base_url">pipeline_version_base_url</a>
             </li>
     </ul>
 
@@ -2695,6 +2746,20 @@
 
 
                 </section>
+                <section id="advanced_config_pipeline_url">
+                            <div class="attr function"><a class="headerlink" href="#advanced_config_pipeline_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">advanced_config_pipeline_url</span><span class="signature">(config, domain_id, pipeline_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns url to work with adv config of the pipeline</p>
+</div>
+
+
+                </section>
                 <section id="table_advanced_base_url">
                             <div class="attr function"><a class="headerlink" href="#table_advanced_base_url">#&nbsp;&nbsp</a>
 
@@ -2783,6 +2848,439 @@
 
     
             <div class="docstring"><p>returns url to get secret details in Infoworks</p>
+</div>
+
+
+                </section>
+                <section id="list_replicator_sources_url">
+                            <div class="attr function"><a class="headerlink" href="#list_replicator_sources_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">list_replicator_sources_url</span><span class="signature">(config)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to list replicator sources using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to list sources</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="get_replicator_source_url">
+                            <div class="attr function"><a class="headerlink" href="#get_replicator_source_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_replicator_source_url</span><span class="signature">(config, source_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to the details of a specific replicator source using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>source_id</strong>:  Identifier of Source</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to the details of a specific replicator source</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="create_replicator_source_url">
+                            <div class="attr function"><a class="headerlink" href="#create_replicator_source_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">create_replicator_source_url</span><span class="signature">(config)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to create a replicator source using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url for the replicator source creation</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="list_replicator_destinations_url">
+                            <div class="attr function"><a class="headerlink" href="#list_replicator_destinations_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">list_replicator_destinations_url</span><span class="signature">(config)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to list replicator destinations using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to list destinations</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="get_replicator_destination_url">
+                            <div class="attr function"><a class="headerlink" href="#get_replicator_destination_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_replicator_destination_url</span><span class="signature">(config, destination_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to the details of a specific replicator destination using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>destination_id</strong>:  Identifier of Destination</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to the details of a specific replicator destination</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="create_replicator_destination_url">
+                            <div class="attr function"><a class="headerlink" href="#create_replicator_destination_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">create_replicator_destination_url</span><span class="signature">(config)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to create a replicator destination using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url for the replicator destination creation</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="list_replicator_definitions_url">
+                            <div class="attr function"><a class="headerlink" href="#list_replicator_definitions_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">list_replicator_definitions_url</span><span class="signature">(config, domain_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to list replicator definitions using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier of Domain</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to list definitions</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="create_replicator_definition_url">
+                            <div class="attr function"><a class="headerlink" href="#create_replicator_definition_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">create_replicator_definition_url</span><span class="signature">(config, domain_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to create a replicator definition using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url for the replicator definition creation</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="add_replicator_definition_tables_url">
+                            <div class="attr function"><a class="headerlink" href="#add_replicator_definition_tables_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_replicator_definition_tables_url</span><span class="signature">(config, domain_id, definition_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add tables to replicator definition using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+<li><strong>definition_id</strong>:  Identifier for Replicator definition</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to add tables to replicator definition</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="submit_replication_metacrawl_job_url">
+                            <div class="attr function"><a class="headerlink" href="#submit_replication_metacrawl_job_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">submit_replication_metacrawl_job_url</span><span class="signature">(config, domain_id, replicator_source_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add tables to replicator definition using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+<li><strong>replicator_source_id</strong>:  Identifier for Source</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to submit replication metacrawl job</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="submit_replication_data_job_url">
+                            <div class="attr function"><a class="headerlink" href="#submit_replication_data_job_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">submit_replication_data_job_url</span><span class="signature">(config, domain_id, definition_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add tables to replicator definition using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+<li><strong>definition_id</strong>:  Identifier for Definition</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to submit replication data job</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="add_replicator_sources_to_domain_url">
+                            <div class="attr function"><a class="headerlink" href="#add_replicator_sources_to_domain_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_replicator_sources_to_domain_url</span><span class="signature">(config, domain_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add replicator sources to domains</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to add replicator sources to domains</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="add_replicator_destinations_to_domain_url">
+                            <div class="attr function"><a class="headerlink" href="#add_replicator_destinations_to_domain_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_replicator_destinations_to_domain_url</span><span class="signature">(config, domain_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add replicator destinations to domains</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to add replicator destinations to domains</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="get_replication_schedules_url">
+                            <div class="attr function"><a class="headerlink" href="#get_replication_schedules_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_replication_schedules_url</span><span class="signature">(config, domain_id, definition_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns replication schedules URL</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+<li><strong>definition_id</strong>:  Identifier for Replicator definition</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>replication schedules URL</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="get_replicator_source_tables_url">
+                            <div class="attr function"><a class="headerlink" href="#get_replicator_source_tables_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_replicator_source_tables_url</span><span class="signature">(config, source_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns replicator source tables URL</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>source_id</strong>:  Identifier for replicator source</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>replicator source tables url</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="pipeline_version_base_url">
+                            <div class="attr function"><a class="headerlink" href="#pipeline_version_base_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">pipeline_version_base_url</span><span class="signature">(config, domain_id, pipeline_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to work on pipeline versions using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+<li><strong>pipeline_id</strong>:  Identifier for pipeline</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to work on pipeline version</p>
+</blockquote>
 </div>
 
 

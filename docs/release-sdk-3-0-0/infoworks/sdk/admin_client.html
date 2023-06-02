@@ -245,7 +245,7 @@
 <li><strong>password</strong>:  Password of the user</li>
 </ul>
 
-<p>example_data = {
+<pre><code>example_data = {
     "profile": {
         "name": "iwx_sdk_user",
         "email": "iwx_sdk_user@infoworks.io",
@@ -253,7 +253,8 @@
     },
     "roles": ["modeller"],
     "password": ""
-}</p>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -771,25 +772,27 @@
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>config_body</strong>:  JSON payload
-config_body_example = {
+<li><strong>config_body</strong>:  JSON payload</li>
+</ul>
+
+<pre><code>config_body_example = {
 "name": "Snowflake-connection",
 "type": "TARGET",
 "sub_type": "SNOWFLAKE",
 "properties": {
-"url": "https://account_name.snowflakecomputing.com",
-"account": "",
-"username": "ramesh",
-"password": {
-    "password_type": "infoworks_managed"
-    "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
-},
-"password": "", -->  Needed if the password_type is infoworks_managed
-"additional_params": "",
-"warehouse": "TEST_WH"
+    "url": "https://account_name.snowflakecomputing.com",
+    "account": "",
+    "username": "ramesh",
+    "password": {
+        "password_type": "infoworks_managed"
+        "secret_id": "6418304b7eeb1c40de2b6008" --&gt; Needed if password_type is secret_store
+    },
+    "password": "", --&gt;  Needed if the password_type is infoworks_managed
+    "additional_params": "",
+    "warehouse": "TEST_WH"
 }
-}</li>
-</ul>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -815,25 +818,27 @@ config_body_example = {
 
 <ul>
 <li><strong>data_connection_id</strong>:  Entity identifier of the data connection id</li>
-<li><strong>config_body</strong>:  JSON payload
-config_body_example = {
+<li><strong>config_body</strong>:  JSON payload</li>
+</ul>
+
+<pre><code>config_body_example = {
 "name": "Snowflake-connection",
 "type": "TARGET",
 "sub_type": "SNOWFLAKE",
 "properties": {
-"url": "https://account_name.snowflakecomputing.com",
-"account": "",
-"username": "ramesh",
-"password": {
-    "password_type": "infoworks_managed",
-    "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
-},
-"password": "", -->  Needed if the password_type is infoworks_managed
-"additional_params": "",
-"warehouse": "TEST_WH"
+    "url": "https://account_name.snowflakecomputing.com",
+    "account": "",
+    "username": "ramesh",
+    "password": {
+        "password_type": "infoworks_managed",
+        "secret_id": "6418304b7eeb1c40de2b6008" --&gt; Needed if password_type is secret_store
+    },
+    "password": "", --&gt;  Needed if the password_type is infoworks_managed
+    "additional_params": "",
+    "warehouse": "TEST_WH"
 }
-}</li>
-</ul>
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -937,14 +942,16 @@ config_body_example = {
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>data</strong>:  JSON Payload with secret store details
-example_data = {
-"name": "iwx-sp-secret-store",
-"service_type": "azure",
-"key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
-"service_authentication": "64182fac35298f0d05a8b689",
-}</li>
+<li><strong>data</strong>:  JSON Payload with secret store details</li>
 </ul>
+
+<pre><code>example_data = {
+    "name": "iwx-sp-secret-store",
+    "service_type": "azure",
+    "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
+    "service_authentication": "64182fac35298f0d05a8b689",
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -996,14 +1003,16 @@ example_data = {
 
 <ul>
 <li><strong>secret_store_id</strong>:  secret store id in infoworks</li>
-<li><strong>data</strong>:  JSON Payload with secret store details
-example_data = {
-"name": "iwx-sp-secret-store",
-"service_type": "azure",
-"key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
-"service_authentication": "64182fac35298f0d05a8b689",
-}</li>
+<li><strong>data</strong>:  JSON Payload with secret store details</li>
 </ul>
+
+<pre><code>example_data = {
+    "name": "iwx-sp-secret-store",
+    "service_type": "azure",
+    "key_vault_uri": "https://iwazurecsdbkey.vault.azure.net/",
+    "service_authentication": "64182fac35298f0d05a8b689",
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -1080,19 +1089,21 @@ example_data = {
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>data</strong>:  JSON Payload with service auth details
-example_data = {
-"name": "iw-azure-cs-db-cluster-sp",
-"service_type": "azure",
-"authentication_type": "service_principal",
-"authentication_properties": {
-    "subscription_id": "xxx",
-    "client_id": "xxx",
-    "object_id": "xxx",
-    "tenant_id": "xxx"
-}
-}</li>
+<li><strong>data</strong>:  JSON Payload with service auth details</li>
 </ul>
+
+<pre><code>example_data = {
+    "name": "iw-azure-cs-db-cluster-sp",
+    "service_type": "azure",
+    "authentication_type": "service_principal",
+    "authentication_properties": {
+        "subscription_id": "xxx",
+        "client_id": "xxx",
+        "object_id": "xxx",
+        "tenant_id": "xxx"
+    }
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -1144,19 +1155,21 @@ example_data = {
 
 <ul>
 <li><strong>service_auth_id</strong>:  service auth id in infoworks</li>
-<li><strong>data</strong>:  JSON Payload with service auth details
-example_data = {
-"name": "iw-azure-cs-db-cluster-sp",
-"service_type": "azure",
-"authentication_type": "service_principal",
-"authentication_properties": {
-    "subscription_id": "xxx",
-    "client_id": "xxx",
-    "object_id": "xxx",
-    "tenant_id": "xxx"
-}
-}</li>
+<li><strong>data</strong>:  JSON Payload with service auth details</li>
 </ul>
+
+<pre><code>example_data = {
+    "name": "iw-azure-cs-db-cluster-sp",
+    "service_type": "azure",
+    "authentication_type": "service_principal",
+    "authentication_properties": {
+        "subscription_id": "xxx",
+        "client_id": "xxx",
+        "object_id": "xxx",
+        "tenant_id": "xxx"
+    }
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -1233,13 +1246,15 @@ example_data = {
 <h6 id="parameters">Parameters</h6>
 
 <ul>
-<li><strong>data</strong>:  JSON Payload with secret details
-example_data = {
-"name": "mongo-pg-pwd",
-"secret_store": "64182fd27eeb1c40de2b6007",
-"secret_name": "mongo-pg-pwd"
-}</li>
+<li><strong>data</strong>:  JSON Payload with secret details</li>
 </ul>
+
+<pre><code>example_data = {
+    "name": "mongo-pg-pwd",
+    "secret_store": "64182fd27eeb1c40de2b6007",
+    "secret_name": "mongo-pg-pwd"
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 
@@ -1291,13 +1306,15 @@ example_data = {
 
 <ul>
 <li><strong>secret_id</strong>:  secret id in infoworks</li>
-<li><strong>data</strong>:  JSON Payload with secret store details
-example_data = {
-"name": "mongo-pg-pwd",
-"secret_store": "64182fd27eeb1c40de2b6007",
-"secret_name": "mongo-pg-pwd"
-}</li>
+<li><strong>data</strong>:  JSON Payload with secret store details</li>
 </ul>
+
+<pre><code>example_data = {
+    "name": "mongo-pg-pwd",
+    "secret_store": "64182fd27eeb1c40de2b6007",
+    "secret_name": "mongo-pg-pwd"
+}
+</code></pre>
 
 <h6 id="returns">Returns</h6>
 

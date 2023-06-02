@@ -133,7 +133,7 @@ class PipelineClient(BaseClient):
         Create a new Pipeline.
         :param pipeline_config: a JSON object containing pipeline configurations
         :type pipeline_config: JSON Object
-
+        ```
         pipeline_config_example = {
         "name": "pipeline_name",
         "batch_engine": "spark",
@@ -143,6 +143,7 @@ class PipelineClient(BaseClient):
         "compute_template_id": "environment_compute_id",
         "ml_engine": "SparkML"
         }
+        ```
         :return: response dict
         """
         try:
@@ -252,12 +253,13 @@ class PipelineClient(BaseClient):
         :type domain_id: String
         :param pipeline_config: a JSON object containing pipeline configurations
         :type pipeline_config: JSON Object
-
+        ```
         pipeline_config_example = {
         "name": "pipeline_name",
         "compute_template_id": "environment_compute_id",
         "active_version_id": "pipeline_version_id"
         }
+        ```
         :return: response dict
         """
         try:
@@ -294,6 +296,7 @@ class PipelineClient(BaseClient):
         :type import_configs: JSON Object
         :param sql_query: SQL query
         :type sql_query: String
+        ```
         import_configs_example = {
         "dry_run": "{boolean}",
          "sql": "select * from employee",
@@ -301,6 +304,7 @@ class PipelineClient(BaseClient):
           "quoted_identifier": "DOUBLE_QUOTE",
           "sql_dialect": "LENIENT"
         }
+        ```
         :return: response dict
         """
         try:
@@ -757,12 +761,14 @@ class PipelineClient(BaseClient):
         :param action_type: values can be either create/update. default update
         :type action_type: String
         :param adv_config_body: JSON dict
+        ```
         adv_config_body_example = {
             "key" : "",
             "value": "",
             "description": "",
             "is_active": True
             }
+        ```
         :param key: In case of update, name of the adv config to update
         :return: response dict
         """

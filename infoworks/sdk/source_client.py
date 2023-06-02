@@ -90,7 +90,7 @@ class SourceClient(BaseClient):
         Create a new Infoworks source
         :param source_config: a JSON object containing source configurations
         :type source_config: JSON Object
-
+        ```
         source_config_example = {
             "name": "source_name",
             "type": "rdbms",
@@ -100,6 +100,7 @@ class SourceClient(BaseClient):
             "storage_id": "storage_id",
             "is_source_ingested": True
         }
+        ```
         :return: response dict
         """
         response = None
@@ -139,7 +140,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :param connection_object: The json dict containing the source connection details
         :type connection_object: Json object
-
+        ```
         "connection_obj_rdbms": {
                 "enable_log_based_cdc": false,
                 "driver_name": "oracle.jdbc.driver.OracleDriver",
@@ -163,6 +164,7 @@ class SourceClient(BaseClient):
                     "access_type": ""
                 }
             }
+        ```
         :return: response dict
         """
         if None in {source_id} or connection_object is None:
@@ -284,7 +286,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :param filter_tables_properties:
         :type filter_tables_properties: json object
-
+        ```
         filter_tables_properties = {
             "schemas_filter" : "%dbo",
             "catalogs_filter" : "%",
@@ -292,7 +294,7 @@ class SourceClient(BaseClient):
             "is_data_sync_with_filter" : true,
             "is_filter_enabled" : true
         }
-
+        ```
         :param poll_timeout: test connection job timeout in seconds
         :type poll_timeout: integer. Default 300 seconds
         :param polling_frequency: polling frequency for the job in seconds. Default 15 seconds
@@ -393,7 +395,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :param tables_to_add_config: Array of JSON configuration object
         :type tables_to_add_config: List
-
+        ```
         tables_to_add_config = [{
                 "table_name": "",
                 "schema_name": "",
@@ -401,7 +403,7 @@ class SourceClient(BaseClient):
                 "target_table_name": "",
                 "target_schema_name": ""
         }]
-
+        ```
         :param poll_timeout: test connection job timeout in seconds
         :type poll_timeout: integer. Default 300 seconds
         :param polling_frequency: polling frequency for the job in seconds. Default 15 seconds
@@ -515,6 +517,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :param table_group_obj: JSON object containing create table group payload
         :type table_group_obj: JSON object
+        ```
         table_group_obj = {
          "environment_compute_template": {"environment_compute_template_id": "536592c8ceb69bbbe730d452"},
          "name": "tg_name",
@@ -524,7 +527,7 @@ class SourceClient(BaseClient):
           {"table_id":"1123","connection_quota":100}
          ]
         }
-
+        ```
         :return:  response dict
         """
         try:
@@ -558,7 +561,7 @@ class SourceClient(BaseClient):
         :type table_group_id: String
         :param table_group_obj: JSON object containing update table group body
         :type table_group_obj: JSON object
-
+        ```
         table_group_obj = {
          "environment_compute_template": {"environment_compute_template_id": "536592c8ceb69bbbe730d452"},
          "name": "tg_name",
@@ -568,6 +571,7 @@ class SourceClient(BaseClient):
           {"table_id":"1123","connection_quota":100}
          ]
         }
+        ```
         :return: response dict
         """
         try:
@@ -688,8 +692,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :param body: JSON body containing type of job to trigger
         :type body: JSON dict
-
-
+        ```
         metadata_job_body_example = {
                 "job_type": "source_fetch_metadata",
                 "overwrite": true
@@ -708,6 +711,7 @@ class SourceClient(BaseClient):
             "job_type": "truncate_reload",
             "table_group_id": "efb9d3e810c643b9930e1a00"
         }
+        ```
         :param poll_timeout: test connection job timeout in seconds
         :type poll_timeout: integer. Default 300 seconds
         :param polling_frequency: polling frequency for the job in seconds. Default 15 seconds
@@ -1511,7 +1515,7 @@ class SourceClient(BaseClient):
         :type source_id: String
         :file_mappings_config : Configurations for file_mappings
         :type file_mappings_config: JSON object
-
+        ```
         file_mappings_config example = {
                 "configuration": {
                     "source_file_properties": {
@@ -1535,6 +1539,7 @@ class SourceClient(BaseClient):
                 "source": "src_id",
                 "name": "table_name"
             }
+        ```
         :return: response dict
         """
         if None in {source_id} or file_mappings_config is None:
@@ -2308,6 +2313,7 @@ class SourceClient(BaseClient):
         :param file_mappings_id: Entity identifier of the file mapping. Pass this incase you want to update the file mapping
         :param action_type: create/update
         :param config_body: JSON dict with necessary keys
+        ```
         config_body_example =
             {       "name" :"xyz",
                 "source_relative_path": "/test",
@@ -2317,6 +2323,7 @@ class SourceClient(BaseClient):
                 "include_filename_regex": ".*",
                 "exclude_filename_regex": ""
             }
+        ```
         :return: response dict
         """
         if None in {source_id} or config_body is None:
@@ -2786,12 +2793,14 @@ class SourceClient(BaseClient):
         :param action_type: values can be either create/update. default update
         :type action_type: String
         :param adv_config_body: JSON dict
+        ```
         adv_config_body_example = {
             "key" : "",
             "value": "",
             "description": "",
             "is_active": True
             }
+        ```
         :param key: In case of update, name of the adv config to update
         :return: response dict
         """
@@ -2885,6 +2894,7 @@ class SourceClient(BaseClient):
         :param source_id: Entity identifier for source
         :type source_id: String
         :param config_body: JSON body
+        ```
         config_body_example: {
             "id": "9376bf97a286e35efe86d321",
             "name": "dim_state",
@@ -2963,6 +2973,7 @@ class SourceClient(BaseClient):
             "catalog_is_database": true,
             "has_catalog": true
         }
+        ```
         :return: response dict
         """
         if None in {source_id, table_id} or config_body is None:
