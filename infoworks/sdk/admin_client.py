@@ -990,7 +990,7 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 initial_msg = response.get("message", "")
                 if data_connection_id is not None:
-                    dataconnection_list.extend(result)
+                    dataconnection_list.append(result)
                 else:
                     while len(result) > 0:
                         dataconnection_list.extend(result)
@@ -1131,6 +1131,9 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if secret_store_id is None:
+                self.logger.error("secret_store_id cannot be None")
+                raise Exception("secret_store_id cannot be None")
             response = self.call_api("GET",
                                      url_builder.list_secret_stores_url(self.client_config) + f"/{secret_store_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
@@ -1167,9 +1170,12 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if None in [secret_store_id,data]:
+                self.logger.error("secret_store_id or data cannot be None")
+                raise Exception("secret_store_id or data cannot be None")
             response = self.call_api("PATCH",
                                      url_builder.list_secret_stores_url(self.client_config) + f"/{secret_store_id}",
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
@@ -1193,6 +1199,9 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if secret_store_id is None:
+                self.logger.error("secret_store_id cannot be None")
+                raise Exception("secret_store_id cannot be None")
             response = self.call_api("DELETE",
                                      url_builder.list_secret_stores_url(self.client_config) + f"/{secret_store_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
@@ -1276,6 +1285,9 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if data is None:
+                self.logger.error("data cannot be None")
+                raise Exception("data cannot be None")
             response = self.call_api("POST",
                                      url_builder.list_service_authentication_url(self.client_config),
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
@@ -1303,6 +1315,9 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if service_auth_id is None:
+                self.logger.error("service_auth_id cannot be None")
+                raise Exception("service_auth_id cannot be None")
             response = self.call_api("GET",
                                      url_builder.list_service_authentication_url(
                                          self.client_config) + f"/{service_auth_id}",
@@ -1345,10 +1360,13 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if None in [service_auth_id,data]:
+                self.logger.error("service_auth_id or data cannot be None")
+                raise Exception("service_auth_id or data cannot be None")
             response = self.call_api("PATCH",
                                      url_builder.list_service_authentication_url(
                                          self.client_config) + f"/{service_auth_id}",
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
@@ -1372,6 +1390,9 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if service_auth_id is None:
+                self.logger.error("service_auth_id cannot be None")
+                raise Exception("service_auth_id cannot be None")
             response = self.call_api("DELETE",
                                      url_builder.list_service_authentication_url(
                                          self.client_config) + f"/{service_auth_id}",
@@ -1477,6 +1498,9 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
+            if secret_id is None:
+                self.logger.error("secret_id cannot be None")
+                raise Exception("secret id cannot be None")
             response = self.call_api("GET",
                                      url_builder.list_secrets_url(self.client_config) + f"/{secret_id}",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
@@ -1514,7 +1538,7 @@ class AdminClient(BaseClient):
         try:
             response = self.call_api("PATCH",
                                      url_builder.list_secrets_url(self.client_config) + f"/{secret_id}",
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
