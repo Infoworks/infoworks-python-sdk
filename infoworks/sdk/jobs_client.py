@@ -249,7 +249,7 @@ class JobsClient(BaseClient):
                     result = response.get("result", [])
             response["result"] = job_details
             response["message"] = initial_msg
-            return GenericResponse.parse_result(job_id=None, status=Response.Status.SUCCESS, response=job_details)
+            return GenericResponse.parse_result(job_id=None, status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
