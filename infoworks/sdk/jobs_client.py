@@ -20,9 +20,6 @@ class JobsClient(BaseClient):
         :type: JSON dict
         :return: response list of dict
         """
-        if None in {job_id}:
-            self.logger.error("job_id cannot be None")
-            raise Exception("job_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
 
