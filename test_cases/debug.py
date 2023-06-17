@@ -1,4 +1,5 @@
-import json
+from infoworks.sdk.client import InfoworksClientSDK
+
 # Connect to Dev environment and get the source dump
 # refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
 # iwx_client_dev = InfoworksClientSDK()
@@ -11,14 +12,13 @@ import json
 #
 # iwx_client_dev.cicd_get_workflowconfig_dumps(workflow_ids=["77f68f74d3ec09a4cff076f2"],config_file_dump_path="/Users/infoworks/Downloads/GitHub/infoworks_sdk/dumps")
 # # Connect to Prod environment
-# refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
-# iwx_client_prd = InfoworksClientSDK()
-# #iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
-# iwx_client_prd.initialize_client_with_defaults("https", "aks-qa-542.infoworks.technology", "443", refresh_token)
-# response = iwx_client_prd.list_pipeline_versions(domain_id="0bf4211970af3d1688263eef", pipeline_id="6460b78e0d5a37068c1ca792",params={"filter":{"is_active":True,"type":"sql"}})
-# for item in response["result"]["response"]["result"]:
-#     print(item)
-
+refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
+iwx_client_prd = InfoworksClientSDK()
+#iwx_client_prd.initialize_client_with_defaults("https", "att-iwx-ci-cd.infoworks.technology", "443", refresh_token)
+iwx_client_prd.initialize_client_with_defaults("https", "aks-qa-542.infoworks.technology", "443", refresh_token)
+response = iwx_client_prd.list_pipeline_versions(domain_id="0bf4211970af3d1688263eef", pipeline_id="6460b78e0d5a37068c1ca792",params={"filter":{"is_active":True,"type":"sql"}})
+for item in response["result"]["response"]["result"]:
+    print(item)
 #iwx_client_prd.initialize_client_with_defaults("http", "10.18.1.32", "3000", refresh_token)
 # print(iwx_client_prd.get_pipeline("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c"))
 # print(iwx_client_prd.get_pipeline_version_details("7fb2fef4efb0a2c06cb322fc","c5a8c2256c825dd6c605497c","6298cb771086072f3633bdd9"))
@@ -136,9 +136,9 @@ import json
 
 from infoworks.sdk.client import InfoworksClientSDK
 # Your refresh token here
-refresh_token = "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2"
+refresh_token = ""
 # Initialise the client
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("https", "att-iwx-pri.infoworks.technology", "443", refresh_token)
+iwx_client.initialize_client_with_defaults("https", "", "443", refresh_token)
 #print(json.dumps(iwx_client.get_data_connection('0265c5e4d6b8a654d60b71a5')))
 print(json.dumps(iwx_client.update_secret_details(secret_id="6418304b7eeb1c40de2b6008",data={"description":"test1 description"})))
