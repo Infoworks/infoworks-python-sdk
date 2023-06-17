@@ -7,6 +7,13 @@ class DownloadWorkflow(BaseClient):
     def __init__(self):
         super(DownloadWorkflow, self).__init__()
 
+    def cicd_get_workflowconfig_export(self, workflow_ids, config_file_export_path, files_overwrite=True,
+                                      serviceaccountemail="admin@infoworks.io",
+                                      replace_words=""):
+        self.cicd_get_workflowconfig_dumps(workflow_ids, config_file_export_path, files_overwrite,
+                                      serviceaccountemail,
+                                      replace_words)
+
     def cicd_get_workflowconfig_dumps(self, workflow_ids, config_file_dump_path, files_overwrite=True,
                                       serviceaccountemail="admin@infoworks.io",
                                       replace_words=""):

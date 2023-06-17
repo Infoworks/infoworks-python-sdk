@@ -8,6 +8,9 @@ class DownloadPipeline(BaseClient):
     def __init__(self):
         super(DownloadPipeline, self).__init__()
 
+    def cicd_get_pipelineconfig_export(self, pipeline_ids, config_file_export_path, files_overwrite=True, serviceaccountemail="admin@infoworks.io", replace_words="",pipeline_grp_config=None):
+        self.cicd_get_pipelineconfig_dumps(pipeline_ids, config_file_export_path, files_overwrite, serviceaccountemail, replace_words,pipeline_grp_config)
+
     def cicd_get_pipelineconfig_dumps(self, pipeline_ids, config_file_dump_path, files_overwrite=True, serviceaccountemail="admin@infoworks.io", replace_words="",pipeline_grp_config=None):
         if not os.path.exists(os.path.join(config_file_dump_path, "modified_files")):
             os.makedirs(os.path.join(config_file_dump_path, "modified_files"))

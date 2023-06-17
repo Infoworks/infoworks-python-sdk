@@ -9,6 +9,13 @@ class DownloadSource(BaseClient):
     def __init__(self):
         super(DownloadSource, self).__init__()
 
+    def cicd_get_sourceconfig_export(self, source_ids, config_file_export_path, files_overwrite=True,
+                                    serviceaccountemail="admin@infoworks.io",
+                                    replace_words=""):
+        self.cicd_get_sourceconfig_dumps(source_ids, config_file_export_path, files_overwrite,
+                                    serviceaccountemail,
+                                    replace_words)
+
     def cicd_get_sourceconfig_dumps(self, source_ids, config_file_dump_path, files_overwrite=True,
                                     serviceaccountemail="admin@infoworks.io",
                                     replace_words=""):
