@@ -145,6 +145,87 @@ class ReplicatorClient(BaseClient):
             self.logger.error("Error in retrieving replicator source")
             raise GenericError("Error in retrieving replicator source " + str(e))
 
+    def update_replicator_source(self, source_id, source_config):
+        """
+        Update Infoworks Replicator source
+        :param source_id: Identifier of Source
+        :type source_id: String
+        :param source_config: a JSON object containing source configurations
+        :type source_config: JSON Object
+        ```
+            source_config_example = {
+              "name": "Sample source",
+              "type": "hive",
+              "properties": {
+                "hadoop_version": "2.x",
+                "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
+                "hive_metastore_url": "thrift://microsoft.com:9083",
+                "network_throttling": 20000,
+                "temp_directory": "/root/iwxr/temp",
+                "output_directory": "/root/iwxr/output"
+              },
+              "advanced_configurations": [
+                {
+                  "key": "DATABASE_FILTER",
+                  "value": ".*"
+                }
+              ]
+            }
+        ```
+        :return: response dict
+        """
+        response = None
+        if source_id is None or source_config is None:
+            self.logger.error("source_id / source_config cannot be None")
+            raise Exception("source_id / source_config cannot be None")
+        try:
+            api_response = self.call_api("PATCH", url_builder.get_replicator_source_url(self.client_config, source_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                         source_config)
+
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to update Source",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to update source.')
+            raise GenericError(response.get("message", "Error occurred while trying to update source."))
+
+    def delete_replicator_source(self, source_id):
+        """
+        Function to delete a specific replicator source
+        :param source_id: Identifier of Source
+        :type source_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if source_id is None:
+                self.logger.error("source id cannot be None")
+                raise Exception("source id cannot be None")
+
+            api_response = self.call_api("DELETE",
+                                         url_builder.get_replicator_source_url(self.client_config, source_id=source_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+
+            response = IWUtils.ejson_deserialize(api_response.content)
+
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to delete Source",
+                                                    response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in deleting replicator source")
+            raise GenericError("Error in deleting replicator source " + str(e))
+
     # Replicator Destinations
     def get_list_of_replicator_destinations(self, params=None):
         """
@@ -274,6 +355,85 @@ class ReplicatorClient(BaseClient):
             self.logger.error("Error in retrieving replicator Destination")
             raise GenericError("Error in retrieving replicator Destination " + str(e))
 
+    def update_replicator_destination(self, destination_id, destination_config):
+        """
+        Update Infoworks Replicator source
+        :param destination_id: Identifier of Destination
+        :type destination_id: String
+        :param destination_config: a JSON object containing destination configurations
+        :type destination_config: JSON Object
+        ```
+            destination_config_example = {
+                "name": "Sample Destination",
+                "type": "hive",
+                "properties": {
+                "hadoop_version": "2.x",
+                "hdfs_root": "wasb://hdfsstorage.blob.core.windows.net/",
+                "hive_metastore_url": "thrift://microsoft.com:9083",
+                "temp_directory": "/root/iwxr/temp",
+                "output_directory": "/root/iwxr/output"
+                },
+                "advanced_configurations": [
+                    {
+                      "key": "DATABASE_FILTER",
+                      "value": ".*"
+                    }
+                ]
+            }
+        ```
+        :return: response dict
+        """
+        response = None
+        if destination_id is None or destination_config is None:
+            self.logger.error("destination_id / destination_config cannot be None")
+            raise Exception("destination_id / destination_config cannot be None")
+        try:
+            api_response = self.call_api("PATCH",
+                                         url_builder.get_replicator_destination_url(self.client_config, destination_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                         destination_config)
+
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to update Destination",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to update destination.')
+            raise GenericError(response.get("message", "Error occurred while trying to update destination."))
+
+    def delete_replicator_destination(self, destination_id):
+        """
+        Function to delete a specific replicator destination
+        :param destination_id: Identifier of Destination
+        :type destination_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if destination_id is None:
+                self.logger.error("destination_id cannot be None")
+                raise Exception("destination_id cannot be None")
+
+            api_response = self.call_api("DELETE",
+                                         url_builder.get_replicator_destination_url(self.client_config, destination_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to delete Destination",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in deleting replicator destination")
+            raise GenericError("Error in deleting replicator destination " + str(e))
+
     # Replicator Definitions
     def get_list_of_replicator_definitions(self, domain_id, params=None):
         """
@@ -377,6 +537,124 @@ class ReplicatorClient(BaseClient):
             self.logger.exception('Error occurred while trying to create a new definition.')
             raise GenericError(response.get("message", "Error occurred while trying to create a new definition."))
 
+    def get_replicator_definition(self, domain_id, definition_id):
+        """
+        Function to retrieve the details of a specific replicator source
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if domain_id is None or definition_id is None:
+                self.logger.error("domain_id / definition_id cannot be None")
+                raise Exception("domain_id / definition_id cannot be None")
+
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_builder.get_replicator_definition_url(self.client_config, domain_id,
+                                                                               definition_id),
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+
+            definition_id = response.get('result', {}).get('id')
+            if definition_id is not None:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to retrieve Definition details",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in retrieving replicator definition")
+            raise GenericError("Error in retrieving replicator definition " + str(e))
+
+    def update_replicator_definition(self, domain_id, definition_id, definition_config):
+        """
+        Update Infoworks Replicator source
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :param definition_config: a JSON object containing definition configurations
+        :type definition_config: JSON Object
+        ```
+            definition_config_example = {
+            "name": "Sample replicator definition",
+            "replicator_source_name": "Sample source name",
+            "replicator_destination_name": "Sample destination name",
+            "replicator_source_id": "6303aea5beda7f1484c74f49",
+            "replicator_destination_id": "6303aedfbeda7f1484c74f4a",
+            "domain_id": "195ebb5847e08c1eca8368e4",
+            "job_bandwidth_mb": 1000,
+            "replication_type": "batch",
+            "copy_parallelism_factor": 4,
+            "metastore_parallelism_factor": 4,
+            "advanced_configurations": [
+                {
+                  "key": "DATABASE_FILTER",
+                  "value": ".*"
+                }
+            ]
+        }
+        ```
+        :return: response dict
+        """
+        response = None
+        if domain_id is None or definition_id is None or definition_config is None:
+            self.logger.error("domain_id / definition_id / definition_config cannot be None")
+            raise Exception("domain_id / definition_id / definition_config cannot be None")
+        try:
+            api_response = self.call_api("PATCH",
+                                         url_builder.get_replicator_definition_url(self.client_config, domain_id,
+                                                                                   definition_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                         definition_config)
+
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to update Definition",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to update definition.')
+            raise GenericError(response.get("message", "Error occurred while trying to update definition."))
+
+    def delete_replicator_definition(self, domain_id, definition_id):
+        """
+        Function to delete a specific replicator definition
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if domain_id is None or definition_id is None:
+                self.logger.error("domain_id/definition_id cannot be None")
+                raise Exception("domain_id/definition_id cannot be None")
+
+            api_response = self.call_api("DELETE",
+                                         url_builder.get_replicator_definition_url(self.client_config, domain_id,
+                                                                                   definition_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to delete Definition",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in deleting replicator definition")
+            raise GenericError("Error in deleting replicator definition " + str(e))
+
+    # Replicator Definition Tables
     def add_tables_to_replicator_definition(self, domain_id, definition_id, tables_config):
         """
         Add tables to Infoworks Replicator definition
@@ -429,6 +707,38 @@ class ReplicatorClient(BaseClient):
             self.logger.exception('Error occurred while trying to add tables to definition.')
             raise GenericError(response.get("message", "Error occurred while trying to add tables to definition."))
 
+    def delete_replicator_definition_tables(self, domain_id, definition_id):
+        """
+        Function to delete a specific replicator definition tables
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if domain_id is None or definition_id is None:
+                self.logger.error("domain_id/definition_id cannot be None")
+                raise Exception("domain_id/definition_id cannot be None")
+
+            api_response = self.call_api("DELETE",
+                                         url_builder.add_replicator_definition_tables_url(self.client_config, domain_id,
+                                                                                          definition_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to delete definition tables",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in deleting replicator definition tables")
+            raise GenericError("Error in deleting replicator definition tables " + str(e))
+
+    # Replicator Jobs
     def poll_replicator_job(self, job_id, poll_timeout=local_configurations.POLLING_TIMEOUT,
                             polling_frequency=local_configurations.POLLING_FREQUENCY_IN_SEC,
                             retries=local_configurations.NUM_POLLING_RETRIES):
@@ -596,6 +906,88 @@ class ReplicatorClient(BaseClient):
             print('Error occurred while trying to submit replication data job.')
             raise GenericError(response.get("message", "Error occurred while trying to submit data job."))
 
+    def get_all_jobs_for_replicator_source(self, domain_id, source_id, params=None):
+        """
+        Function to get all jobs for a particular replicator source
+        :param domain_id: Identifier of Domian
+        :type domain_id: String
+        :param source_id: entity identifier for which the jobs are to be fetched
+        :type: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response list of dict
+        """
+        if None in {source_id, domain_id}:
+            self.logger.error("source_id/domain_id cannot be None")
+            raise Exception("source_id/domain_id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+
+        url_to_list_jobs = url_builder.submit_replication_metacrawl_job_url(
+            self.client_config, domain_id, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
+        job_details = []
+        initial_msg = ""
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_jobs,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                initial_msg = response.get("message", "")
+                result = response.get("result", None)
+                if result is None:
+                    self.logger.error(f"Failed to get the source jobs details.")
+                    return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                        error_desc=f"Failed to get the source jobs details.",
+                                                        response=response)
+
+                while len(result) > 0:
+                    job_details.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            response["message"] = initial_msg
+            response["result"] = job_details
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error(f"Error in getting job details")
+            raise GenericError(f"Error in getting job details : {e}")
+
+    def get_replicator_job_summary(self, domain_id, definition_id, job_id):
+        """
+        Function to get job summary for given job_id
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :param job_id: Identifier of job
+        :type job_id: String
+        :return: response dict
+        """
+        if None in {job_id, domain_id, definition_id}:
+            self.logger.error("job_id / domain_id / definition_id cannot be None")
+            raise Exception("job_id / domain_id / definition_id cannot be None")
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_replicator_job_summary_url(
+                self.client_config, domain_id, definition_id, job_id),
+                IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            result = response.get('result', None)
+            if result is None:
+                self.logger.error(f"Failed to get the crawl job summary for job_id {job_id}.")
+                return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                    error_desc=f"Failed to get the crawl job summary for job_id {job_id}.",
+                                                    response=response, job_id=job_id)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            raise GenericError(f"Failed to get the crawl job summary for job_id {job_id}." + str(e))
+
+    # Accessible Replicator Sources
     def add_replicator_sources_to_domain(self, domain_id, config):
         """
         Add Replicator Sources to Domain
@@ -644,6 +1036,7 @@ class ReplicatorClient(BaseClient):
             raise GenericError(response.get("message", "Error occurred while trying to add "
                                                        "replicator sources to domain."))
 
+    # Accessible Replicator Destinations
     def add_replicator_destinations_to_domain(self, domain_id, config):
         """
         Add Replicator Destinations to Domain
@@ -693,6 +1086,63 @@ class ReplicatorClient(BaseClient):
             raise GenericError(response.get("message", "Error occurred while trying to add "
                                                        "replicator destinations to domain."))
 
+    # Replication Schedules
+    '''
+    def get_list_of_replication_schedules(self, domain_id, definition_id, params=None):
+        """
+        Function to list the replication schedules
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: JSON dict
+        :return: response dict
+        """
+        response = None
+        if domain_id is None or definition_id is None:
+            self.logger.error("domain_id or definition_id cannot be None")
+            raise Exception("domain_id or definition_id cannot be None")
+
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_replication_schedules = url_builder.list_replication_schedules_url(
+            self.client_config, domain_id, definition_id) + IWUtils.get_query_params_string_from_dict(params=params)
+        replication_schedules_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_replication_schedules,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                initial_msg = response.get("message", "")
+                result = response.get("result", {})
+                records = result.get("records", [])
+                while len(records) > 0:
+                    replication_schedules_list.extend(records)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", {})
+                    records = result.get("records", [])
+            else:
+                self.logger.error("Failed to get list of replication schedules")
+                return GenericResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                    error_desc="Failed to get list of replication schedules",
+                                                    response=response)
+            response["result"] = replication_schedules_list
+            response["message"] = initial_msg
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in listing replication schedules")
+            raise GenericError("Error in listing replication schedules " + str(e))
+    '''
     def create_replication_schedule(self, domain_id, definition_id, schedule_config):
         """
         Create replication schedule
@@ -729,8 +1179,8 @@ class ReplicatorClient(BaseClient):
             raise Exception("domain_id or definition_id or schedule_config cannot be None")
         try:
             response = IWUtils.ejson_deserialize(
-                self.call_api("POST", url_builder.get_replication_schedules_url(self.client_config, domain_id,
-                                                                                definition_id),
+                self.call_api("POST", url_builder.list_replication_schedules_url(self.client_config, domain_id,
+                                                                                 definition_id),
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                               schedule_config).content)
 
@@ -751,6 +1201,129 @@ class ReplicatorClient(BaseClient):
             raise GenericError(response.get("message", "Error occurred while trying to create "
                                                        "replication schedule"))
 
+    def get_replication_schedule(self, domain_id, definition_id, schedule_id):
+        """
+        Function to retrieve the details of a specific replicator source
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :param schedule_id: Identifier of Schedule
+        :type schedule_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if domain_id is None or definition_id is None or schedule_id is None:
+                self.logger.error("domain_id / definition_id / schedule_id cannot be None")
+                raise Exception("domain_id / definition_id / schedule_id cannot be None")
+
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_builder.get_replication_schedule_url(self.client_config, domain_id,
+                                                                              definition_id, schedule_id),
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+
+            schedule_id = response.get('result', {}).get('id')
+            if schedule_id is not None:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to retrieve schedule details",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in retrieving replication schedule")
+            raise GenericError("Error in retrieving replication schedule " + str(e))
+
+    def update_replication_schedule(self, domain_id, definition_id, schedule_id, schedule_config):
+        """
+        Update Infoworks Replication Schedule
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :param schedule_id: Identifier of Schedule
+        :type schedule_id: String
+        :param schedule_config: a JSON object containing schedule configurations
+        :type schedule_config: JSON Object
+        ```
+        schedule_sample_config = {
+          "entity_type": "replicate_definition",
+          "properties": {
+            "schedule_status": "enabled",
+            "repeat_interval": "[hour,minute,day,week,month]",
+            "starts_on": "08/30/2022",
+            "time_hour": 7,
+            "time_min": 20,
+            "ends": "on",
+            "repeat_every": "1",
+            "ends_on": "{number}",
+            "end_hour": "{number}",
+            "end_min": "{number}"
+          },
+          "scheduler_username": "admin@infoworks.io",
+          "scheduler_auth_token": "1TGf748u1I0mvZj3efuwr8y"
+        }
+        ```
+        :return: response dict
+        """
+        response = None
+        if domain_id is None or definition_id is None or schedule_id is None or schedule_config is None:
+            self.logger.error("domain_id / definition_id / schedule_id / schedule_config cannot be None")
+            raise Exception("domain_id / definition_id / schedule_id / schedule_config cannot be None")
+        try:
+            api_response = self.call_api("PATCH",
+                                         url_builder.get_replication_schedule_url(self.client_config, domain_id,
+                                                                                  definition_id, schedule_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                         schedule_config)
+
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to update schedule",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to update schedule.')
+            raise GenericError(response.get("message", "Error occurred while trying to update schedule."))
+
+    def delete_replication_schedule(self, domain_id, definition_id, schedule_id):
+        """
+        Function to delete a specific replication schedule
+        :param domain_id: Identifier of Domain
+        :type domain_id: String
+        :param definition_id: Identifier of Definition
+        :type definition_id: String
+        :param schedule_id: Identifier of Schedule ID
+        :type schedule_id: String
+        :return: response dict
+        """
+        response = None
+        try:
+            if domain_id is None or definition_id is None or schedule_id is None:
+                self.logger.error("domain_id/definition_id/schedule_id cannot be None")
+                raise Exception("domain_id/definition_id/schedule_id cannot be None")
+
+            api_response = self.call_api("DELETE",
+                                         url_builder.get_replication_schedule_url(self.client_config, domain_id,
+                                                                                  definition_id, schedule_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
+            response = IWUtils.ejson_deserialize(api_response.content)
+            if api_response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_desc="Failed to delete replication schedule",
+                                                    response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.error("Error in deleting replication schedule")
+            raise GenericError("Error in deleting replication schedule " + str(e))
+
+    # Replicator Source Tables
     def get_replicator_source_table_id_from_name(self, source_id, schema_name, table_name):
         """
         Get table ID from name under source
