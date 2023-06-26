@@ -1718,6 +1718,24 @@ def list_replicator_definitions_url(config, domain_id):
     return request
 
 
+def get_replicator_definition_url(config, domain_id, definition_id):
+    """
+    returns URL to get replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier of Domain
+    :type domain_id: String
+    :param definition_id: Identifier of Definition
+    :type definition_id: String
+    :return: url to list definitions
+    """
+
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions/{definition_id}' \
+        .format(ip=config['ip'], port=config['port'], domain_id=domain_id, definition_id=definition_id,
+                protocol=config['protocol'])
+    return request
+
+
 def create_replicator_definition_url(config, domain_id):
     """
     returns URL to create a replicator definition using v3 api
@@ -1731,6 +1749,18 @@ def create_replicator_definition_url(config, domain_id):
                                                                                    port=config['port'],
                                                                                    protocol=config['protocol'],
                                                                                    domain_id=domain_id)
+    return request
+
+
+def list_replicator_domains_url(config):
+    """
+    returns URL to list replicator domains using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list domains
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains'.format(ip=config['ip'], port=config['port'],
+                                                           protocol=config['protocol'])
     return request
 
 
@@ -1788,6 +1818,25 @@ def submit_replication_data_job_url(config, domain_id, definition_id):
     return request
 
 
+def get_replicator_job_summary_url(config, domain_id, definition_id, job_id):
+    """
+    returns URL to add tables to replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param definition_id: Identifier for Definition
+    :type definition_id: string
+    :param job_id: Identifier of Job
+    :type job_id: string
+    :return: url to submit replication data job
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions/{definition_id}/jobs/{job_id}/summary' \
+        .format(ip=config['ip'], port=config['port'], protocol=config['protocol'], domain_id=domain_id,
+                definition_id=definition_id, job_id=job_id)
+    return request
+
+
 def add_replicator_sources_to_domain_url(config, domain_id):
     """
     returns URL to add replicator sources to domains
@@ -1818,7 +1867,7 @@ def add_replicator_destinations_to_domain_url(config, domain_id):
     return request
 
 
-def get_replication_schedules_url(config, domain_id, definition_id):
+def list_replication_schedules_url(config, domain_id, definition_id):
     """
     returns replication schedules URL
 
@@ -1833,6 +1882,26 @@ def get_replication_schedules_url(config, domain_id, definition_id):
     request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions/{definition_id}/schedules' \
         .format(ip=config['ip'], port=config['port'], domain_id=domain_id, protocol=config['protocol'],
                 definition_id=definition_id)
+    return request
+
+
+def get_replication_schedule_url(config, domain_id, definition_id, schedule_id):
+    """
+    returns replication schedule URL
+
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param definition_id : Identifier for Replicator definition
+    :type definition_id: string
+    :param schedule_id : Identifier of schedule
+    :type schedule_id: string
+    :return: replication schedules URL
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/definitions/{definition_id}/schedules/{schedule_id}' \
+        .format(ip=config['ip'], port=config['port'], domain_id=domain_id, protocol=config['protocol'],
+                definition_id=definition_id, schedule_id=schedule_id)
     return request
 
 
