@@ -247,7 +247,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">get_pipeline</span><span class="signature">(self, pipeline_id, domain_id)</span>:
+            <span class="name">get_pipeline</span><span class="signature">(self, pipeline_id=None, domain_id=None)</span>:
     </div>
 
     
@@ -274,7 +274,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">delete_pipeline</span><span class="signature">(self, pipeline_id, domain_id)</span>:
+            <span class="name">delete_pipeline</span><span class="signature">(self, pipeline_id=None, domain_id=None)</span>:
     </div>
 
     
@@ -301,7 +301,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">update_pipeline</span><span class="signature">(self, pipeline_id, domain_id, pipeline_config)</span>:
+            <span class="name">update_pipeline</span><span class="signature">(self, pipeline_id=None, domain_id=None, pipeline_config=None)</span>:
     </div>
 
     
@@ -336,7 +336,13 @@
 
         
             <span class="def">def</span>
-            <span class="name">sql_import_into_pipeline</span><span class="signature">(self, pipeline_id, domain_id, import_configs=None, sql_query=None)</span>:
+            <span class="name">sql_import_into_pipeline</span><span class="signature">(
+    self,
+    pipeline_id=None,
+    domain_id=None,
+    import_configs=None,
+    sql_query=None
+)</span>:
     </div>
 
     
@@ -374,7 +380,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">get_pipeline_version_details</span><span class="signature">(self, pipeline_id, domain_id, pipeline_version_id)</span>:
+            <span class="name">get_pipeline_version_details</span><span class="signature">(self, pipeline_id=None, domain_id=None, pipeline_version_id=None)</span>:
     </div>
 
     
@@ -402,7 +408,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">delete_pipeline_version</span><span class="signature">(self, pipeline_id, domain_id, pipeline_version_id)</span>:
+            <span class="name">delete_pipeline_version</span><span class="signature">(self, pipeline_id=None, domain_id=None, pipeline_version_id=None)</span>:
     </div>
 
     
@@ -432,10 +438,10 @@
             <span class="def">def</span>
             <span class="name">update_pipeline_version_details</span><span class="signature">(
     self,
-    pipeline_id,
-    domain_id,
-    pipeline_version_id,
-    pipeline_version_config
+    pipeline_id=None,
+    domain_id=None,
+    pipeline_version_id=None,
+    pipeline_version_config=None
 )</span>:
     </div>
 
@@ -465,7 +471,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">export_pipeline_configurations</span><span class="signature">(self, pipeline_id, domain_id)</span>:
+            <span class="name">export_pipeline_configurations</span><span class="signature">(self, pipeline_id=None, domain_id=None)</span>:
     </div>
 
     
@@ -492,7 +498,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">import_pipeline_configurations</span><span class="signature">(self, pipeline_id, domain_id, pipeline_config)</span>:
+            <span class="name">import_pipeline_configurations</span><span class="signature">(self, pipeline_id=None, domain_id=None, pipeline_config=None)</span>:
     </div>
 
     
@@ -520,7 +526,13 @@
 
         
             <span class="def">def</span>
-            <span class="name">trigger_pipeline_job</span><span class="signature">(self, domain_id, pipeline_id, pipeline_version_id=None, poll=False)</span>:
+            <span class="name">trigger_pipeline_job</span><span class="signature">(
+    self,
+    domain_id=None,
+    pipeline_id=None,
+    pipeline_version_id=None,
+    poll=False
+)</span>:
     </div>
 
     
@@ -601,7 +613,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">create_pipeline_version</span><span class="signature">(self, domain_id, pipeline_id, body=None)</span>:
+            <span class="name">create_pipeline_version</span><span class="signature">(self, domain_id=None, pipeline_id=None, body=None)</span>:
     </div>
 
     
@@ -629,7 +641,13 @@
 
         
             <span class="def">def</span>
-            <span class="name">update_pipeline_version</span><span class="signature">(self, domain_id, pipeline_id, pipeline_version_id, body=None)</span>:
+            <span class="name">update_pipeline_version</span><span class="signature">(
+    self,
+    domain_id=None,
+    pipeline_id=None,
+    pipeline_version_id=None,
+    body=None
+)</span>:
     </div>
 
     
@@ -658,7 +676,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">set_pipeline_version_as_active</span><span class="signature">(self, domain_id, pipeline_id, pipeline_version_id)</span>:
+            <span class="name">set_pipeline_version_as_active</span><span class="signature">(self, domain_id=None, pipeline_id=None, pipeline_version_id=None)</span>:
     </div>
 
     
@@ -688,9 +706,9 @@
             <span class="def">def</span>
             <span class="name">modify_advanced_config_for_pipeline</span><span class="signature">(
     self,
-    domain_id,
-    pipeline_id,
-    adv_config_body,
+    domain_id=None,
+    pipeline_id=None,
+    adv_config_body=None,
     action_type=&#39;update&#39;,
     key=None
 )</span>:

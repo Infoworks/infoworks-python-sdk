@@ -2276,7 +2276,7 @@ config_body_example: {
 
         
             <span class="def">def</span>
-            <span class="name">get_list_of_advanced_config_of_table</span><span class="signature">(self, source_id, table_id, params=None)</span>:
+            <span class="name">get_list_of_advanced_config_of_table</span><span class="signature">(self, source_id=None, table_id=None, params=None)</span>:
     </div>
 
     
@@ -2306,9 +2306,9 @@ config_body_example: {
             <span class="def">def</span>
             <span class="name">modify_advanced_config_of_table</span><span class="signature">(
     self,
-    source_id,
-    table_id,
-    adv_config_body,
+    source_id=None,
+    table_id=None,
+    adv_config_body=None,
     action_type=&#39;update&#39;,
     key=None
 )</span>:
@@ -2352,7 +2352,7 @@ config_body_example: {
 
         
             <span class="def">def</span>
-            <span class="name">get_or_delete_advance_config_of_table</span><span class="signature">(self, source_id, table_id, key, action_type=&#39;get&#39;)</span>:
+            <span class="name">get_or_delete_advance_config_of_table</span><span class="signature">(self, source_id=None, table_id=None, key=None, action_type=&#39;get&#39;)</span>:
     </div>
 
     
