@@ -1938,3 +1938,89 @@ def pipeline_version_base_url(config, domain_id, pipeline_id):
                                                                                                         domain_id=domain_id,
                                                                                                         pipeline_id=pipeline_id)
     return request
+
+
+def workflow_lineage_url(config, domain_id, workflow_id):
+    """
+    returns URL for workflow lineage
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param workflow_id: Identifier for workflow
+    :type workflow_id: string
+    :return: url for workflow lineage
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/lineage'.format(ip=config['ip'],
+                                                                                                       port=config[
+                                                                                                           'port'],
+                                                                                                       protocol=config[
+                                                                                                           'protocol'],
+                                                                                                       domain_id=domain_id,
+                                                                                                       workflow_id=workflow_id)
+    return request
+
+
+def validate_pipeline_url(config, domain_id, pipeline_id, pipeline_version_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/versions/{pipeline_version_id}/validate'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id, pipeline_id=pipeline_id, pipeline_version_id=pipeline_version_id)
+    return request
+
+
+def url_to_refresh_sample_data_of_pipeline(config, domain_id, pipeline_id, pipeline_version_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/versions/{pipeline_version_id}/refresh-sample-data'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id, pipeline_id=pipeline_id, pipeline_version_id=pipeline_version_id)
+    return request
+
+
+def url_to_get_pipeline_node_details(config, domain_id, pipeline_id, pipeline_version_id, node_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/versions/{pipeline_version_id}/nodes/{node_id}/'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id, pipeline_id=pipeline_id, pipeline_version_id=pipeline_version_id, node_id=node_id)
+    return request
+
+
+def url_for_pipeline_version_audits(config, domain_id, pipeline_id, version_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/versions/{version_id}/pipeline-version-audits'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id, pipeline_id=pipeline_id, version_id=version_id)
+    return request
+
+
+def url_for_pipeline_audits(config, domain_id, pipeline_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/pipeline-audits'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id, pipeline_id=pipeline_id)
+    return request
+
+
+def import_sql_mappings_url(config, domain_id, pipeline_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/import-sql-mappings'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id, pipeline_id=pipeline_id)
+    return request
+
+
+def url_to_get_accessible_pipelines(config, domain_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-pipelines'.format(ip=config['ip'],
+                                                                                            port=config['port'],
+                                                                                            protocol=config[
+                                                                                                'protocol'],
+                                                                                            domain_id=domain_id
+                                                                                            )
+    return request
+

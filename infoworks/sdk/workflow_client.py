@@ -1202,3 +1202,31 @@ class WorkflowClient(BaseClient):
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to get workflow run details.')
             raise WorkflowError('Error occurred while trying to get workflow run details.')
+
+    def get_workflow_lineage(self, domain_id, workflow_id):
+        """
+        Gets workflow lineage
+        :param domain_id: Domain ID of which Workflow belongs
+        :type domain_id: String
+        :param workflow_id: Entity id of the Workflow
+        :type workflow_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or workflow_id is None:
+            self.logger.error("domain_id or workflow_id cannot be None")
+            raise Exception("domain_id or workflow_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.workflow_lineage_url(
+                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get workflow lineage.')
+            raise WorkflowError('Error occurred while trying to get workflow lineage.')

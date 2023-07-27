@@ -834,8 +834,9 @@ class PipelineClient(BaseClient):
             raise Exception("omain_id and pipeline_id cannot be None")
         if params is None:
             params = {"limit": 20, "offset": 0}
-        url_to_list_pipeline_versions = url_builder.pipeline_version_base_url(self.client_config, domain_id, pipeline_id) \
-                                + IWUtils.get_query_params_string_from_dict(params=params)
+        url_to_list_pipeline_versions = url_builder.pipeline_version_base_url(self.client_config, domain_id,
+                                                                              pipeline_id) \
+                                        + IWUtils.get_query_params_string_from_dict(params=params)
 
         pipelines_list = []
         try:
@@ -869,3 +870,213 @@ class PipelineClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in listing pipeline version")
             raise PipelineError("Error in listing pipeline version" + str(e))
+
+    def validate_pipeline(self, domain_id, pipeline_id, pipeline_version_id):
+        """
+        Validates the pipeline
+        :param domain_id: Domain ID of which pipeline belongs
+        :type domain_id: String
+        :param pipeline_id: Entity id of the pipeline
+        :type pipeline_id: String
+        :param pipeline_version_id: Entity id of the pipeline version
+        :type pipeline_version_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or pipeline_id is None or pipeline_version_id is None:
+            self.logger.error("domain_id or pipeline_id or pipeline_version_id cannot be None")
+            raise Exception("domain_id or pipeline_id or pipeline_version_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.validate_pipeline_url(
+                self.client_config, domain_id, pipeline_id, pipeline_version_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return PipelineResponse.parse_result(status=Response.Status.SUCCESS, pipeline_id=pipeline_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to validate pipeline')
+            raise PipelineError('Error occurred while trying to validate pipeline')
+
+    def refresh_sample_data_of_pipeline(self, domain_id, pipeline_id, pipeline_version_id):
+        """
+        Function to refresh the sample data of pipeline
+        :param domain_id: Domain ID of which pipeline belongs
+        :type domain_id: String
+        :param pipeline_id: Entity id of the pipeline
+        :type pipeline_id: String
+        :param pipeline_version_id: Entity id of the pipeline version
+        :type pipeline_version_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or pipeline_id is None or pipeline_version_id is None:
+            self.logger.error("domain_id or pipeline_id or pipeline_version_id cannot be None")
+            raise Exception("domain_id or pipeline_id or pipeline_version_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.validate_pipeline_url(
+                self.client_config, domain_id, pipeline_id, pipeline_version_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return PipelineResponse.parse_result(status=Response.Status.SUCCESS, pipeline_id=pipeline_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to refresh sample data pipeline')
+            raise PipelineError('Error occurred while trying to refresh sample data pipeline')
+
+    def get_details_of_pipeline_node(self, domain_id, pipeline_id, pipeline_version_id, node_id, action_type="schema"):
+        """
+        Function to get the schema, data, query and sql-inspection of pipeline node
+        :param domain_id: Domain ID of which pipeline belongs
+        :type domain_id: String
+        :param pipeline_id: Entity id of the pipeline
+        :type pipeline_id: String
+        :param pipeline_version_id: Entity id of the pipeline version
+        :type pipeline_version_id: String
+        :param node_id: Node id of the node in pipeline
+        :param action_type: Can be one of schema, data, query or sql-inspection
+        :return: Response Dict
+        """
+        if None in {domain_id, pipeline_id, pipeline_version_id, node_id}:
+            self.logger.error("domain_id or pipeline_id or pipeline_version_id or node_id cannot be None")
+            raise Exception("domain_id or pipeline_id or pipeline_version_id or node_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.url_to_get_pipeline_node_details(
+                self.client_config, domain_id, pipeline_id, pipeline_version_id, node_id) + action_type,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token'])).content)
+
+            return PipelineResponse.parse_result(status=Response.Status.SUCCESS, pipeline_id=pipeline_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get node details requested')
+            raise PipelineError('Error occurred while trying to get node details requested')
+
+    def get_pipeline_version_audits(self, domain_id, pipeline_id, pipeline_version_id):
+        """
+        Function to get the audit logs of the pipeline version
+        :param domain_id: Domain ID of which pipeline belongs
+        :type domain_id: String
+        :param pipeline_id: Entity id of the pipeline
+        :type pipeline_id: String
+        :param pipeline_version_id: Entity id of the pipeline version
+        :type pipeline_version_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or pipeline_id is None or pipeline_version_id is None:
+            self.logger.error("domain_id or pipeline_id or pipeline_version_id cannot be None")
+            raise Exception("domain_id or pipeline_id or pipeline_version_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.url_for_pipeline_version_audits(
+                self.client_config, domain_id, pipeline_id, pipeline_version_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return PipelineResponse.parse_result(status=Response.Status.SUCCESS, pipeline_id=pipeline_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get pipeline version audit logs')
+            raise PipelineError('Error occurred while trying to get pipeline version audit logs')
+
+    def get_pipeline_audits(self, domain_id, pipeline_id):
+        """
+        Function to get the audit logs of the pipeline version
+        :param domain_id: Domain ID of which pipeline belongs
+        :type domain_id: String
+        :param pipeline_id: Entity id of the pipeline
+        :type pipeline_id: String
+        :return: Response Dict
+        """
+        if domain_id is None or pipeline_id is None:
+            self.logger.error("domain_id or pipeline_id cannot be None")
+            raise Exception("domain_id or pipeline_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.url_for_pipeline_audits(
+                self.client_config, domain_id, pipeline_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return PipelineResponse.parse_result(status=Response.Status.SUCCESS, pipeline_id=pipeline_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get pipeline audit logs')
+            raise PipelineError('Error occurred while trying to get pipeline audit logs')
+
+    def import_sql_mappings(self, pipeline_id=None, domain_id=None, sql_mapping=None):
+        """
+        Function to import sql mappings for Infoworks Data pipeline
+        :param pipeline_id: entity id of the pipeline to be updated
+        :type pipeline_id: String
+        :param domain_id: Domain id to which the pipeline belongs to
+        :type domain_id: String
+        :param sql_mapping: a JSON object containing SQL mappings
+        :type sql_mapping: JSON Object
+        ```
+           sql_mapping_example = {
+          "dry_run": false,
+          "sql": null,
+          "sql_import_configuration": {
+            "sql_dialect": "LENIENT",
+            "quoted_identifier": "DOUBLE_QUOTE"
+          },
+          "import_json": {
+            "mappings": [
+              {
+                "entity_type": "table",
+                "to_entity_id": "2f1bf594bc37fdd7edbda06c",
+                "recommendation": {
+                  "original_table_name": "based_table"
+                }
+              }
+            ]
+          }
+        }
+
+        ```
+        :return: response dict
+        """
+        try:
+            if None in {pipeline_id, domain_id} or sql_mapping is None:
+                raise Exception(f"pipeline_config, pipeline_id, domain_id cannot be None")
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.import_sql_mappings_url(
+                self.client_config, domain_id, pipeline_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']), sql_mapping).content)
+            result = response.get('result', {})
+            if result.get('id', None) is None:
+                self.logger.error(f'Failed to import the sql mapping {pipeline_id}')
+                return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc=f'Failed to update the pipeline {pipeline_id} sql mapping',
+                                                     response=response)
+            pipeline_id = str(pipeline_id)
+            self.logger.info(
+                'Successfully updated the pipeline {id} with sql mappings.'.format(id=pipeline_id))
+            return PipelineResponse.parse_result(status=Response.Status.SUCCESS, pipeline_id=pipeline_id,
+                                                 response=response)
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to import sql mapping.')
+            raise PipelineError('Error occurred while trying to import sql mapping.')
+
+
+
