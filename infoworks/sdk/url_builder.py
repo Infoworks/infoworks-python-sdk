@@ -2024,3 +2024,12 @@ def url_to_get_accessible_pipelines(config, domain_id):
                                                                                             )
     return request
 
+
+def url_to_get_accessible_workflows(config, domain_id):
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/accessible-workflows'.format(ip=config['ip'],
+                                                                                            port=config['port'],
+                                                                                            protocol=config[
+                                                                                                'protocol'],
+                                                                                            domain_id=domain_id
+                                                                                            )
+    return request

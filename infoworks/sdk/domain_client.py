@@ -601,3 +601,29 @@ class DomainClient(BaseClient):
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to get accessible pipelines')
             raise DomainError('Error occurred while trying to get accessible pipelines')
+
+    def get_accessible_workflows_under_domain(self, domain_id):
+        """
+        Function to get the workflows accessible under a domain
+        :param domain_id: Entity identifier for domain
+        :type domain_id: String
+        :return: Response Dict
+        """
+        if domain_id is None:
+            self.logger.error("domain_id cannot be None")
+            raise Exception("domain_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.url_to_get_accessible_workflows(
+                self.client_config, domain_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=domain_id,
+                                                response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get accessible workflows')
+            raise DomainError('Error occurred while trying to get accessible workflows')
