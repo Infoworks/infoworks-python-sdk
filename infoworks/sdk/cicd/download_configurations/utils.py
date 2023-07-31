@@ -7,7 +7,8 @@ from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, c
     configure_workflow_url, \
     configure_source_url, get_environment_details, get_environment_storage_details, get_environment_compute_details, \
     get_environment_interactive_compute_details, get_source_configurations_url, get_pipeline_url, \
-    get_data_connection, source_info, list_users_url, list_secrets_url, get_pipeline_group_base_url,list_pipelines_url
+    get_data_connection, source_info, list_users_url, list_secrets_url, get_pipeline_group_base_url,list_pipelines_url, \
+    create_domain_url
 from infoworks.sdk.cicd.cicd_response import CICDResponse
 import json
 
@@ -233,6 +234,11 @@ class Utils:
                                 secret_name = self.get_secret_name_from_id(cicd_client,secret_id)
                                 if secret_name:
                                     source_connection_objects["password"]["secret_name"] = secret_name
+                        #handle associated domains
+                        if configuration_obj.get("configuration",{}).get("source_configs",{}).get("associated_domains",None) is None:
+                            associated_domains = result.get("associated_domains",[])
+                            if associated_domains:
+                                configuration_obj["configuration"]["source_configs"]["associated_domains"]=associated_domains
                 # Check if any table has export configurations. Works for postgres/snowflake/synapse
                 # Did not test for cosmos,delimited
                 for table_config in configuration_obj["configuration"]["table_configs"]:
@@ -243,6 +249,26 @@ class Utils:
                             table_config["configuration"]["export_configuration"]["connection"]["password"] = None
                         else:
                             pass  # TO_DO
+
+                #add domain names to mapped domain ids
+                accessible_domain_ids = configuration_obj["configuration"]["source_configs"].get("associated_domains",[])
+                accessible_domain_names=[]
+                for domain_id in accessible_domain_ids:
+                    domain_id_response = cicd_client.call_api("GET",
+                                                    create_domain_url(cicd_client.client_config)+"/"+domain_id,
+                                                    IWUtils.get_default_header_for_v3(
+                                                        cicd_client.client_config['bearer_token']))
+                    domain_id_parsed_response = IWUtils.ejson_deserialize(domain_id_response.content)
+                    #print(domain_id_parsed_response)
+                    if domain_id_response.status_code == 200 and len(domain_id_parsed_response.get("result", [])) > 0:
+                        result = domain_id_parsed_response.get("result", [])
+                        if len(result) > 0:
+                            domain_name = result.get("name", None)
+                            if domain_name is not None:
+                                accessible_domain_names.append(domain_name)
+                    if len(accessible_domain_names)>0:
+                        configuration_obj["configuration"]["source_configs"]["associated_domain_names"]=accessible_domain_names
+
                 steps_to_run = {"configure_csv_source": True, "import_source_configuration": True,
                                 "configure_rdbms_source_connection": True,
                                 "test_source_connection": True, "browse_source_tables": True,

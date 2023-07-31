@@ -1,7 +1,7 @@
 import json
 import requests
 import yaml
-from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url
+from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url, create_domain_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
@@ -93,6 +93,27 @@ class CSVSource:
             create_csv_source_payload["target_database_name"] = data.get("target_database_name","")
         if data.get("staging_schema_name",""):
             create_csv_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
+        # adding associated domains if any
+        accessible_domain_names = data.get("associated_domain_names",[])
+        accessible_domain_ids = []
+        for domain_name in accessible_domain_names:
+            domain_response = src_client_obj.call_api("GET",
+                                                         create_domain_url(
+                                                             src_client_obj.client_config) + "?filter={\"name\":\""+domain_name+"\"}",
+                                                         IWUtils.get_default_header_for_v3(
+                                                             src_client_obj.client_config['bearer_token']))
+            domain_parsed_response = IWUtils.ejson_deserialize(domain_response.content)
+            if domain_response.status_code == 200 and len(domain_parsed_response.get("result", [])) > 0:
+                result = domain_parsed_response.get("result", [])
+                if len(result) > 0:
+                    result = result[0]
+                    domain_id = result.get("id", None)
+                    if domain_id is not None:
+                        accessible_domain_ids.append(domain_id)
+            if "associated_domain_names" in create_csv_source_payload.keys():
+                create_csv_source_payload.pop("associated_domain_names",[])
+            if len(accessible_domain_ids) > 0:
+                create_csv_source_payload["associated_domains"] = accessible_domain_ids
         src_create_response = src_client_obj.create_source(source_config=create_csv_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id_created = src_create_response["result"]["source_id"]

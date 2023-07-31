@@ -195,7 +195,7 @@ class WrapperSource(BaseClient):
                             if source_browse_source_tables_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
                                 add_tables_to_source_response = source_obj.add_tables_to_source(self, source_id,configuration_obj["steps_to_run"]["add_tables_to_source"])
                                 status = add_tables_to_source_response["result"]["status"]
-                                if status == "SUCCESS" or add_tables_to_source_response["result"].get("response",{}).get("result",{}).get("response",{}).get("iw_code","")=="IW10003":
+                                if status.upper() in ["SUCCESS","SKIPPED"] or add_tables_to_source_response["result"].get("response",{}).get("result",{}).get("response",{}).get("iw_code","")=="IW10003":
                                     self.logger.info("Added tables to source successfully")
                                     print("Added tables to source successfully")
                                 else:
