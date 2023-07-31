@@ -2123,3 +2123,13 @@ def list_all_schedules_url(config):
                                                                    protocol=config['protocol'],
                                                                    )
     return request
+
+
+def get_crawl_job_summary_url(config, source_id, job_id):
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/jobs/{job_id}/logs'.format(ip=config['ip'],
+                                                                                          port=config['port'],
+                                                                                          protocol=config['protocol'],
+                                                                                          source_id=source_id,
+                                                                                          job_id=job_id
+                                                                                          )
+    return request

@@ -881,7 +881,7 @@ class AdminClient(BaseClient):
         "properties": {
             "url": "https://account_name.snowflakecomputing.com",
             "account": "",
-            "username": "ramesh",
+            "user_name": "ramesh",
             "password": {
                 "password_type": "infoworks_managed"
                 "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
@@ -945,7 +945,7 @@ class AdminClient(BaseClient):
         try:
             if config_body is None or data_connection_id is None:
                 raise Exception("config_body and data_connection_id cannot be None/Null")
-            create_data_connection_url = url_builder.create_data_connection(self.client_config)
+            create_data_connection_url = url_builder.create_data_connection(self.client_config) + f"/{data_connection_id}"
             response = self.call_api("PUT", create_data_connection_url,
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                                      config_body)

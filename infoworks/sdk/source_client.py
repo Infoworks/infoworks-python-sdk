@@ -311,13 +311,13 @@ class SourceClient(BaseClient):
         try:
             url_for_browse_source = url_builder.browse_source_tables_url(self.client_config, source_id)
             if filter_tables_properties is not None:
-                filter_condition = f"?is_filter_enabled=true&tables_filter={filter_tables_properties.get('tables_filter','')}&catalogs_filter={filter_tables_properties.get('catalogs_filter','')}&schemas_filter={filter_tables_properties.get('schemas_filter','')}"
+                filter_condition = f"?is_filter_enabled=true&tables_filter={filter_tables_properties.get('tables_filter', '')}&catalogs_filter={filter_tables_properties.get('catalogs_filter', '')}&schemas_filter={filter_tables_properties.get('schemas_filter', '')}"
                 url_for_browse_source = url_for_browse_source + filter_condition
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_for_browse_source,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
             result = response.get('result', {})
-            if result.get("message","")=="Interactive Cluster is not running. Please bring up cluster and retry":
+            if result.get("message", "") == "Interactive Cluster is not running. Please bring up cluster and retry":
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                    error_code=ErrorCode.GENERIC_ERROR,
                                                    error_desc=f"Interactive Cluster is not running. Please bring up cluster and retry",
@@ -358,7 +358,7 @@ class SourceClient(BaseClient):
                         job_status = None
                     else:
                         job_status = result["status"]
-                    self.logger.info(f"Browse source job poll status : {job_status}" )
+                    self.logger.info(f"Browse source job poll status : {job_status}")
                     if job_status in ["completed", "failed", "aborted"]:
                         break
                     if job_status is None:
@@ -1157,6 +1157,56 @@ class SourceClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in listing tables under source")
             raise SourceError("Error in listing tables under source" + str(e))
+
+    def get_list_of_table_groups(self, source_id=None, params=None):
+        """
+        Function to list the tables groups part of the source
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if None in {source_id}:
+            self.logger.error("source id cannot be None")
+            raise Exception("source id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_tablegrps = url_builder.create_table_group_url(
+            self.client_config, source_id) + IWUtils.get_query_params_string_from_dict(params=params)
+
+        tablegrp_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_tablegrps,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                initial_msg = response.get("message", "")
+                while len(result) > 0:
+                    tablegrp_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                           error_code=ErrorCode.GENERIC_ERROR,
+                                                           error_desc="Error in listing table groups under the source",
+                                                           response=response
+                                                           )
+
+                response["result"] = tablegrp_list
+                response["message"] = initial_msg
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing table groups under source")
+            raise SourceError("Error in listing table groups under source" + str(e))
 
     def get_table_columns_details(self, source_id=None, table_name=None, schema_name=None, database_name=None):
         """
@@ -3026,3 +3076,32 @@ class SourceClient(BaseClient):
                                                    source_id=source_id)
         except Exception as e:
             raise SourceError(f"Failed to get the job details for {job_id} " + str(e))
+
+    def get_source_crawl_job_summary(self, source_id=None, job_id=None, num_lines=10000):
+        """
+        Function to get source job crawl summary
+        :param source_id: Entity identifier for source
+        :param job_id: Entity identifier for job
+        :param num_lines: Default is 10000
+        :return: response dict
+        """
+        try:
+            if None in {source_id, job_id}:
+                self.logger.error("source id or job_id cannot be None")
+                raise Exception("source id or job_id cannot be None")
+            source_crawl_job_summary_url = url_builder.get_crawl_job_summary_url(self.client_config,
+                                                                                 source_id, job_id) + f"?num_lines={num_lines}"
+            response = IWUtils.ejson_deserialize(self.call_api("GET", source_crawl_job_summary_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', None)
+            if not result:
+                self.logger.error(f"Failed to get the source job crawl summary fro job {job_id} ")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get source job crawl summary for job {job_id} ",
+                                                   response=response, job_id=None, source_id=None)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            raise SourceError(f"Failed to get source job crawl summary for job {job_id} " + str(e))

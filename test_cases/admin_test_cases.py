@@ -240,7 +240,7 @@ class TestAdminClientSDK:
                 "properties": {
                     "url": "",
                     "account": "",
-                    "username": "",
+                    "user_name": "",
                     "password": "",
                     "additional_params": "",
                     "warehouse": "DEMO_WH"
