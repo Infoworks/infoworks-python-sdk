@@ -2033,3 +2033,93 @@ def url_to_get_accessible_workflows(config, domain_id):
                                                                                             domain_id=domain_id
                                                                                             )
     return request
+
+
+def list_domains_admin_url(config):
+    """
+    returns Admin URL to list domains using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list domains
+    """
+    request = '{protocol}://{ip}:{port}/v3/admins/domains'.format(ip=config['ip'], port=config['port'],
+                                                                  protocol=config['protocol'])
+    return request
+
+
+def stop_interactive_cluster_url(config):
+    request = '{protocol}://{ip}:{port}/v3/admin/environment/cluster/service/stop'.format(ip=config['ip'],
+                                                                                          port=config['port'],
+                                                                                          protocol=config[
+                                                                                              'protocol'],
+                                                                                          )
+    return request
+
+
+def terminate_persistent_cluster_aysnc(config):
+    request = '{protocol}://{ip}:{port}/v3/admin/environment/cluster/terminate-async'.format(ip=config['ip'],
+                                                                                             port=config['port'],
+                                                                                             protocol=config[
+                                                                                                 'protocol'],
+                                                                                             )
+    return request
+
+
+def restart_persistent_cluster_url(config):
+    request = '{protocol}://{ip}:{port}/v3/admin/environment/cluster/restart'.format(ip=config['ip'],
+                                                                                     port=config['port'],
+                                                                                     protocol=config['protocol'],
+                                                                                     )
+    return request
+
+
+def stop_persistent_cluster_url(config):
+    request = '{protocol}://{ip}:{port}/v3/admin/environment/cluster/stop'.format(ip=config['ip'],
+                                                                                  port=config['port'],
+                                                                                  protocol=config['protocol'],
+                                                                                  )
+    return request
+
+
+def url_to_list_accessible_sources(config, domain_id):
+    request = '{protocol}://{ip}:{port}/v3/admin/domains/{domain_id}/accessible-sources-to-add'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id)
+    return request
+
+
+def url_to_list_accessible_pipeline_extensions(config, domain_id):
+    request = '{protocol}://{ip}:{port}/v3/admin/domains/{domain_id}/accessible-pipeline-extensions-to-add'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id)
+    return request
+
+
+def url_to_list_accessible_domains(config, domain_id):
+    request = '{protocol}://{ip}:{port}/v3/admin/domains/{domain_id}/accessible-domains-to-add'.format(
+        ip=config['ip'],
+        port=config['port'],
+        protocol=config['protocol'],
+        domain_id=domain_id)
+    return request
+
+
+def delete_user_schedules_url(config, user_id):
+    request = '{protocol}://{ip}:{port}/v3/admin/users/{user_id}/delete-schedules'.format(ip=config['ip'],
+                                                                                          port=config['port'],
+                                                                                          protocol=config[
+                                                                                              'protocol'],
+                                                                                          user_id=user_id)
+    return request
+
+
+def list_all_schedules_url(config):
+    request = '{protocol}://{ip}:{port}/v3/admin/schedules'.format(ip=config['ip'],
+                                                                   port=config['port'],
+                                                                   protocol=config['protocol'],
+                                                                   )
+    return request
