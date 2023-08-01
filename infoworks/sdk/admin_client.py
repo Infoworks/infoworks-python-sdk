@@ -21,8 +21,8 @@ class AdminClient(BaseClient):
         """
         if params is None:
             params = {"limit": 20, "offset": 0}
-        url_to_list_users = url_builder.list_users_url(self.client_config) \
-                            + IWUtils.get_query_params_string_from_dict(params=params)
+        url_to_list_users = url_builder.list_users_url(self.client_config) + IWUtils.get_query_params_string_from_dict(
+            params=params)
 
         users_list = []
         try:
@@ -899,7 +899,7 @@ class AdminClient(BaseClient):
         "properties": {
             "url": "https://account_name.snowflakecomputing.com",
             "account": "",
-            "username": "ramesh",
+            "user_name": "ramesh",
             "password": {
                 "password_type": "infoworks_managed"
                 "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
@@ -963,7 +963,7 @@ class AdminClient(BaseClient):
         try:
             if config_body is None or data_connection_id is None:
                 raise Exception("config_body and data_connection_id cannot be None/Null")
-            create_data_connection_url = url_builder.create_data_connection(self.client_config)
+            create_data_connection_url = url_builder.create_data_connection(self.client_config) + f"/{data_connection_id}"
             response = self.call_api("PUT", create_data_connection_url,
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                                      config_body)
@@ -1188,12 +1188,12 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in [secret_store_id,data]:
+            if None in [secret_store_id, data]:
                 self.logger.error("secret_store_id or data cannot be None")
                 raise Exception("secret_store_id or data cannot be None")
             response = self.call_api("PATCH",
                                      url_builder.list_secret_stores_url(self.client_config) + f"/{secret_store_id}",
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data)
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']), data)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
@@ -1378,13 +1378,13 @@ class AdminClient(BaseClient):
         :return: response dict
         """
         try:
-            if None in [service_auth_id,data]:
+            if None in [service_auth_id, data]:
                 self.logger.error("service_auth_id or data cannot be None")
                 raise Exception("service_auth_id or data cannot be None")
             response = self.call_api("PATCH",
                                      url_builder.list_service_authentication_url(
                                          self.client_config) + f"/{service_auth_id}",
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data)
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']), data)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
@@ -1556,7 +1556,7 @@ class AdminClient(BaseClient):
         try:
             response = self.call_api("PATCH",
                                      url_builder.list_secrets_url(self.client_config) + f"/{secret_id}",
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),data)
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']), data)
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
             if response.status_code == 200:
@@ -1597,3 +1597,310 @@ class AdminClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in deleting secret " + str(e))
             raise AdminError("Error in deleting secret " + str(e))
+
+    def list_domains_as_admin(self, params=None):
+        """
+        Function to list the domains as admin user
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_domains = url_builder.list_domains_admin_url(
+            self.client_config) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+
+        users_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_domains,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    users_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing domains",
+                                                            response=response
+                                                            )
+
+                response["result"] = users_list
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing domains")
+            raise AdminError("Error in listing domains" + str(e))
+
+    def stop_interactive_cluster(self, data):
+        """
+        Function to stop an interactive cluster
+        :param data: Body to be passed to the API.
+        example: {
+          "compute_template_id": "computer_template_id"
+        }
+        :type data: Dict
+        :return: Response Dict
+        """
+        try:
+            response = self.call_api("POST",
+                                     url_builder.stop_interactive_cluster_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error stopping the cluster")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error stopping the cluster. Please do it by yourself from UI.")
+            raise AdminError(
+                f"Error stopping the cluster. Please do it by yourself from UI." + str(e))
+
+    def stop_cluster_async(self, data):
+        """
+        Function to stop a persistent cluster
+        :param data: Body to be passed to the API.
+        example: {
+          "compute_template_id": "computer_template_id"
+        }
+        :type data: Dict
+        :return: Response Dict
+        """
+        try:
+            response = self.call_api("POST",
+                                     url_builder.terminate_persistent_cluster_aysnc(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error stopping the cluster")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error stopping the cluster. Please do it by yourself from UI.")
+            raise AdminError(
+                f"Error stopping the cluster. Please do it by yourself from UI." + str(e))
+
+    def restart_persistent_cluster(self, data):
+        """
+        Function to restart a persistent cluster
+        :param data: Body to be passed to the API.
+        example: {
+          "compute_template_id": "computer_template_id"
+        }
+        :type data: Dict
+        :return: Response Dict
+        """
+        try:
+            response = self.call_api("PUT",
+                                     url_builder.restart_persistent_cluster_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error restarting the cluster")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error restarting the cluster. Please do it by yourself from UI.")
+            raise AdminError(
+                f"Error restarting the cluster. Please do it by yourself from UI." + str(e))
+
+    def stop_persistent_cluster(self, data):
+        """
+        Function to stop a persistent cluster
+        :param data: Body to be passed to the API.
+        example: {
+          "compute_template_id": "computer_template_id"
+        }
+        :type data: Dict
+        :return: Response Dict
+        """
+        try:
+            response = self.call_api("PUT",
+                                     url_builder.stop_persistent_cluster_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     data=data)
+            parsed_response = IWUtils.ejson_deserialize(
+                response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error stop the cluster")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error stop the cluster. Please do it by yourself from UI.")
+            raise AdminError(
+                f"Error stop the cluster. Please do it by yourself from UI." + str(e))
+
+    def list_accessible_sources_under_domain_as_admin(self, domain_id, params=None):
+        """
+        Function to list the accessible sources under domain
+        :param domain_id: Entity identifier for domain
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        accessible_sources_url = url_builder.url_to_list_accessible_sources(self.client_config,
+                                                                            domain_id) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+
+        output_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", accessible_sources_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    output_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing accessible sources",
+                                                            response=response
+                                                            )
+
+                response["result"] = output_list
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing accessible sources")
+            raise AdminError("Error in listing accessible sources" + str(e))
+
+    def delete_user_schedules(self, user_id=None, user_email=None):
+        """
+        Function to delete the user schedules. Pass either user_id or user_email
+        :param user_id: Entity identifier of the user
+        :param user_email: Email of the user
+        :type user_id: String
+        :return: response dict
+        """
+        if user_id is None and user_email is not None:
+            self.logger.info('Getting userID from given user email....')
+            url_for_list_users = url_builder.list_users_url(self.client_config)
+            filter_condition = IWUtils.ejson_serialize({"profile.email": user_email})
+            get_userid_url = url_for_list_users + f"?filter={{filter_condition}}".format(
+                filter_condition=filter_condition)
+            if get_userid_url is not None:
+                try:
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", get_userid_url,
+                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+                    self.logger.info(response)
+                    if response is not None and "result" in response:
+                        result = response.get("result", [])
+                        if len(result) > 0:
+                            user_id = result[0]["id"]
+                except Exception as e:
+                    self.logger.error('Couldnt get result for the user {}'.format(user_email))
+                    self.logger.error(str(e))
+                    raise AdminError('Couldnt get result for the user {}'.format(user_email))
+                finally:
+                    if user_id is None:
+                        self.logger.error('Couldnt get result for the user {}'.format(user_email))
+                        raise AdminError('Couldnt get result for the user {}'.format(user_email))
+        if user_id is not None:
+            try:
+                response = self.call_api("DELETE",
+                                         url_builder.delete_user_schedules_url(self.client_config, user_id),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                                         )
+                parsed_response = IWUtils.ejson_deserialize(
+                    response.content)
+                if response.status_code == 200:
+                    return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+                else:
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.GENERIC_ERROR,
+                                                        response=parsed_response,
+                                                        error_desc=parsed_response.get("details",
+                                                                                       "Error in deleting schedules ")
+                                                        )
+            except Exception as e:
+                self.logger.error("Error in deleting schedules " + str(e))
+                raise AdminError("Error in deleting schedules " + str(e))
+
+    def list_schedules_as_admin(self, params=None):
+        """
+        Function to list all the schedules as an admin
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        schedules_url = url_builder.list_all_schedules_url(
+            self.client_config) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+
+        output_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", schedules_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    output_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing schedules",
+                                                            response=response
+                                                            )
+
+                response["result"] = output_list
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing schedules")
+            raise AdminError("Error in listing schedules" + str(e))

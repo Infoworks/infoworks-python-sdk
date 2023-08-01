@@ -72,9 +72,9 @@ class TestJobsSDKFlow:
             assert False
 
     @pytest.mark.dependency(depends=["TestJobsSDKFlow::test_get_all_jobs_for_source"])
-    def test_get_crawl_job_summary(self):
+    def test_get_source_crawl_job_summary(self):
         try:
-            response = iwx_client.get_crawl_job_summary(job_id=pytest.job_id, source_id=ValueStorage.source_id)
+            response = iwx_client.get_source_crawl_job_summary(job_id=pytest.job_id, source_id=ValueStorage.source_id)
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
         except JobsError as e:
