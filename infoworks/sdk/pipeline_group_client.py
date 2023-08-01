@@ -609,6 +609,8 @@ class PipelineGroupClient(BaseClient):
                 result = response.get("result", [])
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
+                    print(result)
+                    print(response)
                     pipeline_groups_list.extend(result)
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],

@@ -314,6 +314,7 @@ class TestAdminClientSDK:
                 "name": "iw-azure-cs-db-cluster-sp-iwx",
                 "service_type": "azure",
                 "authentication_type": "service_principal",
+                "entity_type": "authentication_service",
                 "authentication_properties": {
                     "subscription_id": "xxx",
                     "client_id": "xxx",

@@ -672,19 +672,37 @@ class AdminClient(BaseClient):
         if response.get("result", {}).get("status", "") == Response.Status.SUCCESS:
             result = response.get("result", {}).get("response", {}).get("result", [])
             if len(result) > 0:
-                for item in result[0]["data_warehouse_configuration"]["warehouse"]:
-                    if item["is_default_warehouse"]:
-                        return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                            response={"default_warehouse": item["name"]})
-                else:
-                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                        response={"default_warehouse":
-                                                                      result[0]["data_warehouse_configuration"][
-                                                                          "warehouse"][0]["name"]})
+                if result[0].get("data_warehouse_type", "") == "":
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.USER_ERROR,
+                                                        error_desc="get data warehouse method is not available for this environment",
+                                                        response={"default_warehouse": None})
+                data_warehouse_configuration=result[0]["data_warehouse_configuration"]
+                if data_warehouse_configuration["type"].lower()=="snowflake":
+                    snowflake_profiles=data_warehouse_configuration.get("snowflake_profiles",[])
+                    for profile in snowflake_profiles:
+                        if profile.get("is_default_profile",False):
+                            for warehouse in profile.get("warehouse",[]):
+                                if warehouse.get("is_default_warehouse",False):
+                                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                        response={"default_warehouse": warehouse["name"]})
             else:
-                return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                    response=result
-                                                    )
+                if result.get("data_warehouse_type", "") == "":
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.USER_ERROR,
+                                                        error_desc="get data warehouse method is not available for this environment",
+                                                        response={"default_warehouse": None})
+                data_warehouse_configuration=result["data_warehouse_configuration"]
+                if data_warehouse_configuration["type"].lower()=="snowflake":
+                    snowflake_profiles=data_warehouse_configuration.get("snowflake_profiles",[])
+                    for profile in snowflake_profiles:
+                        if profile.get("is_default_profile",False):
+                            for warehouse in profile.get("warehouse",[]):
+                                if warehouse.get("is_default_warehouse",False):
+                                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                        response={"default_warehouse": warehouse["name"]})
+                    return GenericResponse.parse_result(status=Response.Status.SUCCESS,
+                                                        response={"default_warehouse":None})
         else:
             return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                 error_code=ErrorCode.USER_ERROR,

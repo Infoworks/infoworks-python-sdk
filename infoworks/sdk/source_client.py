@@ -434,7 +434,7 @@ class SourceClient(BaseClient):
                 job_id = result['job_created']
                 if not poll:
                     self.logger.info(f"Tables added to source {source_id} and metacrawl job was submitted {job_id}")
-                    return SourceResponse.parse_result(status=Response.Status.SUCCESS)
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=response)
                 else:
                     return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
                                          polling_frequency=polling_frequency,
