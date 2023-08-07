@@ -605,8 +605,12 @@ class PipelineClient(BaseClient):
                               ).content)
             if response is not None and "result" in response:
                 result = response.get("result", None)
-                return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
-                                                     pipeline_id=result[0].get('id'), response=response)
+                if len(result) > 0:
+                    return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
+                                                         pipeline_id=result[0].get('id'), response=response)
+                else:
+                    return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                         pipeline_id=None, response=response)
         except Exception as e:
             self.logger.error("Unable to get pipeline name " + str(e))
             raise PipelineError("Unable to get pipeline name " + str(e))
