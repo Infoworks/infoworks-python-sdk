@@ -168,10 +168,12 @@ class Utils:
                 'bearer_token']))
 
         parsed_response = IWUtils.ejson_deserialize(response.content)
+
         if response.status_code == 200:
             status = "SUCCESS"
         else:
             status = "FAILED"
+            print(parsed_response)
         response_to_return["get_configuration_entity_response"] = CICDResponse.parse_result(status=status,
                                                                                             entity_id=entity_id,
                                                                                             response=parsed_response)

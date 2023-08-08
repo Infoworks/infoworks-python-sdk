@@ -136,11 +136,18 @@ class RDBMSSource:
                         accessible_domain_ids.append(domain_id)
             if "associated_domain_names" in create_rdbms_source_payload.keys():
                 create_rdbms_source_payload.pop("associated_domain_names",[])
+                self.configuration_obj["configuration"]["source_configs"].pop("associated_domain_names",[])
             if len(accessible_domain_ids) > 0:
                 create_rdbms_source_payload["associated_domains"] = accessible_domain_ids
         print("create_rdbms_source_payload:",create_rdbms_source_payload)
         src_create_response = src_client_obj.create_source(source_config=create_rdbms_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
+            source_id = src_create_response["result"]["response"]["result"]["id"]
+            #added below code to update the source due to IPD-23733
+            associated_domains = create_rdbms_source_payload.get("associated_domains", [])
+            if associated_domains:
+                src_client_obj.update_source(source_id=source_id,
+                                             update_body={"associated_domains": associated_domains})
             return src_create_response
         else:
             src_client_obj.logger.info('Cant create source {} '.format(data["name"]))
@@ -168,9 +175,14 @@ class RDBMSSource:
                 print(response)
                 return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=None, response=response)
             else:
+                existing_source_id =response['result'][0]['id']
                 src_client_obj.logger.info(
                     f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 print(f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
+                # added below code to update the source due to IPD-23733
+                associated_domains=create_rdbms_source_payload.get("associated_domains",[])
+                if associated_domains:
+                    src_client_obj.update_source(source_id=existing_source_id, update_body={"associated_domains":associated_domains})
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,
                                                    source_id=response['result'][0]['id'], response=response)
 

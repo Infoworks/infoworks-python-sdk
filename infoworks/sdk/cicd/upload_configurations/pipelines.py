@@ -3,13 +3,15 @@ import traceback
 import configparser
 import requests
 import yaml
+import time
 from infoworks.core.iw_authentication import get_bearer_token
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create_pipeline_url, create_data_connection, \
-    configure_pipeline_url
+    configure_pipeline_url,get_pipeline_jobs_url
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
+from infoworks.sdk.local_configurations import POLLING_FREQUENCY_IN_SEC
 
 class Pipeline:
     def __init__(self, pipeline_config_path, environment_id, storage_id, interactive_id,
@@ -74,6 +76,38 @@ class Pipeline:
             print("Failed while doing the generic mappings")
             print(str(e))
             print(traceback.format_exc())
+
+    def poll_pipeline_job(self,pipeline_client_obj,domain_id,pipeline_id):
+        list_pipeline_job_url = get_pipeline_jobs_url(config=pipeline_client_obj.client_config,domain_id=domain_id,pipeline_id=pipeline_id)
+        list_pipeline_job_url = list_pipeline_job_url + "?sort_by=\"createdAt\"&limit=1&order_by=desc"
+        pipeline_client_obj.logger.info(f"list pipeline url {list_pipeline_job_url}")
+        response = pipeline_client_obj.call_api("GET", list_pipeline_job_url, {
+            'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
+            'Content-Type': 'application/json'}, data=None)
+        parsed_response = IWUtils.ejson_deserialize(
+            response.content)
+        if response.status_code == 200 and "result" in parsed_response:
+            result = parsed_response.get("result", [])
+            if result:
+                result=result[0]
+                job_id = result.get("id",None)
+                job_status = result.get("status",None)
+                print(f"pipeline build metadata status: {job_status}")
+                if job_id is not None:
+                    if job_status.lower() not in ["completed","failed","aborted","canceled"]:
+                        time.sleep(POLLING_FREQUENCY_IN_SEC)
+                        return self.poll_pipeline_job(pipeline_client_obj,domain_id,pipeline_id)
+                    else:
+                        return "SUCCESS" if job_status.lower()=="completed" else "FAILED"
+            else:
+                print("Error during polling of pipeline build metadata job")
+                print(parsed_response)
+                return "FAILED"
+        else:
+            print("Error during polling of pipeline build metadata job")
+            print(parsed_response)
+            return "FAILED"
+
 
     def create(self, pipeline_client_obj, domain_id, domain_name):
         pipeline_name = self.configuration_obj["configuration"]["entity"]["entity_name"]
@@ -298,7 +332,8 @@ class Pipeline:
             pipeline_client_obj.logger.info(response)
             print(f'{response.get("message", "")} Done')
             print(response)
-            return "SUCCESS"
+            pipeline_metadata_build_status = self.poll_pipeline_job(pipeline_client_obj,domain_id,pipeline_id)
+            return pipeline_metadata_build_status
         else:
             print(response)
             return "FAILED"
