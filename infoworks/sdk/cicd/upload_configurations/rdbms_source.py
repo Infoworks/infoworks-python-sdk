@@ -139,6 +139,7 @@ class RDBMSSource:
                 self.configuration_obj["configuration"]["source_configs"].pop("associated_domain_names",[])
             if len(accessible_domain_ids) > 0:
                 create_rdbms_source_payload["associated_domains"] = accessible_domain_ids
+                self.configuration_obj["configuration"]["associated_domains"]=accessible_domain_ids
         print("create_rdbms_source_payload:",create_rdbms_source_payload)
         src_create_response = src_client_obj.create_source(source_config=create_rdbms_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
