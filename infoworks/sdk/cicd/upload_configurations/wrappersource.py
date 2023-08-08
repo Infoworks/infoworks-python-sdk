@@ -125,7 +125,16 @@ class WrapperSource(BaseClient):
             if env_id is None or storage_id is None:
                 print("No env id or storage id found")
                 raise Exception("No env id or storage id found")
-
+            old_associated_domain_names = configuration_obj["configuration"]["source_configs"].get("associated_domain_names",[])
+            new_associated_domain_names = []
+            domain_mappings = self.mappings.get("domain_name_mappings", {})
+            if domain_mappings != {} and old_associated_domain_names:
+                for domain_name in old_associated_domain_names:
+                    if domain_name.lower() in domain_mappings.keys():
+                        updated_domain_name=domain_mappings.get(domain_name.lower(), domain_name)
+                        new_associated_domain_names.append(updated_domain_name)
+                configuration_obj["configuration"]["source_configs"]["associated_domain_names"]=new_associated_domain_names
+                print("Adding domains:",new_associated_domain_names)
             source_type = configuration_obj["configuration"]["source_configs"]["type"]
             source_sub_type = configuration_obj["configuration"]["source_configs"]["sub_type"]
             if source_type == "file" and (source_sub_type == "structured" or source_sub_type == "fixedwidth"):
@@ -195,7 +204,7 @@ class WrapperSource(BaseClient):
                             if source_browse_source_tables_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
                                 add_tables_to_source_response = source_obj.add_tables_to_source(self, source_id,configuration_obj["steps_to_run"]["add_tables_to_source"])
                                 status = add_tables_to_source_response["result"]["status"]
-                                if status == "SUCCESS" or add_tables_to_source_response["result"].get("response",{}).get("result",{}).get("response",{}).get("iw_code","")=="IW10003":
+                                if status.upper() in ["SUCCESS","SKIPPED"] or add_tables_to_source_response["result"].get("response",{}).get("result",{}).get("response",{}).get("iw_code","")=="IW10003":
                                     self.logger.info("Added tables to source successfully")
                                     print("Added tables to source successfully")
                                 else:

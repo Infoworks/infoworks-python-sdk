@@ -4,13 +4,14 @@ import json
 import requests
 import yaml
 
-from infoworks.sdk.url_builder import get_source_details_url,list_secrets_url
+from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url, create_domain_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
 import configparser
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
+
 
 class RDBMSSource:
     def __init__(self):
@@ -32,9 +33,9 @@ class RDBMSSource:
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
         self.secrets = secrets
 
-    def get_secret_id_from_name(self,cicd_client,secret_name):
+    def get_secret_id_from_name(self, cicd_client, secret_name):
         secret_id = None
-        get_secret_details_url = list_secrets_url(cicd_client.client_config)+'?filter={"name":"'+secret_name+'"}'
+        get_secret_details_url = list_secrets_url(cicd_client.client_config) + '?filter={"name":"' + secret_name + '"}'
         response = cicd_client.call_api("GET", get_secret_details_url,
                                         IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token']))
         parsed_response = IWUtils.ejson_deserialize(response.content)
@@ -49,21 +50,27 @@ class RDBMSSource:
                 cicd_client.logger.info("Secret id is {} ".format(None))
                 return None
 
-    def update_table_schema_and_database(self,type,mappings):
-        data=self.configuration_obj
-        for table in data.get("configuration",{}).get("table_configs",[]):
-            if type=="target_schema":
-                schema_from_config=table.get("configuration",{}).get("configuration",{}).get("target_schema_name","")
-                if schema_from_config!="" and schema_from_config.lower() in mappings.keys():
-                    table["configuration"]["configuration"]["target_schema_name"]=mappings.get(schema_from_config.lower())
-            elif type=="stage_schema":
-                schema_from_config=table.get("configuration",{}).get("configuration",{}).get("staging_schema_name","")
-                if schema_from_config!="" and schema_from_config.lower() in mappings.keys():
-                    table["configuration"]["configuration"]["staging_schema_name"]=mappings.get(schema_from_config.lower())
-            elif type=="database":
-                database_from_config=table.get("configuration",{}).get("configuration",{}).get("target_database_name","")
-                if database_from_config!="" and database_from_config.lower() in mappings.keys():
-                    table["configuration"]["configuration"]["target_database_name"]=mappings.get(database_from_config.lower())
+    def update_table_schema_and_database(self, type, mappings):
+        data = self.configuration_obj
+        for table in data.get("configuration", {}).get("table_configs", []):
+            if type == "target_schema":
+                schema_from_config = table.get("configuration", {}).get("configuration", {}).get("target_schema_name",
+                                                                                                 "")
+                if schema_from_config != "" and schema_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["target_schema_name"] = mappings.get(
+                        schema_from_config.lower())
+            elif type == "stage_schema":
+                schema_from_config = table.get("configuration", {}).get("configuration", {}).get("staging_schema_name",
+                                                                                                 "")
+                if schema_from_config != "" and schema_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["staging_schema_name"] = mappings.get(
+                        schema_from_config.lower())
+            elif type == "database":
+                database_from_config = table.get("configuration", {}).get("configuration", {}).get(
+                    "target_database_name", "")
+                if database_from_config != "" and database_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["target_database_name"] = mappings.get(
+                        database_from_config.lower())
             else:
                 pass
 
@@ -81,11 +88,14 @@ class RDBMSSource:
                 pass
         self.configuration_obj = d.data
         if "configuration$source_configs$data_lake_schema" in config.sections():
-            self.update_table_schema_and_database("target_schema",dict(config.items("configuration$source_configs$data_lake_schema")))
+            self.update_table_schema_and_database("target_schema",
+                                                  dict(config.items("configuration$source_configs$data_lake_schema")))
         if "configuration$source_configs$staging_schema_name" in config.sections():
-            self.update_table_schema_and_database("stage_schema",dict(config.items("configuration$source_configs$staging_schema_name")))
+            self.update_table_schema_and_database("stage_schema", dict(
+                config.items("configuration$source_configs$staging_schema_name")))
         if "configuration$source_configs$target_database_name" in config.sections():
-            self.update_table_schema_and_database("database",dict(config.items("configuration$source_configs$target_database_name")))
+            self.update_table_schema_and_database("database", dict(
+                config.items("configuration$source_configs$target_database_name")))
 
     def create_rdbms_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]
@@ -99,12 +109,45 @@ class RDBMSSource:
             "storage_id": self.storage_id,
             "is_source_ingested": True
         }
-        if data.get("target_database_name",""):
-            create_rdbms_source_payload["target_database_name"] = data.get("target_database_name","")
-        if data.get("staging_schema_name",""):
+        if data.get("target_database_name", ""):
+            create_rdbms_source_payload["target_database_name"] = data.get("target_database_name", "")
+        if data.get("staging_schema_name", ""):
             create_rdbms_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
+        additional_keys_in_source_config = data.keys()
+        for key in additional_keys_in_source_config:
+            if key not in ["connection"] and key not in create_rdbms_source_payload.keys():
+                create_rdbms_source_payload[key]=data[key]
+        # adding associated domains if any
+        accessible_domain_names = data.get("associated_domain_names",[])
+        accessible_domain_ids = []
+        for domain_name in accessible_domain_names:
+            domain_response = src_client_obj.call_api("GET",
+                                                         create_domain_url(
+                                                             src_client_obj.client_config) + "?filter={\"name\":\""+domain_name+"\"}",
+                                                         IWUtils.get_default_header_for_v3(
+                                                             src_client_obj.client_config['bearer_token']))
+            domain_parsed_response = IWUtils.ejson_deserialize(domain_response.content)
+            if domain_response.status_code == 200 and len(domain_parsed_response.get("result", [])) > 0:
+                result = domain_parsed_response.get("result", [])
+                if len(result) > 0:
+                    result = result[0]
+                    domain_id = result.get("id", None)
+                    if domain_id is not None:
+                        accessible_domain_ids.append(domain_id)
+            if "associated_domain_names" in create_rdbms_source_payload.keys():
+                create_rdbms_source_payload.pop("associated_domain_names",[])
+                self.configuration_obj["configuration"]["source_configs"].pop("associated_domain_names",[])
+            if len(accessible_domain_ids) > 0:
+                create_rdbms_source_payload["associated_domains"] = accessible_domain_ids
+        print("create_rdbms_source_payload:",create_rdbms_source_payload)
         src_create_response = src_client_obj.create_source(source_config=create_rdbms_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
+            source_id = src_create_response["result"]["response"]["result"]["id"]
+            #added below code to update the source due to IPD-23733
+            associated_domains = create_rdbms_source_payload.get("associated_domains", [])
+            if associated_domains:
+                src_client_obj.update_source(source_id=source_id,
+                                             update_body={"associated_domains": associated_domains})
             return src_create_response
         else:
             src_client_obj.logger.info('Cant create source {} '.format(data["name"]))
@@ -130,21 +173,28 @@ class RDBMSSource:
                 src_client_obj.logger.info(response)
                 print("Failed to make an api call to get source details")
                 print(response)
-                return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=None,response=response)
+                return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=None, response=response)
             else:
+                existing_source_id =response['result'][0]['id']
                 src_client_obj.logger.info(
                     f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 print(f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=response['result'][0]['id'],response=response)
+                # added below code to update the source due to IPD-23733
+                associated_domains=create_rdbms_source_payload.get("associated_domains",[])
+                if associated_domains:
+                    src_client_obj.update_source(source_id=existing_source_id, update_body={"associated_domains":associated_domains})
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS,
+                                                   source_id=response['result'][0]['id'], response=response)
 
     def configure_rdbms_source_connection(self, src_client_obj, source_id, override_config_file=None,
-                                          read_passwords_from_secrets=False, env_tag="", secret_type="",config_ini_path=None,dont_skip_step=True):
+                                          read_passwords_from_secrets=False, env_tag="", secret_type="",
+                                          config_ini_path=None, dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         source_configs = self.configuration_obj["configuration"]["source_configs"]
         src_name = str(source_configs["name"])
         connection_object = source_configs["connection"]
-        if connection_object.get('connection_mode','')!='':
+        if connection_object.get('connection_mode', '') != '':
             connection_object['connection_mode'] = connection_object['connection_mode'].lower()
         else:
             connection_object['connection_mode'] = 'jdbc'
@@ -155,13 +205,13 @@ class RDBMSSource:
                 override_keys = information["source_details"].get(src_name).keys()
                 for key in override_keys:
                     connection_object[key] = information["source_details"][src_name][key]
-        if connection_object.get("password", {}).get("password_type","") == "secret_store":
-                # for RDBMS passwords in keyvault
-                secret_name = connection_object["password"]["secret_name"]
-                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
-                if secret_name:
-                    connection_object["password"]["secret_id"] = secret_id
-                    connection_object["password"].pop('secret_name', None)
+        if connection_object.get("password", {}).get("password_type", "") == "secret_store":
+            # for RDBMS passwords in keyvault
+            secret_name = connection_object["password"]["secret_name"]
+            secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+            if secret_name:
+                connection_object["password"]["secret_id"] = secret_id
+                connection_object["password"].pop('secret_name', None)
         # if read_passwords_from_secrets and self.secrets["custom_secrets_read"] is True:
         #     encrypted_key_name = f"{env_tag}-" + src_name
         #     decrypt_value = self.secrets.get(encrypted_key_name, "")
@@ -182,28 +232,29 @@ class RDBMSSource:
             print(f"Failed to configure the source {source_id} connection")
             src_client_obj.logger.info(response)
             print(response)
-            return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=source_id,response=response)
+            return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=source_id, response=response)
         else:
             src_client_obj.logger.info(response)
             print(response)
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id, response=response)
 
-    def test_source_connection(self, src_client_obj, source_id,dont_skip_step=True):
+    def test_source_connection(self, src_client_obj, source_id, dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         response = src_client_obj.source_test_connection_job_poll(source_id, poll_timeout=300,
                                                                   polling_frequency=15, retries=1)
-        return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,response=response)
+        return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id, response=response)
 
-    def browse_source_tables(self, src_client_obj, source_id,dont_skip_step=True):
+    def browse_source_tables(self, src_client_obj, source_id, dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         filter_tables_properties = self.configuration_obj["filter_tables_properties"]
         response = src_client_obj.browse_source_tables(source_id, filter_tables_properties=filter_tables_properties,
                                                        poll_timeout=300, polling_frequency=15, retries=1)
-        return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,response=response)
+        return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
+                                           response=response)
 
-    def add_tables_to_source(self, src_client_obj, source_id,dont_skip_step=True):
+    def add_tables_to_source(self, src_client_obj, source_id, dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         tables_already_added_in_source = src_client_obj.list_tables_in_source(source_id)["result"]["response"]
@@ -215,11 +266,11 @@ class RDBMSSource:
                     "name"] not in tables_already_added_in_source:
                     temp = {"table_name": table["configuration"]["name"],
                             "schema_name": table["configuration"]["schema_name_at_source"],
-                            "table_type": table["entity_type"].upper(),
+                            "table_type": table["table_type"].upper(),
                             "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                             "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
-                    if table["configuration"].get("catalog_name","")!="":
-                        temp["catalog_name"]=table["configuration"]["catalog_name"]
+                    if table["configuration"].get("catalog_name", "") != "":
+                        temp["catalog_name"] = table["configuration"]["catalog_name"]
                     tables_list.append(copy.deepcopy(temp))
                     src_client_obj.logger.info(
                         f"Adding table {temp['table_name']} to source {source_id} config payload")
@@ -227,7 +278,7 @@ class RDBMSSource:
             for table in tables:
                 temp = {"table_name": table["configuration"]["name"],
                         "schema_name": table["configuration"]["schema_name_at_source"],
-                        "table_type": table["entity_type"].upper(),
+                        "table_type": table["table_type"].upper(),
                         "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                         "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                 if table["configuration"].get("catalog_name", "") != "":
@@ -240,7 +291,7 @@ class RDBMSSource:
 
     def configure_tables_and_tablegroups(self, src_client_obj, source_id, export_configuration_file=None,
                                          export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,
-                                         env_tag="", secret_type="",dont_skip_step=True):
+                                         env_tag="", secret_type="", dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         if mappings is None:
@@ -303,4 +354,3 @@ class RDBMSSource:
             src_client_obj.logger.info(f"Successfully imported source configurations to {source_id}")
             return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
                                                response=response)
-

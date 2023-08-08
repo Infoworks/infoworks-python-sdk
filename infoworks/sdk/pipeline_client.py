@@ -1083,11 +1083,14 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to import sql mapping.')
             raise PipelineError('Error occurred while trying to import sql mapping.')
 
-    def create_sql_pipeline(self, pipeline_config, sql_query="", pipeline_parameters=None):
+    def create_sql_pipeline(self, pipeline_config=None, pipeline_id=None, domain_id=None, sql_query="",
+                            pipeline_parameters=None):
         """
-        Create a new SQL Pipeline version
+        Create a new SQL Pipeline version. You can pass pipeline id if you need to create sql version in existing pipeline
         :param pipeline_config: a JSON object containing pipeline configurations
         :type pipeline_config: JSON Object
+        :param pipeline_id: Entity identifier of pipeline
+        :param domain_id: Entity identifier of domain
         :param sql_query: A SQL query that is part of pipeline
         :param pipeline_parameters: Array of key-value pair. Example: [{"key": param_key, "value": "value1"}]
         :type pipeline_parameters: List
@@ -1110,25 +1113,30 @@ class PipelineClient(BaseClient):
         if pipeline_parameters is None:
             pipeline_parameters = []
         try:
+            if pipeline_config is None and pipeline_id is None:
+                raise Exception(f"pipeline_config and pipeline_id both cannot be None")
             if pipeline_config is None:
-                raise Exception(f"pipeline_config cannot be None")
-            domain_id = pipeline_config["domain_id"]
-            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.create_pipeline_url(
-                self.client_config, domain_id), IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
-                                                               pipeline_config).content)
-            result = response.get('result', {})
-            pipeline_id = result.get('id', None)
-            if pipeline_id is None:
-                self.logger.error('Pipeline failed to create.')
-                return PipelineResponse.parse_result(status=Response.Status.FAILED,
-                                                     error_code=ErrorCode.USER_ERROR,
-                                                     error_desc='Pipeline failed to create.',
-                                                     response=response)
+                if None in {pipeline_id, domain_id}:
+                    raise Exception(f"As pipeline_config is None, please pass pipeline_id and domain_id.")
+            if pipeline_config is not None:
+                domain_id = pipeline_config["domain_id"]
+                response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.create_pipeline_url(
+                    self.client_config, domain_id), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token']),
+                                                                   pipeline_config).content)
+                result = response.get('result', {})
+                pipeline_id = result.get('id', None)
+                if pipeline_id is None:
+                    self.logger.error('Failed to create pipeline')
+                    return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                         error_code=ErrorCode.USER_ERROR,
+                                                         error_desc='Failed to create pipeline.',
+                                                         response=response)
             else:
                 pipeline_id = str(pipeline_id)
                 self.logger.info(
-                    'Pipeline {id} has been created under domain {domain_id}.'.format(id=pipeline_id,
-                                                                                      domain_id=domain_id))
+                    'Pipeline {id} has been created/found under domain {domain_id}.'.format(id=pipeline_id,
+                                                                                            domain_id=domain_id))
 
                 sample_string_bytes = sql_query.encode("ascii")
                 base64_bytes = base64.b64encode(sample_string_bytes)

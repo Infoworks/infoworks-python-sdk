@@ -2,7 +2,7 @@ import traceback
 
 from infoworks.sdk import url_builder
 from infoworks.sdk.base_client import BaseClient
-from infoworks.sdk.cicd.upload_configurations.pipelines import Pipeline
+from infoworks.sdk.cicd.upload_configurations.pipelines import Pipeline, create_sql_pipeline_version
 from infoworks.sdk.cicd.upload_configurations.pipeline_group import PipelineGroup
 from pathlib import Path
 from infoworks.sdk.generic_response import GenericResponse
@@ -155,7 +155,8 @@ class WrapperPipeline(BaseClient):
                 if storage_name is not None:
                     result = self.__wrapper_get_storage_details(environment_id=env_id,
                                                                 params={"filter": {"name": storage_name}})
-                    storage_id = result["result"]["response"][0]["id"] if len(result["result"]["response"]) > 0 else None
+                    storage_id = result["result"]["response"][0]["id"] if len(
+                        result["result"]["response"]) > 0 else None
             if compute_id is None and "compute_mappings" in self.mappings:
                 compute_name = self.mappings["compute_mappings"].get(
                     environment_configurations["environment_compute_template_name"],
@@ -173,12 +174,23 @@ class WrapperPipeline(BaseClient):
             if env_id is None:
                 print("No env id and no mapping found")
                 raise Exception("No env id and no mapping found")
-            pl_obj = Pipeline(configuration_file_path, env_id, storage_id, compute_id, replace_words, self.secrets_config)
+            pl_obj = Pipeline(configuration_file_path, env_id, storage_id, compute_id, replace_words,
+                              self.secrets_config)
             pl_obj.configuration_obj = configuration_obj
             pl_obj.update_mappings_for_configurations(self.mappings)
             pipeline_id, domain_id = pl_obj.create(self, domain_id, domain_name)
+
             if pipeline_id is not None:
-                status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings, read_passwords_from_secrets,env_tag=env_tag, secret_type=secret_type)
+                pl_type = configuration_obj.get("pipeline_configs", {}).get("type", "")
+                if pl_type == "sql":
+                    sql_query = configuration_obj.get("pipeline_configs", {}).get("query", "")
+                    pl_params = configuration_obj.get("pipeline_configs", {}).get("pipeline_parameters", "")
+                    pl_version = create_sql_pipeline_version(pl_obj, pipeline_id=pipeline_id, domain_id=domain_id,
+                                                             sql_query=sql_query,
+                                                             pipeline_parameters=pl_params)
+                else:
+                    status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings,
+                                              read_passwords_from_secrets, env_tag=env_tag, secret_type=secret_type)
         except Exception as e:
             self.logger.error(str(e))
             print(str(e))
@@ -186,8 +198,9 @@ class WrapperPipeline(BaseClient):
             print(traceback.format_exc())
 
     def cicd_create_configure_pipeline_group(self, configuration_file_path, domain_id=None, domain_name=None,
-                                       override_configuration_file=None,
-                                       replace_words="", read_passwords_from_secrets=False, env_tag="", secret_type=""):
+                                             override_configuration_file=None,
+                                             replace_words="", read_passwords_from_secrets=False, env_tag="",
+                                             secret_type=""):
         """
         Function to create and configure pipeline group using the pipeline group configuration JSON file
         Pass either domain_id or domain_name.If both are not passed the name of the domain should be first part of the file name
@@ -225,7 +238,8 @@ class WrapperPipeline(BaseClient):
                 if storage_name is not None:
                     result = self.__wrapper_get_storage_details(environment_id=env_id,
                                                                 params={"filter": {"name": storage_name}})
-                    storage_id = result["result"]["response"][0]["id"] if len(result["result"]["response"]) > 0 else None
+                    storage_id = result["result"]["response"][0]["id"] if len(
+                        result["result"]["response"]) > 0 else None
             if compute_id is None and "compute_mappings" in self.mappings:
                 compute_name = self.mappings["compute_mappings"].get(
                     environment_configurations["environment_compute_template_name"],
@@ -243,7 +257,8 @@ class WrapperPipeline(BaseClient):
             if env_id is None:
                 print("No env id and no mapping found")
                 raise Exception("No env id and no mapping found")
-            pl_grp_obj = PipelineGroup(configuration_file_path, env_id, storage_id, compute_id, replace_words, self.secrets_config)
+            pl_grp_obj = PipelineGroup(configuration_file_path, env_id, storage_id, compute_id, replace_words,
+                                       self.secrets_config)
             pl_grp_obj.configuration_obj = configuration_obj
             pl_grp_obj.update_mappings_for_configurations(self.mappings)
             pipeline_group_id, domain_id = pl_grp_obj.create(self, domain_id, domain_name)
@@ -252,7 +267,6 @@ class WrapperPipeline(BaseClient):
             print(str(e))
             self.logger.error(traceback.format_exc())
             print(traceback.format_exc())
-
 
     def __execute(self, thread_number, q):
         while True:
@@ -267,7 +281,8 @@ class WrapperPipeline(BaseClient):
                     read_passwords_from_secrets = task.get("read_passwords_from_secrets", False)
                     self.cicd_create_configure_pipeline(task["pipeline_config_path"], None,
                                                         task["domain_name"],
-                                                        override_configuration_file, replace_words, read_passwords_from_secrets)
+                                                        override_configuration_file, replace_words,
+                                                        read_passwords_from_secrets)
             except Exception as e:
                 print(str(e))
             q.task_done()
@@ -311,7 +326,8 @@ class WrapperPipeline(BaseClient):
                                          "pipeline_config_path": os.path.join(configurations_base_path, "pipeline",
                                                                               pipeline_file.strip()),
                                          "domain_name": domain_name, "replace_words": pl_replace_words,
-                                         "override_configuration_file": override_configuration_file, "read_passwords_from_secrets": read_passwords_from_secrets}
+                                         "override_configuration_file": override_configuration_file,
+                                         "read_passwords_from_secrets": read_passwords_from_secrets}
                         job_queue.put(pipeline_args)
                 print('*** Main thread waiting to complete all pending pipeline creation/configuration requests ***')
                 job_queue.join()
@@ -336,3 +352,6 @@ class WrapperPipeline(BaseClient):
             print('*** Main thread waiting to complete all pipeline configuration requests ***')
             job_queue.join()
             print('*** Done with Pipeline Configurations ***')
+
+
+

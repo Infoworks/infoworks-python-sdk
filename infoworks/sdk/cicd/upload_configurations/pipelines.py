@@ -3,13 +3,75 @@ import traceback
 import configparser
 import requests
 import yaml
+import time
 from infoworks.core.iw_authentication import get_bearer_token
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create_pipeline_url, create_data_connection, \
-    configure_pipeline_url
+    configure_pipeline_url, get_pipeline_jobs_url, pipeline_version_base_url
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
+from infoworks.sdk.local_configurations import POLLING_FREQUENCY_IN_SEC
+
+
+def create_sql_pipeline_version(pipeline_client_obj, pipeline_id=None, domain_id=None, sql_query="",
+                                pipeline_parameters=None):
+    pipeline_version_id = None
+    if pipeline_parameters is None:
+        pipeline_parameters = []
+    try:
+        pipeline_id = str(pipeline_id)
+        pipeline_client_obj.logger.info(
+            'Pipeline {id} has been created/found under domain {domain_id}.'.format(id=pipeline_id,
+                                                                                    domain_id=domain_id))
+        create_pipeline_version_url = pipeline_version_base_url(pipeline_client_obj.client_config,
+                                                                domain_id, pipeline_id)
+        pv_response = pipeline_client_obj.call_api("POST", create_pipeline_version_url, {
+            'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
+            'Content-Type': 'application/json'}, data={
+            "pipeline_id": pipeline_id,
+            "type": "sql",
+            "query": sql_query,
+            "pipeline_parameters": pipeline_parameters
+        })
+        parsed_response = IWUtils.ejson_deserialize(pv_response.content)
+        if parsed_response.status_code == 406:
+            pv_response = pipeline_client_obj.call_api("POST", create_pipeline_version_url, {
+                'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
+                'Content-Type': 'application/json'}, data={
+                "pipeline_id": pipeline_id,
+                "type": "sql",
+                "query": sql_query,
+                "pipeline_parameters": pipeline_parameters
+            })
+            parsed_response = IWUtils.ejson_deserialize(pv_response.content)
+
+        if parsed_response["result"].get("status", "") == "success":
+            pipeline_version_id = pv_response["result"]["entity_id"]
+            pipeline_client_obj.logger.info(f"Pipeline version {pipeline_version_id} created")
+            # Make the new created version as active
+            pv_active_response = IWUtils.ejson_deserialize(pipeline_client_obj.call_api("POST",
+                                                                                        create_pipeline_version_url + f"/{pipeline_version_id}/set-active",
+                                                                                        IWUtils.get_default_header_for_v3(
+                                                                                            pipeline_client_obj.client_config[
+                                                                                                'bearer_token'])).content)
+
+            if pv_active_response["result"].get("status", "") != "success":
+                pipeline_client_obj.logger.error(
+                    f"Unable to set the pipeline version {pipeline_version_id} as active")
+                pipeline_client_obj.logger.error(str(pv_active_response))
+            else:
+                pipeline_client_obj.logger.info(f"Pipeline version {pipeline_version_id} set as active")
+        else:
+            pipeline_client_obj.logger.error(f"Unable to create the new pipeline version")
+            pipeline_client_obj.logger.error(str(pv_response))
+
+    except Exception as e:
+        pipeline_client_obj.logger.error('Response from server: ' + str(e))
+        pipeline_client_obj.logger.exception('Error occurred while trying to create a new sql pipeline.')
+
+    return pipeline_version_id
+
 
 class Pipeline:
     def __init__(self, pipeline_config_path, environment_id, storage_id, interactive_id,
@@ -37,16 +99,17 @@ class Pipeline:
             except KeyError as e:
                 pass
         self.configuration_obj = d.data
-        #handle domain name mappings
+        # handle domain name mappings
         iw_mappings = self.configuration_obj.get("configuration", {}).get("iw_mappings", [])
         try:
             if "domain_name_mappings" in config.sections():
                 domain_mappings = dict(config.items("domain_name_mappings"))
                 if domain_mappings != {}:
                     for mapping in iw_mappings:
-                        domain_name=mapping.get("recommendation",{}).get("domain_name","")
-                        if domain_name!="" and domain_mappings!={}:
-                            mapping["recommendation"]["domain_name"]=domain_mappings.get(domain_name.lower(),domain_name)
+                        domain_name = mapping.get("recommendation", {}).get("domain_name", "")
+                        if domain_name != "" and domain_mappings != {}:
+                            mapping["recommendation"]["domain_name"] = domain_mappings.get(domain_name.lower(),
+                                                                                           domain_name)
                     self.configuration_obj["configuration"]["iw_mappings"] = iw_mappings
         except Exception as e:
             print("Failed while doing the domain mappings")
@@ -74,6 +137,38 @@ class Pipeline:
             print("Failed while doing the generic mappings")
             print(str(e))
             print(traceback.format_exc())
+
+    def poll_pipeline_job(self, pipeline_client_obj, domain_id, pipeline_id):
+        list_pipeline_job_url = get_pipeline_jobs_url(config=pipeline_client_obj.client_config, domain_id=domain_id,
+                                                      pipeline_id=pipeline_id)
+        list_pipeline_job_url = list_pipeline_job_url + "?sort_by=\"createdAt\"&limit=1&order_by=desc"
+        pipeline_client_obj.logger.info(f"list pipeline url {list_pipeline_job_url}")
+        response = pipeline_client_obj.call_api("GET", list_pipeline_job_url, {
+            'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
+            'Content-Type': 'application/json'}, data=None)
+        parsed_response = IWUtils.ejson_deserialize(
+            response.content)
+        if response.status_code == 200 and "result" in parsed_response:
+            result = parsed_response.get("result", [])
+            if result:
+                result = result[0]
+                job_id = result.get("id", None)
+                job_status = result.get("status", None)
+                print(f"pipeline build metadata status: {job_status}")
+                if job_id is not None:
+                    if job_status.lower() not in ["completed", "failed", "aborted", "canceled"]:
+                        time.sleep(POLLING_FREQUENCY_IN_SEC)
+                        return self.poll_pipeline_job(pipeline_client_obj, domain_id, pipeline_id)
+                    else:
+                        return "SUCCESS" if job_status.lower() == "completed" else "FAILED"
+            else:
+                print("Error during polling of pipeline build metadata job")
+                print(parsed_response)
+                return "FAILED"
+        else:
+            print("Error during polling of pipeline build metadata job")
+            print(parsed_response)
+            return "FAILED"
 
     def create(self, pipeline_client_obj, domain_id, domain_name):
         pipeline_name = self.configuration_obj["configuration"]["entity"]["entity_name"]
@@ -104,21 +199,21 @@ class Pipeline:
             "environment_id": self.environment_id,
             "domain_id": domain_id
         }
-        #5.2.x versions need storage id and compute id
-        batch_engine = self.configuration_obj["configuration"].get("pipeline_configs",{}).get("batch_engine","")
+        # 5.2.x versions need storage id and compute id
+        batch_engine = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("batch_engine", "")
         storage_id = self.storage_id
         if storage_id:
             pipeline_json_object["storage_id"] = storage_id
         if batch_engine != "":
             pipeline_json_object["batch_engine"] = batch_engine
 
-        #5.3.x onwards CDW support
+        # 5.3.x onwards CDW support
         if self.interactive_id is None:
             pipeline_json_object["run_job_on_data_plane"] = False
         else:
             pipeline_json_object["compute_id"] = self.interactive_id
 
-        warehouse = self.configuration_obj["configuration"].get("entity",{}).get("warehouse","")
+        warehouse = self.configuration_obj["configuration"].get("entity", {}).get("warehouse", "")
         if warehouse:
             pipeline_json_object["snowflake_warehouse"] = warehouse
         if domain_id is None and domain_name is None:
@@ -215,7 +310,8 @@ class Pipeline:
 
         return new_pipeline_id, pipeline_json_object["domain_id"]
 
-    def configure(self, pipeline_client_obj, pipeline_id, domain_id, override_dataconnection_config_file=None, mappings=None, read_passwords_from_secrets=False, env_tag="", secret_type=""):
+    def configure(self, pipeline_client_obj, pipeline_id, domain_id, override_dataconnection_config_file=None,
+                  mappings=None, read_passwords_from_secrets=False, env_tag="", secret_type=""):
         if mappings is None:
             mappings = {}
         if self.configuration_obj.get("dataconnection_configurations", None):
@@ -298,7 +394,8 @@ class Pipeline:
             pipeline_client_obj.logger.info(response)
             print(f'{response.get("message", "")} Done')
             print(response)
-            return "SUCCESS"
+            pipeline_metadata_build_status = self.poll_pipeline_job(pipeline_client_obj, domain_id, pipeline_id)
+            return pipeline_metadata_build_status
         else:
             print(response)
             return "FAILED"
