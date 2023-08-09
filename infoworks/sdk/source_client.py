@@ -434,7 +434,7 @@ class SourceClient(BaseClient):
                 job_id = result['job_created']
                 if not poll:
                     self.logger.info(f"Tables added to source {source_id} and metacrawl job was submitted {job_id}")
-                    return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=response)
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
                 else:
                     return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
                                          polling_frequency=polling_frequency,
@@ -2050,15 +2050,15 @@ class SourceClient(BaseClient):
                                                                ).content)
             result = response.get('result', False)
             if not result:
-                self.logger.error(f"Failed to get the table metadata for {source_id}")
+                self.logger.error(f"Failed to get the source metadata for {source_id}")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
-                                                   error_desc=f"Failed to get the table metadata for {source_id}",
+                                                   error_desc=f"Failed to get the source metadata for {source_id}",
                                                    response=response, job_id=None, source_id=source_id)
             else:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
                                                    source_id=source_id)
         except Exception as e:
-            raise SourceError(f"Failed to get the table metadata for {source_id} " + str(e))
+            raise SourceError(f"Failed to get the source metadata for {source_id} " + str(e))
 
     def update_source_metadata(self, source_id, tags_to_add: str = None, tags_to_remove: str = None,
                                description: str = None, is_favorite=False, data=None):
@@ -3090,7 +3090,8 @@ class SourceClient(BaseClient):
                 self.logger.error("source id or job_id cannot be None")
                 raise Exception("source id or job_id cannot be None")
             source_crawl_job_summary_url = url_builder.get_crawl_job_summary_url(self.client_config,
-                                                                                 source_id, job_id) + f"?num_lines={num_lines}"
+                                                                                 source_id,
+                                                                                 job_id) + f"?num_lines={num_lines}"
             response = IWUtils.ejson_deserialize(self.call_api("GET", source_crawl_job_summary_url,
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token']),
@@ -3105,3 +3106,31 @@ class SourceClient(BaseClient):
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
         except Exception as e:
             raise SourceError(f"Failed to get source job crawl summary for job {job_id} " + str(e))
+
+    def get_source_details(self, source_id=None):
+        """
+        Function to get source details
+        :param source_id: Entity identifier for source
+        :type source_id: String
+        :return: response dict
+        """
+        if None in {source_id}:
+            self.logger.error("source id cannot be None")
+            raise Exception("source id cannot be None")
+        try:
+            source_configurations_url = url_builder.get_source_details_url(self.client_config) + f"/{source_id}"
+            response = IWUtils.ejson_deserialize(self.call_api("GET", source_configurations_url,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']),
+                                                               ).content)
+            result = response.get('result', False)
+            if not result:
+                self.logger.error(f"Failed to get the source details for {source_id}")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f"Failed to get the source details for {source_id}",
+                                                   response=response, job_id=None, source_id=source_id)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to get the source details for {source_id} " + str(e))
