@@ -216,7 +216,6 @@ class Utils:
                     "pipeline_parameters": pipeline_parameters,
                     "batch_engine": "SNOWFLAKE",
                     "query_tag": query_tag,
-                    "custom_tags": custom_tags,
                     "description": description
                 },
                 "pipeline_advance_configs": pipeline_advance_config_details
