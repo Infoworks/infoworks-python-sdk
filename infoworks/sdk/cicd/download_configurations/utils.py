@@ -2,6 +2,8 @@ import copy
 import os
 import traceback
 
+import jwt
+
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, configure_pipeline_url, \
     configure_workflow_url, \
@@ -147,6 +149,90 @@ class Utils:
 
         return final_obj
 
+    def get_sql_pipeline_config(self, cicd_client, domain_id, pipeline_id, target_file_path):
+        ip = cicd_client.client_config['ip']
+        port = cicd_client.client_config['port']
+        protocol = cicd_client.client_config['protocol']
+
+        get_domain_name_url = f"{protocol}://{ip}:{port}/v3/domains/{domain_id}"
+        response = cicd_client.call_api("GET", get_domain_name_url,
+                                        IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        domain_name = parsed_response.get("result", {}).get("name", "")
+
+        get_active_pipeline_versions_url = f"{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/"
+        response = cicd_client.call_api("GET", get_active_pipeline_versions_url, IWUtils.get_default_header_for_v3(
+            cicd_client.client_config['bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        pipeline_details = parsed_response.get("result", {})
+        pipeline_name = pipeline_details.get("name", "")
+
+        filename = f"{domain_name}#pipeline_{pipeline_name}.json"
+
+        active_pipeline_version = pipeline_details.get("active_version_id")
+
+        get_pipeline_version_config_url = f"{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/versions/{active_pipeline_version}"
+        response = cicd_client.call_api("GET", get_pipeline_version_config_url, IWUtils.get_default_header_for_v3(
+            cicd_client.client_config[
+                'bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        pipeline_version_details = parsed_response.get("result", {})
+        version_id = pipeline_version_details.get("version", 1)
+        query = pipeline_version_details.get("query", "")
+        pipeline_parameters = pipeline_version_details.get("pipeline_parameters", [])
+        # Check for any advance configurations
+        response = cicd_client.call_api("GET", get_active_pipeline_versions_url + "configurations/advance",
+                                        IWUtils.get_default_header_for_v3(
+                                            cicd_client.client_config[
+                                                'bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        pipeline_advance_config_details = parsed_response.get("result", [])
+
+        environment_id, environment_compute_template_id, environment_storage_id = self.get_env_details(
+            cicd_client, pipeline_id,
+            "pipeline",
+            domain_id)
+        env_name, storage_name, compute_name = self.get_env_entities_names(
+            cicd_client, environment_id,
+            environment_compute_template_id,
+            environment_storage_id)
+
+        decoded_jwt = jwt.decode(cicd_client.client_config['bearer_token'], options={"verify_signature": False})
+        user_email = json.loads(decoded_jwt.get("sub")).get("email")
+        config_obj = {
+            "configuration": {
+                "entity": {
+                    "entity_type": "pipeline",
+                    "entity_id": pipeline_id,
+                    "entity_name": pipeline_details.get("name"),
+                    "subEntityName": f"V{version_id}",
+                    "warehouse": pipeline_details.get("snowflake_warehouse")
+                },
+                "pipeline_configs": {
+                    "description": "",
+                    "type": "sql",
+                    "query": query,
+                    "pipeline_parameters": pipeline_parameters,
+                    "batch_engine": "SNOWFLAKE"
+                },
+                "pipeline_advance_configs": pipeline_advance_config_details
+            },
+            "environment_configurations": {"environment_name": env_name,
+                                           "environment_compute_template_name": compute_name,
+                                           "environment_storage_name": storage_name},
+            "user_email": user_email
+        }
+        target_file_path = os.path.join(target_file_path, "pipeline", filename)
+        if filename is not None and target_file_path is not None:
+            cicd_client.logger.info("{} {}".format(filename, target_file_path))
+            print(f"Exporting configurations file to {target_file_path}")
+            with open(target_file_path, 'w') as file_ptr:
+                contents_to_write = IWUtils.ejson_serialize(config_obj)
+                file_ptr.write(contents_to_write)
+            cicd_client.logger.info("Configurations exported successfully")
+            print("Configurations exported successfully")
+        return filename, config_obj
+
     def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path):
         response_to_return = {}
         filename = None
@@ -174,6 +260,7 @@ class Utils:
         else:
             status = "FAILED"
             print(parsed_response)
+            return self.get_sql_pipeline_config(cicd_client, domain_id, entity_id, target_file_path)
         response_to_return["get_configuration_entity_response"] = CICDResponse.parse_result(status=status,
                                                                                             entity_id=entity_id,
                                                                                             response=parsed_response)

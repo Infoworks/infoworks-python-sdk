@@ -24,6 +24,9 @@ def create_sql_pipeline_version(pipeline_client_obj, pipeline_id=None, domain_id
         pipeline_client_obj.logger.info(
             'Pipeline {id} has been created/found under domain {domain_id}.'.format(id=pipeline_id,
                                                                                     domain_id=domain_id))
+        print(
+            'Pipeline {id} has been created/found under domain {domain_id}.'.format(id=pipeline_id,
+                                                                                    domain_id=domain_id))
         create_pipeline_version_url = pipeline_version_base_url(pipeline_client_obj.client_config,
                                                                 domain_id, pipeline_id)
         pv_response = pipeline_client_obj.call_api("POST", create_pipeline_version_url, {
@@ -35,19 +38,9 @@ def create_sql_pipeline_version(pipeline_client_obj, pipeline_id=None, domain_id
             "pipeline_parameters": pipeline_parameters
         })
         parsed_response = IWUtils.ejson_deserialize(pv_response.content)
-        if parsed_response.status_code == 406:
-            pv_response = pipeline_client_obj.call_api("POST", create_pipeline_version_url, {
-                'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
-                'Content-Type': 'application/json'}, data={
-                "pipeline_id": pipeline_id,
-                "type": "sql",
-                "query": sql_query,
-                "pipeline_parameters": pipeline_parameters
-            })
-            parsed_response = IWUtils.ejson_deserialize(pv_response.content)
-
-        if parsed_response["result"].get("status", "") == "success":
-            pipeline_version_id = pv_response["result"]["entity_id"]
+        print(parsed_response)
+        if parsed_response.get("message", "") == "Pipeline Version Created Successfully":
+            pipeline_version_id = parsed_response.get("result", {}).get("id")
             pipeline_client_obj.logger.info(f"Pipeline version {pipeline_version_id} created")
             # Make the new created version as active
             pv_active_response = IWUtils.ejson_deserialize(pipeline_client_obj.call_api("POST",
@@ -55,8 +48,8 @@ def create_sql_pipeline_version(pipeline_client_obj, pipeline_id=None, domain_id
                                                                                         IWUtils.get_default_header_for_v3(
                                                                                             pipeline_client_obj.client_config[
                                                                                                 'bearer_token'])).content)
-
-            if pv_active_response["result"].get("status", "") != "success":
+            print(pv_active_response)
+            if pv_active_response.get("message", "") != "Successfully set active version":
                 pipeline_client_obj.logger.error(
                     f"Unable to set the pipeline version {pipeline_version_id} as active")
                 pipeline_client_obj.logger.error(str(pv_active_response))
@@ -173,7 +166,7 @@ class Pipeline:
     def create(self, pipeline_client_obj, domain_id, domain_name):
         pipeline_name = self.configuration_obj["configuration"]["entity"]["entity_name"]
         sources_in_pipelines = []
-        for item in self.configuration_obj["configuration"]["iw_mappings"]:
+        for item in self.configuration_obj["configuration"].get("iw_mappings", []):
             if item["entity_type"] == "table" and "source_name" in item["recommendation"]:
                 sources_in_pipelines.append(item["recommendation"].get("source_name"))
         filter_condition = IWUtils.ejson_serialize({"name": {"$in": sources_in_pipelines}})
@@ -191,7 +184,7 @@ class Pipeline:
             for item in result:
                 temp_src_ids.append(item["id"])
         sourceids_in_pipelines = list(set(temp_src_ids))
-        user_email = self.configuration_obj["user_email"]
+        user_email = self.configuration_obj.get("user_email", None)
         domain_obj = Domain(self.environment_id)
         new_pipeline_id = ''
         pipeline_json_object = {
@@ -252,9 +245,10 @@ class Pipeline:
         else:
             final_domain_id = domain_id
             pipeline_json_object["domain_id"] = domain_id
-        pipeline_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
-        print(f"Adding user {user_email} to domain {final_domain_id}")
-        domain_obj.add_user_to_domain(pipeline_client_obj, final_domain_id, None, user_email)
+        if user_email is not None:
+            pipeline_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
+            print(f"Adding user {user_email} to domain {final_domain_id}")
+            domain_obj.add_user_to_domain(pipeline_client_obj, final_domain_id, None, user_email)
         pipeline_client_obj.logger.info(
             'Adding sources {} to domain {}'.format(sourceids_in_pipelines, final_domain_id))
         print(f'Adding sources {sourceids_in_pipelines} to domain {final_domain_id}')

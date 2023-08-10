@@ -181,13 +181,46 @@ class WrapperPipeline(BaseClient):
             pipeline_id, domain_id = pl_obj.create(self, domain_id, domain_name)
 
             if pipeline_id is not None:
-                pl_type = configuration_obj.get("pipeline_configs", {}).get("type", "")
+                pl_type = configuration_obj.get("configuration", {}).get("pipeline_configs", {}).get("type", "")
                 if pl_type == "sql":
-                    sql_query = configuration_obj.get("pipeline_configs", {}).get("query", "")
-                    pl_params = configuration_obj.get("pipeline_configs", {}).get("pipeline_parameters", "")
-                    pl_version = create_sql_pipeline_version(pl_obj, pipeline_id=pipeline_id, domain_id=domain_id,
+                    sql_query = configuration_obj.get("configuration", {}).get("pipeline_configs", {}).get("query", "")
+                    pl_params = configuration_obj.get("configuration", {}).get("pipeline_configs", {}).get("pipeline_parameters", "")
+                    pl_version = create_sql_pipeline_version(self, pipeline_id=pipeline_id, domain_id=domain_id,
                                                              sql_query=sql_query,
                                                              pipeline_parameters=pl_params)
+                    # Add advance configs if any
+                    advance_configs = configuration_obj.get("configuration", {}).get("pipeline_advance_configs", [])
+                    pipeline_advanced_config_request_url = url_builder.advanced_config_pipeline_url(self.client_config,
+                                                                                                    domain_id,
+                                                                                                    pipeline_id)
+                    if len(advance_configs) > 0:
+                        for item in advance_configs:
+                            key = item.get("key", "")
+                            value = item.get("value", "")
+                            description = item.get("description", "")
+                            is_active = item.get("is_active", True)
+
+                            # Start with create advance config
+                            response = self.call_api("POST", pipeline_advanced_config_request_url,
+                                                     IWUtils.get_default_header_for_v3(
+                                                         self.client_config['bearer_token']),
+                                                     {
+                                                         "key": key,
+                                                         "value": value,
+                                                         "description": description,
+                                                         "is_active": is_active
+                                                     })
+                            if response.status_code == 400:
+                                response = IWUtils.ejson_deserialize(
+                                    self.call_api("PUT", pipeline_advanced_config_request_url + f"/{key}",
+                                                  IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                                  {
+                                                      "key": key,
+                                                      "value": value,
+                                                      "description": description,
+                                                      "is_active": is_active
+                                                  }).content)
+
                 else:
                     status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings,
                                               read_passwords_from_secrets, env_tag=env_tag, secret_type=secret_type)
