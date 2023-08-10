@@ -166,7 +166,9 @@ class Utils:
         parsed_response = IWUtils.ejson_deserialize(response.content)
         pipeline_details = parsed_response.get("result", {})
         pipeline_name = pipeline_details.get("name", "")
-
+        query_tag = pipeline_details.get("query_tag", "")
+        custom_tags = pipeline_details.get("custom_tags", [])
+        description = pipeline_details.get("description", "")
         filename = f"{domain_name}#pipeline_{pipeline_name}.json"
 
         active_pipeline_version = pipeline_details.get("active_version_id")
@@ -209,11 +211,13 @@ class Utils:
                     "warehouse": pipeline_details.get("snowflake_warehouse")
                 },
                 "pipeline_configs": {
-                    "description": "",
                     "type": "sql",
                     "query": query,
                     "pipeline_parameters": pipeline_parameters,
-                    "batch_engine": "SNOWFLAKE"
+                    "batch_engine": "SNOWFLAKE",
+                    "query_tag": query_tag,
+                    "custom_tags": custom_tags,
+                    "description": description
                 },
                 "pipeline_advance_configs": pipeline_advance_config_details
             },

@@ -200,6 +200,13 @@ class Pipeline:
         if batch_engine != "":
             pipeline_json_object["batch_engine"] = batch_engine
 
+        # Add fields like query_tag, custom_tags
+        if "query_tag" in self.configuration_obj["configuration"].get("pipeline_configs", {}):
+            pipeline_json_object["query_tag"] = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("query_tag")
+        if "custom_tags" in self.configuration_obj["configuration"].get("pipeline_configs", {}):
+            pipeline_json_object["custom_tags"] = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("custom_tags")
+        if "custom_tags" in self.configuration_obj["configuration"].get("pipeline_configs", {}):
+            pipeline_json_object["custom_tags"] = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("custom_tags")
         # 5.3.x onwards CDW support
         if self.interactive_id is None:
             pipeline_json_object["run_job_on_data_plane"] = False

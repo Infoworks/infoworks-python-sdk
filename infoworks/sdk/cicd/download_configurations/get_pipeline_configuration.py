@@ -61,3 +61,10 @@ class DownloadPipeline(BaseClient):
                     f_pipeline_group.write("\n")
         f.close()
         f_pipeline_group.close()
+
+if __name__ == "__main__":
+    d_client = DownloadPipeline()
+    d_client.initialize_client_with_defaults("https", "support-test-att.cs.infoworks.cloud", "443",
+                                             "zThziQ7MoJJPYAha+U/+PBSTZG944F+SHBDs+m/z2qn8+m/ax8Prpzla1MHzQ5EBLzB2Bw8a+Qs9r6En5BEN2DsmUVJ6sKFb2yI2")
+    d_client.cicd_get_pipelineconfig_export(pipeline_ids=["e6749b1bbad7b24ab6d17783"],
+                                            config_file_export_path="/Users/abhishek.raviprasad/Downloads/GitHub/infoworks-python-sdk/dumps")
