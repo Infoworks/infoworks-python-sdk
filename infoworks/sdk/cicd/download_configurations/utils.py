@@ -260,10 +260,12 @@ class Utils:
 
         if response.status_code == 200:
             status = "SUCCESS"
+        elif response.status_code == 406:
+            return self.get_sql_pipeline_config(cicd_client, domain_id, entity_id, target_file_path)
         else:
             status = "FAILED"
             print(parsed_response)
-            return self.get_sql_pipeline_config(cicd_client, domain_id, entity_id, target_file_path)
+
         response_to_return["get_configuration_entity_response"] = CICDResponse.parse_result(status=status,
                                                                                             entity_id=entity_id,
                                                                                             response=parsed_response)
