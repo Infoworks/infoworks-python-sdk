@@ -87,6 +87,7 @@ class Pipeline:
         for section in config.sections():
             if section in PRE_DEFINED_MAPPINGS:
                 continue
+            print("section:", section)
             try:
                 final = d.setval(section.split("$"), dict(config.items(section)))
             except KeyError as e:

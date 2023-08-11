@@ -230,8 +230,8 @@ class Utils:
             cicd_client.logger.info("{} {}".format(filename, target_file_path))
             print(f"Exporting configurations file to {target_file_path}")
             with open(target_file_path, 'w') as file_ptr:
-                contents_to_write = IWUtils.ejson_serialize(config_obj)
-                file_ptr.write(contents_to_write)
+                #contents_to_write = IWUtils.ejson_serialize(config_obj)
+                json.dump(config_obj,file_ptr,indent=4)
             cicd_client.logger.info("Configurations exported successfully")
             print("Configurations exported successfully")
         return filename, config_obj
@@ -543,11 +543,12 @@ class Utils:
                     cicd_client.logger.info("{} {}".format(filename, target_file_path))
                     print(f"Exporting configurations file to {target_file_path}")
                     with open(target_file_path, 'w') as file_ptr:
-                        contents_to_write = IWUtils.ejson_serialize(configuration_obj)
-                        if replace_words != "":
-                            for key, value in [item.split("->") for item in replace_words.split(";")]:
-                                contents_to_write = contents_to_write.replace(key, value)
-                        file_ptr.write(contents_to_write)
+                        #contents_to_write = IWUtils.ejson_serialize(configuration_obj)
+                        #if replace_words != "":
+                        #    for key, value in [item.split("->") for item in replace_words.split(";")]:
+                        #        contents_to_write = contents_to_write.replace(key, value)
+                        #file_ptr.write(contents_to_write)
+                        json.dump(configuration_obj,file_ptr,indent=4)
                     cicd_client.logger.info("Configurations exported successfully")
                     print("Configurations exported successfully")
             except Exception as e:
