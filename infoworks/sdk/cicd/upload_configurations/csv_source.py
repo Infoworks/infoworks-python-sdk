@@ -159,27 +159,19 @@ class CSVSource:
         storage_type = data["storage"]["storage_type"]
         cloud_type = data["storage"].get("cloud_type", None)
         if storage_type == "cloud" and cloud_type == "s3":
-            access_id = data["storage"].get("access_id", "")
-            secret_key = data["storage"].get("secret_key", "")
-            if "source_secrets" in mappings:
-                access_id = mappings.get("source_secrets").get("access_id", access_id)
-                secret_key = mappings.get("source_secrets").get("secret_key", secret_key)
-            source_configure_payload = {
-                "source_base_path_relative": data.get("source_base_path_relative",""),
-                "source_base_path": data.get("source_base_path",""),
-                "storage": {
-                    "storage_type": data["storage"]["storage_type"],
-                    "cloud_type": data["storage"]["cloud_type"],
-                    "access_id": access_id,
-                    "secret_key": secret_key,
-                    "account_type": data["storage"]["account_type"],
-                    "access_type": data["storage"]["access_type"]
-                }
-            }
+            source_configure_payload = data
         elif storage_type == "cloud" and cloud_type == "wasb":
-            source_configure_payload = {}
-            pass
+            connection_object = data
+            if connection_object.get("account_key", {}).get("password_type", "") == "secret_store":
+                # for CSV passwords in keyvault
+                secret_name = connection_object["account_key"]["secret_name"]
+                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+                if secret_name:
+                    connection_object["account_key"]["secret_id"] = secret_id
+                    connection_object["account_key"].pop('secret_name', None)
+            source_configure_payload=connection_object
         elif storage_type == "cloud" and "project_id" in data["storage"]:
+            connection_object = data
             project_id = data["storage"]["project_id"]
             server_path = data["storage"]["server_path"]
             if "gcp_details" in mappings:
@@ -190,20 +182,14 @@ class CSVSource:
             if "service_json_mappings" in mappings:
                 server_path = mappings["service_json_mappings"].get(data["storage"]["server_path"].split("/")[-1],
                                                                     server_path)
-
-            source_configure_payload = {
-                "source_base_path_relative": data.get("source_base_path_relative",""),
-                "source_base_path": data.get("source_base_path",""),
-                "storage": {
-                    "cloud_type": "gs",
-                    "storage_type": data["storage"]["storage_type"],
-                    "project_id": project_id,
-                    "access_type": data["storage"]["access_type"],
-                    "server_path": server_path,
-                    "upload_option": data["storage"]["upload_option"],
-                    "file_details": []
-                }
-            }
+            if connection_object.get("password", {}).get("password_type", "") == "secret_store":
+                # for CSV passwords in keyvault
+                secret_name = connection_object["password"]["secret_name"]
+                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+                if secret_name:
+                    connection_object["password"]["secret_id"] = secret_id
+                    connection_object["password"].pop('secret_name', None)
+            source_configure_payload=connection_object
         elif storage_type == "remote":
             # SFTP Source
             data = self.configuration_obj["configuration"]["source_configs"]["connection"]
@@ -250,6 +236,8 @@ class CSVSource:
                                     read_passwords_from_secrets=False,dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
+        #remove bigquery_labels due to issue in 5.4.2.4 configmigration API
+        self.configuration_obj["configuration"]["source_configs"].pop("bigquery_labels",[])
         src_name = self.configuration_obj["configuration"]["source_configs"]["name"]
         source_import_payload = {"configuration": self.configuration_obj["configuration"]}
         modified_table_configs = self.configuration_obj["configuration"]["table_configs"]

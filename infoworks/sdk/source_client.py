@@ -53,7 +53,8 @@ class SourceClient(BaseClient):
                 result = response.get('result', {})
                 if len(result) != 0:
                     job_status = result["status"]
-                    print(f"source_job_status : {job_status}.Sleeping for {polling_frequency} seconds")
+                    job_type = result.get("type","source_job")
+                    print(f"{job_type}_status : {job_status}.Sleeping for {polling_frequency} seconds")
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
