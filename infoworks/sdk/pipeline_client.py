@@ -1,3 +1,4 @@
+import base64
 import time
 
 from infoworks.error import PipelineError
@@ -605,8 +606,12 @@ class PipelineClient(BaseClient):
                               ).content)
             if response is not None and "result" in response:
                 result = response.get("result", None)
-                return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
-                                                     pipeline_id=result[0].get('id'), response=response)
+                if len(result) > 0:
+                    return PipelineResponse.parse_result(status=Response.Status.SUCCESS,
+                                                         pipeline_id=result[0].get('id'), response=response)
+                else:
+                    return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                         pipeline_id=None, response=response)
         except Exception as e:
             self.logger.error("Unable to get pipeline name " + str(e))
             raise PipelineError("Unable to get pipeline name " + str(e))
@@ -1078,5 +1083,91 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to import sql mapping.')
             raise PipelineError('Error occurred while trying to import sql mapping.')
 
+    def create_sql_pipeline(self, pipeline_config=None, pipeline_id=None, domain_id=None, sql_query="",
+                            pipeline_parameters=None):
+        """
+        Create a new SQL Pipeline version. You can pass pipeline id if you need to create sql version in existing pipeline
+        :param pipeline_config: a JSON object containing pipeline configurations
+        :type pipeline_config: JSON Object
+        :param pipeline_id: Entity identifier of pipeline
+        :param domain_id: Entity identifier of domain
+        :param sql_query: A SQL query that is part of pipeline
+        :param pipeline_parameters: Array of key-value pair. Example: [{"key": param_key, "value": "value1"}]
+        :type pipeline_parameters: List
+        ```
+        pipeline_config_example = {
+            "name": pipeline_name,
+            "description": '',
+            "environment_id": env_id,
+            "domain_id": domain_id,
+            "custom_tags": [],
+            "batch_engine": 'SNOWFLAKE',
+            "snowflake_profile": snowflake_profile,
+            "snowflake_warehouse": warehouse,
+            "run_job_on_data_plane": False,
+            "query_tag": ""
+            }
+        ```
+        :return: response dict
+        """
+        if pipeline_parameters is None:
+            pipeline_parameters = []
+        try:
+            if pipeline_config is None and pipeline_id is None:
+                raise Exception(f"pipeline_config and pipeline_id both cannot be None")
+            if pipeline_config is None:
+                if None in {pipeline_id, domain_id}:
+                    raise Exception(f"As pipeline_config is None, please pass pipeline_id and domain_id.")
+            if pipeline_config is not None:
+                domain_id = pipeline_config["domain_id"]
+                response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.create_pipeline_url(
+                    self.client_config, domain_id), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token']),
+                                                                   pipeline_config).content)
+                result = response.get('result', {})
+                pipeline_id = result.get('id', None)
+                if pipeline_id is None:
+                    self.logger.error('Failed to create pipeline')
+                    return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                         error_code=ErrorCode.USER_ERROR,
+                                                         error_desc='Failed to create pipeline.',
+                                                         response=response)
+            else:
+                pipeline_id = str(pipeline_id)
+                self.logger.info(
+                    'Pipeline {id} has been created/found under domain {domain_id}.'.format(id=pipeline_id,
+                                                                                            domain_id=domain_id))
 
+                sample_string_bytes = sql_query.encode("ascii")
+                base64_bytes = base64.b64encode(sample_string_bytes)
+                base64_string = base64_bytes.decode("ascii")
+                pv_response = self.create_pipeline_version(domain_id, pipeline_id, body={
+                    "pipeline_id": pipeline_id,
+                    "type": "sql",
+                    "query": base64_string,
+                    "pipeline_parameters": pipeline_parameters
+                })
+                if pv_response["result"].get("status", "") == "success":
+                    pipeline_version_id = pv_response["result"]["entity_id"]
+                    self.logger.info(f"Pipeline version {pipeline_version_id} created")
+                    pv_details_response = self.get_pipeline_version_details(pipeline_id, domain_id,
+                                                                            pipeline_version_id)
+                    # Make the new created version as active
+                    pv_active_response = self.set_pipeline_version_as_active(domain_id, pipeline_id,
+                                                                             pipeline_version_id)
+                    if pv_active_response["result"].get("status", "") != "success":
+                        self.logger.error(f"Unable to set the pipeline version {pipeline_version_id} as active")
+                        self.logger.error(str(pv_active_response))
+                    else:
+                        self.logger.info(f"Pipeline version {pipeline_version_id} set as active")
+                else:
+                    self.logger.error(f"Unable to create the new pipeline version")
+                    self.logger.error(str(pv_response))
 
+                return PipelineResponse.parse_result(status=Response.Status.SUCCESS, pipeline_id=pipeline_id,
+                                                     response=pv_response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to create a new sql pipeline.')
+            raise PipelineError('Error occurred while trying to create a new sql pipeline.')

@@ -677,32 +677,34 @@ class AdminClient(BaseClient):
                                                         error_code=ErrorCode.USER_ERROR,
                                                         error_desc="get data warehouse method is not available for this environment",
                                                         response={"default_warehouse": None})
-                data_warehouse_configuration=result[0]["data_warehouse_configuration"]
-                if data_warehouse_configuration["type"].lower()=="snowflake":
-                    snowflake_profiles=data_warehouse_configuration.get("snowflake_profiles",[])
+                data_warehouse_configuration = result[0]["data_warehouse_configuration"]
+                if data_warehouse_configuration["type"].lower() == "snowflake":
+                    snowflake_profiles = data_warehouse_configuration.get("snowflake_profiles", [])
                     for profile in snowflake_profiles:
-                        if profile.get("is_default_profile",False):
-                            for warehouse in profile.get("warehouse",[]):
-                                if warehouse.get("is_default_warehouse",False):
+                        if profile.get("is_default_profile", False):
+                            for warehouse in profile.get("warehouse", []):
+                                if warehouse.get("is_default_warehouse", False):
                                     return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                        response={"default_warehouse": warehouse["name"]})
+                                                                        response={
+                                                                            "default_warehouse": warehouse["name"]})
             else:
                 if result.get("data_warehouse_type", "") == "":
                     return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                         error_code=ErrorCode.USER_ERROR,
                                                         error_desc="get data warehouse method is not available for this environment",
                                                         response={"default_warehouse": None})
-                data_warehouse_configuration=result["data_warehouse_configuration"]
-                if data_warehouse_configuration["type"].lower()=="snowflake":
-                    snowflake_profiles=data_warehouse_configuration.get("snowflake_profiles",[])
+                data_warehouse_configuration = result["data_warehouse_configuration"]
+                if data_warehouse_configuration["type"].lower() == "snowflake":
+                    snowflake_profiles = data_warehouse_configuration.get("snowflake_profiles", [])
                     for profile in snowflake_profiles:
-                        if profile.get("is_default_profile",False):
-                            for warehouse in profile.get("warehouse",[]):
-                                if warehouse.get("is_default_warehouse",False):
+                        if profile.get("is_default_profile", False):
+                            for warehouse in profile.get("warehouse", []):
+                                if warehouse.get("is_default_warehouse", False):
                                     return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                        response={"default_warehouse": warehouse["name"]})
+                                                                        response={
+                                                                            "default_warehouse": warehouse["name"]})
                     return GenericResponse.parse_result(status=Response.Status.SUCCESS,
-                                                        response={"default_warehouse":None})
+                                                        response={"default_warehouse": None})
         else:
             return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                 error_code=ErrorCode.USER_ERROR,
@@ -963,7 +965,8 @@ class AdminClient(BaseClient):
         try:
             if config_body is None or data_connection_id is None:
                 raise Exception("config_body and data_connection_id cannot be None/Null")
-            create_data_connection_url = url_builder.create_data_connection(self.client_config) + f"/{data_connection_id}"
+            create_data_connection_url = url_builder.create_data_connection(
+                self.client_config) + f"/{data_connection_id}"
             response = self.call_api("PUT", create_data_connection_url,
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                                      config_body)
