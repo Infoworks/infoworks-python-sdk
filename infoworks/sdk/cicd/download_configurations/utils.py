@@ -229,7 +229,7 @@ class Utils:
                             #for RDBMS sources
                             if source_connection_objects.get("password",{}).get("password_type","")=="secret_store":
                                 # for SFTP password auth
-                                secret_id = source_connection_objects["password"]["secret_id"]["$oid"]
+                                secret_id = source_connection_objects["password"]["secret_id"]
                                 secret_name = self.get_secret_name_from_id(cicd_client,secret_id)
                                 if secret_name:
                                     source_connection_objects["password"]["secret_name"] = secret_name

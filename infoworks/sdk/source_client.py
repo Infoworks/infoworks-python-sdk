@@ -53,7 +53,8 @@ class SourceClient(BaseClient):
                 result = response.get('result', {})
                 if len(result) != 0:
                     job_status = result["status"]
-                    print(f"source_job_status : {job_status}.Sleeping for {polling_frequency} seconds")
+                    job_type = result.get("type","source_job")
+                    print(f"{job_type}_status : {job_status}.Sleeping for {polling_frequency} seconds")
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
                             "percentage", 0)))
@@ -470,9 +471,10 @@ class SourceClient(BaseClient):
                 self.call_api("POST", configure_tables_tg_url,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                               {"configuration": configuration_obj}).content)
-            result = response.get('result', None)
+            result = response.get('result', {}).get("configuration",{}).get("iw_mappings",[])
             count = 0
-            # self.logger.debug(response)
+            #print(response)
+            self.logger.debug(response)
             if result is not None:
                 for config_item in result:
                     table_upsert_status = config_item.get('table_upsert_status', None)
