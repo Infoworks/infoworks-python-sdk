@@ -515,6 +515,66 @@ class AdminClient(BaseClient):
             self.logger.error("Error in getting environment details " + str(e))
             raise AdminError("Error in getting environment details" + str(e))
 
+    def create_environment(self, environment_body=None):
+        """
+        Function to create data environment
+        :param environment_body: Body of the data environment
+        :type environment_body: Dict
+        :return: Response Dict
+        """
+        if environment_body is None:
+            self.logger.error("environment_body cannot be None")
+            raise Exception("environment_body cannot be None")
+        url_to_list_environments = url_builder.get_environment_details(
+            self.client_config)
+        try:
+            response = self.call_api("POST", url_to_list_environments,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),environment_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in creating environment ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in creating environment" + str(e))
+            raise AdminError("Error in creating environment" + str(e))
+
+    def update_environment(self, environment_id = None,environment_body=None):
+        """
+        Function to update data environment
+        :param environment_id: Id of the data environment
+        :type environment_body: string
+        :param environment_body: Body of the data environment
+        :type environment_body: Dict
+        :return: Response Dict
+        """
+        if None in [environment_body,environment_id]:
+            self.logger.error("environment_id or environment_body cannot be None")
+            raise Exception("environment_id or environment_body cannot be None")
+        url_to_list_environments = url_builder.get_environment_details(
+            self.client_config)+f"/{environment_id}"
+        try:
+            response = self.call_api("PATCH", url_to_list_environments,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),environment_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   "Error in updating environment ")
+                                                    )
+        except Exception as e:
+            self.logger.error("Error in updating environment" + str(e))
+            raise AdminError("Error in updating environment" + str(e))
+
     def get_storage_details(self, environment_id, storage_id=None, params=None):
         """
         Function to get storage details

@@ -62,3 +62,5 @@ class DownloadPipeline(BaseClient):
         f.close()
         f_pipeline_group.close()
 
+if __name__ == "__main__":
+    d_client = DownloadPipeline()
