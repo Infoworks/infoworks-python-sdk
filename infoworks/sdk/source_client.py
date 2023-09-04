@@ -53,7 +53,7 @@ class SourceClient(BaseClient):
                 result = response.get('result', {})
                 if len(result) != 0:
                     job_status = result["status"]
-                    job_type = result.get("type","source_job")
+                    job_type = result.get("type", "source_job")
                     print(f"{job_type}_status : {job_status}.Sleeping for {polling_frequency} seconds")
                     self.logger.info(
                         "Job poll status : " + result["status"] + "Job completion percentage: " + str(result.get(
@@ -471,9 +471,9 @@ class SourceClient(BaseClient):
                 self.call_api("POST", configure_tables_tg_url,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
                               {"configuration": configuration_obj}).content)
-            result = response.get('result', {}).get("configuration",{}).get("iw_mappings",[])
+            result = response.get('result', {}).get("configuration", {}).get("iw_mappings", [])
             count = 0
-            #print(response)
+            # print(response)
             self.logger.debug(response)
             if result is not None:
                 for config_item in result:
@@ -2839,7 +2839,7 @@ class SourceClient(BaseClient):
     def modify_advanced_config_of_table(self, source_id=None, table_id=None, adv_config_body=None,
                                         action_type="update", key=None):
         """
-        Function to add/update the adv config for the pipeline group
+        Function to add/update the adv config for the table
         :param source_id: Entity identifier of the source
         :param table_id: Entity identifier of the table
         :param action_type: values can be either create/update. default update
@@ -2884,7 +2884,7 @@ class SourceClient(BaseClient):
                 self.logger.info('Advanced Config has been updated')
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
             else:
-                self.logger.error(f'Failed to {action_type} advanced config for pipeline group.')
+                self.logger.error(f'Failed to {action_type} advanced config for table.')
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                    error_code=ErrorCode.USER_ERROR,
                                                    error_desc=f'Failed to {action_type} advanced config for table',
@@ -3136,3 +3136,142 @@ class SourceClient(BaseClient):
                                                    source_id=source_id)
         except Exception as e:
             raise SourceError(f"Failed to get the source details for {source_id} " + str(e))
+
+    def modify_data_validation_spec_of_table(self, source_id=None, table_id=None, config_body=None,
+                                             action_type="update", validation_spec_id=None):
+        """
+        Function to add/update the validation spec for the table
+        :param source_id: Entity identifier of the source
+        :param table_id: Entity identifier of the table
+        :param action_type: values can be either create/update. default update
+        :type action_type: String
+        :param config_body: JSON dict
+        ```
+        config_body = {
+            "name": "test2",
+            "column_name": "CUSTOMERID",
+            "table_id": "64df051587f3520007fa84c0",
+            "type": "regex",
+            "expression": "[a-zA-Z]"
+        }
+        ```
+        :param validation_spec_id: In case of update, pass the entity identifier of the validation_spec. This can be found from list_validation_specs_for_table function
+        :return: response dict
+        """
+        if None in {source_id, table_id} or config_body is None:
+            raise Exception(f"source_id, table_id and config_body cannot be None")
+        try:
+            if action_type.lower() == "create":
+                request_type = "POST"
+                request_url = url_builder.get_table_configuration(self.client_config, source_id,
+                                                                  table_id) + "/validation-specs"
+            else:
+                request_type = "PATCH"
+                request_url = url_builder.get_table_configuration(self.client_config, source_id,
+                                                                  table_id) + f"/validation-specs/{validation_spec_id}"
+            response = IWUtils.ejson_deserialize(
+                self.call_api(request_type, request_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              config_body).content)
+            validation_spec_id = response.get('result', None)
+            message = response.get('message', "")
+            if validation_spec_id is not None:
+                validation_spec_id = str(validation_spec_id)
+                self.logger.info(
+                    'Validation Spec has been created {id}.'.format(id=validation_spec_id))
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=validation_spec_id,
+                                                    response=response)
+            elif message == "Validation Specs updated successfully":
+                self.logger.info('Validation Specs updated successfully')
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                self.logger.error(f'Failed to {action_type} validation spec for table')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f'Failed to {action_type} validation spec for table',
+                                                   response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(e))
+            self.logger.exception('Error occurred while trying to add/update validation spec for table')
+            raise SourceError('Error occurred while trying to add/update validation spec for table')
+
+    def list_validation_specs_for_table(self, source_id=None, table_id=None, params=None):
+        """
+        Function to list the validation specs for a table
+        :param source_id: Entity identifier of the source
+        :param table_id: Entity identifier of the table
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        if None in {source_id, table_id}:
+            raise Exception(f"source_id, table_id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_validation_specs = url_builder.get_table_configuration(self.client_config, source_id,
+                                                                           table_id) + "/validation-specs" + IWUtils.get_query_params_string_from_dict(
+            params=params)
+        validations_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_validation_specs,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                initial_msg = response.get("message", "")
+                result = response.get("result", [])
+                while len(result) > 0:
+                    validations_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            else:
+                self.logger.error("Failed to get list of validations for table")
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc="Failed to get list of validations for table",
+                                                   response=response)
+            response["result"] = validations_list
+            response["message"] = initial_msg
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+
+        except Exception as e:
+            self.logger.error("Error in listing validations for table")
+            raise SourceError("Error in listing validations for table " + str(e))
+
+    def delete_validation_spec_table(self, source_id=None, table_id=None, validation_spec_id=None):
+        """
+        Function to delete validation spec for a table
+        :param source_id: Entity identifier for source
+        :param table_id: Entity identifier for table
+        :param validation_spec_id: Entity identifier of  validation spec to delete. Can be found using the list_validation_specs_for_table function
+        :return: response dict
+        """
+        if None in {source_id, table_id, validation_spec_id}:
+            self.logger.error("source id or table_id or validation_spec_id cannot be None")
+            raise Exception("source id or table_id or validation_spec_id cannot be None")
+        url_to_delete_validation_spec = url_builder.get_table_configuration(self.client_config, source_id,
+                                                                            table_id) + f"/validation-specs/{validation_spec_id}"
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("DELETE",
+                                                               url_to_delete_validation_spec,
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token'])).content)
+            result = response.get("message", "None")
+
+            if result != "Validation Specs deleted successfully":
+                self.logger.error(f'Failed to delete validation spec of the table {table_id}')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc=f'Failed to delete validation spec of the table {table_id}',
+                                                   response=response)
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+
+        except Exception as e:
+            self.logger.error("Error in deleting the validation spec of the table")
+            raise SourceError("Error in deleting the validation spec of the table" + str(e))
