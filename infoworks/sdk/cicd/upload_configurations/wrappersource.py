@@ -224,7 +224,30 @@ class WrapperSource(BaseClient):
                                     self.logger.info("Configured source successfully")
                                     print(configure_tables_and_tablegroups_response)
                                     self.logger.info(configure_tables_and_tablegroups_response)
-                                    print("Configured source successfully")
+                                    # added below code since the config migration api doesn't support schema updatation as of 5.4.2.4
+                                    # to be removed after api fix
+                                    update_schema_response = source_obj.update_schema_for_tables(self, source_id,
+                                                                                                 override_configuration_file,
+                                                                                                 export_lookup,
+                                                                                                 self.mappings,
+                                                                                                 read_passwords_from_secrets,
+                                                                                                 env_tag=env_tag,
+                                                                                                 secret_type=secret_type,
+                                                                                                 dont_skip_step=
+                                                                                                 configuration_obj[
+                                                                                                     "steps_to_run"][
+                                                                                                     "configure_tables_and_tablegroups"])
+                                    update_schema_status = update_schema_response["result"]["status"]
+                                    if update_schema_status == "SUCCESS":
+                                        # print(update_schema_response)
+                                        self.logger.info(update_schema_response)
+                                        print("Configured source successfully")
+                                    else:
+                                        self.logger.error("Failed to update schema for tables")
+                                        print("Failed to update schema for tables")
+                                        print(update_schema_response)
+                                        self.logger.error(update_schema_response)
+                                        raise Exception("Failed to update schema for tables")
                                 else:
                                     self.logger.error("Failed to configure source")
                                     print("Failed to configure source")
