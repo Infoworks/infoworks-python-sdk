@@ -290,6 +290,39 @@ class RDBMSSource:
         return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
                                            response=response)
 
+    def update_schema_for_tables(self,src_client_obj, source_id, export_configuration_file=None,
+                                         export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,
+                                         env_tag="", secret_type="", dont_skip_step=True):
+        if not dont_skip_step:
+            return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
+        tables = self.configuration_obj["configuration"]["table_configs"]
+        table_schema_update_dict={}
+        for table in tables:
+            table_name = table["configuration"]["name"]
+            src_client_obj.logger.info(f"Updating the schema information for table {table_name}")
+            columns = table["configuration"]["columns"]
+            table_update_payload = {"name": table_name,"source":source_id,"columns":columns}
+            table_document = src_client_obj.list_tables_in_source(source_id,params={"filter":{"origTableName":table["configuration"]["name"],"schemaNameAtSource":table["configuration"]["schema_name_at_source"]}}).get("result",{}).get("response",{}).get("result",[])
+            if len(table_document)>0:
+                table_document=table_document[0]
+            table_id = table_document["id"]
+            response = src_client_obj.update_table_configuration(source_id=source_id,table_id=table_id,config_body=table_update_payload)
+            if response["result"]["status"].upper() != "SUCCESS":
+                src_client_obj.logger.error("Failed to update schema for table {table_name}".format(table_name=table_name))
+                src_client_obj.logger.error(response.get("message", ""))
+                table_schema_update_dict[table_name] = "FAILED"
+            else:
+                src_client_obj.logger.info("Successfully updated schema for table {table_name}".format(table_name=table_name))
+                table_schema_update_dict[table_name] = "SUCCESS"
+        failed_schema_update_tables = [table_name for table_name,status in table_schema_update_dict.items() if status.upper() == "FAILED"]
+        overall_update_status = "FAILED" if len(failed_schema_update_tables)>0 else "SUCCESS"
+        if overall_update_status =="FAILED":
+            response = {f"Tables schema update failed for tables:{failed_schema_update_tables}"}
+        else:
+            response = {f"Tables schema updated successfully"}
+        return SourceResponse.parse_result(status=overall_update_status, source_id=source_id,
+                                                   response=response)
+
     def configure_tables_and_tablegroups(self, src_client_obj, source_id, export_configuration_file=None,
                                          export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,
                                          env_tag="", secret_type="", dont_skip_step=True):
