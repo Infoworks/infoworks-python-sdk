@@ -258,37 +258,53 @@ class RDBMSSource:
     def add_tables_to_source(self, src_client_obj, source_id, dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
-        tables_already_added_in_source = src_client_obj.list_tables_in_source(source_id)["result"]["response"]
+        tables_already_added_in_source = src_client_obj.list_tables_in_source(source_id).get("result", {}).get(
+            "response", {}).get("result", [])
+        tables_already_added_in_source = [table["configuration"].get("schema_name_at_source",
+                                                                     table["configuration"].get("catalog_name",
+                                                                                                "")) + "." + table[
+                                              "name"] for table in tables_already_added_in_source]
         tables_list = []
         tables = self.configuration_obj["configuration"]["table_configs"]
+        # print("tables_already_added_in_source:",tables_already_added_in_source)
         if len(tables_already_added_in_source) > 0:
             for table in tables:
-                if table["configuration"]["schema_name_at_source"] + "." + table["configuration"][
-                    "name"] not in tables_already_added_in_source:
+                if table["configuration"].get("schema_name_at_source",
+                                              table["configuration"].get("catalog_name", "")) + "." + \
+                        table["configuration"][
+                            "name"] not in tables_already_added_in_source:
                     temp = {"table_name": table["configuration"]["name"],
-                            "schema_name": table["configuration"]["schema_name_at_source"],
                             "table_type": table["table_type"].upper(),
                             "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                             "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                     if table["configuration"].get("catalog_name", "") != "":
                         temp["catalog_name"] = table["configuration"]["catalog_name"]
+                    if table["configuration"].get("schema_name_at_source", "") != "":
+                        temp["schema_name"] = table["configuration"]["schema_name_at_source"]
                     tables_list.append(copy.deepcopy(temp))
                     src_client_obj.logger.info(
                         f"Adding table {temp['table_name']} to source {source_id} config payload")
         else:
             for table in tables:
                 temp = {"table_name": table["configuration"]["name"],
-                        "schema_name": table["configuration"]["schema_name_at_source"],
                         "table_type": table["table_type"].upper(),
                         "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                         "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                 if table["configuration"].get("catalog_name", "") != "":
                     temp["catalog_name"] = table["configuration"]["catalog_name"]
+                if table["configuration"].get("schema_name_at_source", "") != "":
+                    temp["schema_name"] = table["configuration"]["schema_name_at_source"]
                 tables_list.append(copy.deepcopy(temp))
                 src_client_obj.logger.info(f"Adding table {temp['table_name']} to source {source_id} config payload")
-        response = src_client_obj.add_tables_to_source(source_id, tables_list)
-        return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
-                                           response=response)
+        if len(tables_list) > 0:
+            response = src_client_obj.add_tables_to_source(source_id, tables_list)
+            return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
+                                               response=response)
+        else:
+            src_client_obj.logger.info(f"No new tables found to add.")
+            print(f"No new tables found to add.")
+            return SourceResponse.parse_result(status="SUCCESS", source_id=source_id,
+                                               response={})
 
     def update_schema_for_tables(self,src_client_obj, source_id, export_configuration_file=None,
                                          export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,
