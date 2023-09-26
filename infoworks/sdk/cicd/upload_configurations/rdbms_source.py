@@ -318,7 +318,11 @@ class RDBMSSource:
             src_client_obj.logger.info(f"Updating the schema information for table {table_name}")
             columns = table["configuration"]["columns"]
             table_update_payload = {"name": table_name,"source":source_id,"columns":columns}
-            table_document = src_client_obj.list_tables_in_source(source_id,params={"filter":{"origTableName":table["configuration"]["name"],"schemaNameAtSource":table["configuration"]["schema_name_at_source"]}}).get("result",{}).get("response",{}).get("result",[])
+            table_document=[]
+            if table["configuration"].get("schema_name_at_source","")!="":
+                table_document = src_client_obj.list_tables_in_source(source_id,params={"filter":{"origTableName":table["configuration"]["name"],"schemaNameAtSource":table["configuration"]["schema_name_at_source"]}}).get("result",{}).get("response",{}).get("result",[])
+            else:
+                table_document = src_client_obj.list_tables_in_source(source_id,params={"filter":{"origTableName":table["configuration"]["name"],"catalog_name":table["configuration"]["catalog_name"]}}).get("result",{}).get("response",{}).get("result",[])
             if len(table_document)>0:
                 table_document=table_document[0]
             table_id = table_document["id"]
