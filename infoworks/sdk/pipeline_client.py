@@ -288,7 +288,7 @@ class PipelineClient(BaseClient):
 
     def sql_import_into_pipeline(self, pipeline_id=None, domain_id=None, import_configs=None, sql_query=None):
         """
-        Import SQL into given pipeline id
+        Import SQL into given pipeline id. You could either pass the config body as shown in example or simply pass the sql_query
         :param pipeline_id: Id of the pipeline
         :type pipeline_id: String
         :param domain_id: Domain Id to which the pipeline belongs to
@@ -311,7 +311,7 @@ class PipelineClient(BaseClient):
         try:
             if None in {pipeline_id, domain_id}:
                 raise Exception(f"pipeline_id, domain_id cannot be None")
-            if import_configs is None and sql_query is None:
+            if import_configs is None or sql_query is None:
                 raise Exception(f"Either import_configs or sql_query has to be passed")
             if sql_query is not None:
                 import_configs = {
