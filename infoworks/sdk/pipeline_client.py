@@ -311,7 +311,7 @@ class PipelineClient(BaseClient):
         try:
             if None in {pipeline_id, domain_id}:
                 raise Exception(f"pipeline_id, domain_id cannot be None")
-            if import_configs is None or sql_query is None:
+            if import_configs is None and sql_query is None:
                 raise Exception(f"Either import_configs or sql_query has to be passed")
             if sql_query is not None:
                 import_configs = {
