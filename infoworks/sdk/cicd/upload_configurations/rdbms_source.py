@@ -329,12 +329,12 @@ class RDBMSSource:
             response = src_client_obj.update_table_configuration(source_id=source_id,table_id=table_id,config_body=table_update_payload)
             if response["result"]["status"].upper() != "SUCCESS":
                 src_client_obj.logger.error("Failed to update schema for table {table_name}".format(table_name=table_name))
-                src_client_obj.logger.error(response.get("message", ""))
-                table_schema_update_dict[table_name] = "FAILED"
+                src_client_obj.logger.error(response.get("result", {}).get("response",{}).get("message", ""))
+                table_schema_update_dict[table_name] = ("FAILED",response.get("result", {}).get("response",{}).get("message", ""))
             else:
                 src_client_obj.logger.info("Successfully updated schema for table {table_name}".format(table_name=table_name))
-                table_schema_update_dict[table_name] = "SUCCESS"
-        failed_schema_update_tables = [table_name for table_name,status in table_schema_update_dict.items() if status.upper() == "FAILED"]
+                table_schema_update_dict[table_name] = ("SUCCESS","")
+        failed_schema_update_tables = [(table_name,status[1]) for table_name,status in table_schema_update_dict.items() if status[0].upper() == "FAILED"]
         overall_update_status = "FAILED" if len(failed_schema_update_tables)>0 else "SUCCESS"
         if overall_update_status =="FAILED":
             response = {f"Tables schema update failed for tables:{failed_schema_update_tables}"}
