@@ -260,13 +260,12 @@ class RDBMSSource:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         tables_already_added_in_source = src_client_obj.list_tables_in_source(source_id).get("result", {}).get(
             "response", {}).get("result", [])
-        tables_already_added_in_source = [table["configuration"].get("schema_name_at_source",
-                                                                     table["configuration"].get("catalog_name",
+        tables_already_added_in_source = [table.get("schema_name_at_source",
+                                                                     table.get("catalog_name",
                                                                                                 "")) + "." + table[
                                               "name"] for table in tables_already_added_in_source]
         tables_list = []
         tables = self.configuration_obj["configuration"]["table_configs"]
-        # print("tables_already_added_in_source:",tables_already_added_in_source)
         if len(tables_already_added_in_source) > 0:
             for table in tables:
                 if table["configuration"].get("schema_name_at_source",
