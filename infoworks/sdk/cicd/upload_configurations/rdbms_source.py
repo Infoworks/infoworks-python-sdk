@@ -280,6 +280,8 @@ class RDBMSSource:
                         temp["catalog_name"] = table["configuration"]["catalog_name"]
                     if table["configuration"].get("schema_name_at_source", "") != "":
                         temp["schema_name"] = table["configuration"]["schema_name_at_source"]
+                    if table["configuration"].get("configuration", {}).get("configuration", {}).get("target_database_name","") != "":
+                        temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
                     tables_list.append(copy.deepcopy(temp))
                     src_client_obj.logger.info(
                         f"Adding table {temp['table_name']} to source {source_id} config payload")
@@ -293,6 +295,11 @@ class RDBMSSource:
                     temp["catalog_name"] = table["configuration"]["catalog_name"]
                 if table["configuration"].get("schema_name_at_source", "") != "":
                     temp["schema_name"] = table["configuration"]["schema_name_at_source"]
+                if table["configuration"].get("schema_name_at_source", "") != "":
+                    temp["schema_name"] = table["configuration"]["schema_name_at_source"]
+                if table["configuration"].get("configuration", {}).get("configuration", {}).get("target_database_name",
+                                                                                                "") != "":
+                    temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
                 tables_list.append(copy.deepcopy(temp))
                 src_client_obj.logger.info(f"Adding table {temp['table_name']} to source {source_id} config payload")
         if len(tables_list) > 0:

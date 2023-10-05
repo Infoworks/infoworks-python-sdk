@@ -391,11 +391,10 @@ class PipelineClient(BaseClient):
         try:
             if None in {pipeline_id, pipeline_version_id, domain_id}:
                 raise Exception(f"pipeline_id, pipeline_version_id, domain_id cannot be None")
-            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.delete_pipeline_version_url(
+            response = IWUtils.ejson_deserialize(self.call_api("DELETE", url_builder.delete_pipeline_version_url(
                 self.client_config, domain_id, pipeline_id, pipeline_version_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
-            result = response.get('result', {})
-            if result.get('id', None) is None:
+            if response.get("message","")!="Successfully removed Pipeline Version":
                 self.logger.error('Failed to delete the pipeline version')
                 return PipelineResponse.parse_result(status=Response.Status.FAILED,
                                                      error_code=ErrorCode.USER_ERROR,
