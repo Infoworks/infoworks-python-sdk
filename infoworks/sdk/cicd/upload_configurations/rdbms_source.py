@@ -273,7 +273,7 @@ class RDBMSSource:
                         table["configuration"][
                             "name"] not in tables_already_added_in_source:
                     temp = {"table_name": table["configuration"]["name"],
-                            "table_type": table["table_type"].upper(),
+                            "table_type": table.get("table_type","TABLE").upper(),
                             "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                             "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                     if table["configuration"].get("catalog_name", "") != "":
@@ -288,13 +288,11 @@ class RDBMSSource:
         else:
             for table in tables:
                 temp = {"table_name": table["configuration"]["name"],
-                        "table_type": table["table_type"].upper(),
+                        "table_type": table.get("table_type","TABLE").upper(),
                         "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                         "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                 if table["configuration"].get("catalog_name", "") != "":
                     temp["catalog_name"] = table["configuration"]["catalog_name"]
-                if table["configuration"].get("schema_name_at_source", "") != "":
-                    temp["schema_name"] = table["configuration"]["schema_name_at_source"]
                 if table["configuration"].get("schema_name_at_source", "") != "":
                     temp["schema_name"] = table["configuration"]["schema_name_at_source"]
                 if table["configuration"].get("configuration", {}).get("configuration", {}).get("target_database_name",
