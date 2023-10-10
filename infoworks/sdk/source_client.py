@@ -3275,3 +3275,170 @@ class SourceClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in deleting the validation spec of the table")
             raise SourceError("Error in deleting the validation spec of the table" + str(e))
+
+    def configure_table_group_schedule_user(self, source_id, table_group_id):
+        """
+        Configure Table Group schedule user of a particular Table Group belonging to the Source
+        :param source_id: Source ID of which Table Group belongs
+        :type source_id: String
+        :param table_group_id: Table Group ID to fetch schedule for.
+        :type table_group_id: String
+        :return: Response Dict
+        """
+        if source_id is None or table_group_id is None:
+            self.logger.error("source_id or table_group_id cannot be None")
+            raise Exception("source_id or table_group_id cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("PUT", url_builder.configure_table_group_schedule_user_url(
+                    self.client_config, source_id, table_group_id), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token'])).content)
+
+            result = response.get('result', None)
+
+            if result is None:
+                self.logger.error('Failed to configure table group schedule user')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc='Failed to configure table group schedule user',
+                                                   response=response)
+
+            table_group_id = str(table_group_id)
+            self.logger.info(
+                'Successfully configured table group {id} schedule user.'.format(id=table_group_id))
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
+                                               response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to configure table group schedule user.')
+            raise SourceError('Error occurred while trying to configure table group schedule user.')
+
+    def enable_table_group_schedule(self, source_id, table_group_id, schedule_config):
+        """
+        Enables Schedule of a particular table group belonging to the source
+        :param source_id: Source ID of which table group belongs
+        :type source_id: String
+        :param table_group_id: Table Group ID to fetch schedule for.
+        :type table_group_id: String
+        :param schedule_config: Schedule Configuration JSON of the Table Group
+        :type schedule_config: JSON
+        ```
+        schedule_config_example = {
+              "start_date": "02/22/2020",
+              "end_date": "02/24/2020",
+              "start_hour": 12,
+              "start_min": 25,
+              "end_hour": 17,
+              "end_min": 30,
+              "repeat_interval_measure": 2,
+              "repeat_interval_unit": "{string}",
+              "ends": true,
+              "is_custom_job": true,
+              "custom_job_details": {
+                "starts_daily_at": "14:00",
+                "ends_daily_at": "15:00",
+                "repeat_interval_unit": "{string}",
+                "repeat_interval_measure": 2
+              },
+              "repeat_on_last_day": "{boolean}",
+              "specified_days": 1
+        }
+        ```
+        :return: Response Dict
+        """
+        if source_id is None or table_group_id is None or schedule_config is None:
+            self.logger.error("source_id or table_group_id or schedule_config cannot be None")
+            raise Exception("source_id or table_group_id or schedule_config cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.get_enable_table_group_schedule_url(
+                self.client_config, source_id, table_group_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']), schedule_config).content)
+
+            result = response.get('result', None)
+
+            if result is None:
+                self.logger.error('Failed to enable schedule of the table group')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc='Failed to enable schedule of the table group',
+                                                   response=response)
+
+            table_group_id = str(table_group_id)
+            self.logger.info(
+                'Successfully enabled schedule for the table group {id}.'.format(id=table_group_id))
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
+                                               response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to enable table group schedule.')
+            raise SourceError('Error occurred while trying to enable table group schedule.')
+
+    def disable_table_group_schedule(self, source_id, table_group_id):
+        """
+        Disables Schedule of a particular Table Group belonging to the Source
+        :param source_id: Source ID of which Table Group belongs
+        :type source_id: String
+        :param table_group_id: Table Group ID to fetch schedule for.
+        :type table_group_id: String
+        :return: Response Dict
+        """
+        if source_id is None or table_group_id is None:
+            self.logger.error("source_id or table_group_id cannot be None")
+            raise Exception("source_id or table_group_id cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.get_disable_table_group_schedule_url(
+                self.client_config, source_id, table_group_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            result = response.get('result', None)
+
+            if result is None:
+                self.logger.error('Failed to disable schedule of the table group')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc='Failed to disable schedule of the table group',
+                                                   response=response)
+
+            table_group_id = str(table_group_id)
+            self.logger.info(
+                'Successfully disabled schedule for the table group {id}.'.format(id=table_group_id))
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
+                                               response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to disable table group schedule.')
+            raise SourceError('Error occurred while trying to disable table group schedule.')
+
+    def get_table_group_schedule(self, source_id, table_group_id):
+        """
+        Gets Schedules of particular Table Group belonging to the Source
+        :param source_id: Table Group ID of which Source belongs
+        :type source_id: String
+        :param table_group_id: Table Group ID to fetch schedule for.
+        :type table_group_id: String
+        :return: Response Dict
+        """
+        if source_id is None or table_group_id is None:
+            self.logger.error("source_id or table_group_id cannot be None")
+            raise Exception("source_id or table_group_id cannot be None")
+
+        response = None
+
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_table_group_schedule_url(
+                self.client_config, source_id, table_group_id), IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
+                                               response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get table group schedule.')
+            raise SourceError('Error occurred while trying to get table group schedule.')
