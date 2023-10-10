@@ -2042,7 +2042,7 @@ def list_domains_admin_url(config):
     :type config: dict
     :return: url to list domains
     """
-    request = '{protocol}://{ip}:{port}/v3/admins/domains'.format(ip=config['ip'], port=config['port'],
+    request = '{protocol}://{ip}:{port}/v3/admin/domains'.format(ip=config['ip'], port=config['port'],
                                                                   protocol=config['protocol'])
     return request
 
