@@ -2133,3 +2133,43 @@ def get_crawl_job_summary_url(config, source_id, job_id):
                                                                                           job_id=job_id
                                                                                           )
     return request
+
+
+def get_table_group_schedule_url(config, source_id, table_group_id):
+    """
+    Returns URL to get Table Group Schedule
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/{table_group_id}/schedules'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], source_id=source_id,
+        table_group_id=table_group_id)
+    return request
+
+
+def get_enable_table_group_schedule_url(config, source_id, table_group_id):
+    """
+    Returns URL to Enable Table Group Schedule
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/{table_group_id}/schedules/enable'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], source_id=source_id,
+        table_group_id=table_group_id)
+    return request
+
+
+def get_disable_table_group_schedule_url(config, source_id, table_group_id):
+    """
+    Returns URL to Disable Table Group Schedule
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/{table_group_id}/schedules/disable'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], source_id=source_id,
+        table_group_id=table_group_id)
+    return request
+
+
+def configure_table_group_schedule_user_url(config, source_id, table_group_id):
+    """
+    Return URL to configure Table Group schedule user
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/{table_group_id}/schedules/user'.format(
+        protocol=config['protocol'], ip=config['ip'], port=config['port'], source_id=source_id,
+        table_group_id=table_group_id)
+    return request
