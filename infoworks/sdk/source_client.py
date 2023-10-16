@@ -479,11 +479,12 @@ class SourceClient(BaseClient):
                 for config_item in result:
                     table_upsert_status = config_item.get('table_upsert_status', None)
                     if table_upsert_status is not None and len(table_upsert_status.get("error", [])) != 0:
-                        self.logger.info(f"{table_upsert_status}")
-                        count = count + 1
-                        errors[count] = table_upsert_status["error"]
-                        self.logger.error("Found errors during table and table group configurations")
-                        self.logger.error(table_upsert_status.get("error", []))
+                        if not table_upsert_status["error"][0].startswith("Truncate the table:"):
+                            self.logger.info(f"{table_upsert_status}")
+                            count = count + 1
+                            errors[count] = table_upsert_status["error"]
+                            self.logger.error("Found errors during table and table group configurations")
+                            self.logger.error(table_upsert_status.get("error", []))
                     elif table_upsert_status is None:
                         self.logger.info(f"Could not get table insert status from {config_item}")
                     else:

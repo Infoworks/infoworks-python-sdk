@@ -1,10 +1,11 @@
 import copy
 import json
+import time
 
 import requests
 import yaml
 
-from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url, create_domain_url
+from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url, create_domain_url, get_environment_interactive_compute_details,restart_persistent_cluster_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
@@ -49,6 +50,59 @@ class RDBMSSource:
             else:
                 cicd_client.logger.info("Secret id is {} ".format(None))
                 return None
+
+    def poll_cluster_start_status(self,cicd_client,environment_id,compute_id):
+        list_of_persistent_cluster_url = get_environment_interactive_compute_details(cicd_client.client_config,
+            env_id=environment_id,compute_id=compute_id)
+        response = cicd_client.call_api("GET", list_of_persistent_cluster_url,
+                                        IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token']))
+        parsed_response = IWUtils.ejson_deserialize(response.content)
+        return parsed_response.get("result",{}).get("cluster_state","")
+
+    def start_interactive_cluster(self,src_client_obj,environment_id):
+        retries=2
+        while retries!=0:
+            #added this because it takes about 120 seconds for ttl to expire and refresh the cluster status
+            list_of_persistent_cluster_url = get_environment_interactive_compute_details(config=src_client_obj.client_config,env_id=environment_id)+'?filter={"interactive_job_submit_enabled":true}'
+            response = src_client_obj.call_api("GET", list_of_persistent_cluster_url,
+                                            IWUtils.get_default_header_for_v3(src_client_obj.client_config['bearer_token']))
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            time.sleep(60)
+            retries = retries-1
+        result = parsed_response.get("result",[])
+        print("result",result)
+        result = result[0]
+        status = result.get("cluster_state","")
+        compute_id = result.get("id","")
+        environment_id=result.get("environment_id","")
+        if status in ["TERMINATED","STOPPED"]:
+            restart_cluster_template_body = \
+                        {
+                            "compute_template_id":compute_id,
+                            "type":"persistent"
+                        }
+            start_cluster_url = restart_persistent_cluster_url(config=src_client_obj.client_config)
+            response = src_client_obj.call_api("PUT", start_cluster_url,
+                                            IWUtils.get_default_header_for_v3(
+                                                src_client_obj.client_config['bearer_token']),data=restart_cluster_template_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            print("Restart persistent cluster response:")
+            print(parsed_response)
+            if parsed_response.get("result",{}).get("message","") == "Successfully submitted cluster restart request":
+                while(status not in ["RUNNING","ERROR"]):
+                    time.sleep(30)
+                    status = self.poll_cluster_start_status(src_client_obj,environment_id=environment_id,compute_id=compute_id)
+            else:
+                print("Something went wrong while restarting the interactive cluster")
+            if status =="RUNNING":
+                print("Started interactive cluster successfully!")
+            else:
+                print("Interactive cluster start failed!")
+                raise Exception("Interactive cluster start failed!Please start the cluster manually and retrigger CICD process")
+        elif status == "RUNNING":
+            print("Interactive Cluster is already running!")
+        else:
+            print(f"Unknown cluster state {status}")
 
     def update_table_schema_and_database(self, type, mappings):
         data = self.configuration_obj

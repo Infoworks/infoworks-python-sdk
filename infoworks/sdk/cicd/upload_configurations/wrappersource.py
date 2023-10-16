@@ -187,6 +187,7 @@ class WrapperSource(BaseClient):
                                          replace_words)
                 source_obj.configuration_obj = configuration_obj
                 source_obj.update_mappings_for_configurations(self.mappings)
+                source_obj.start_interactive_cluster(self,environment_id=source_obj.environment_id)
                 source_creation_response = source_obj.create_rdbms_source(self)
                 source_id = source_creation_response["result"]["source_id"]
                 if source_id is not None:

@@ -270,6 +270,7 @@ class Pipeline:
                 response = requests.post(url_for_creating_pipeline, data=json_string, headers={
                     'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
                     'Content-Type': 'application/json'}, verify=False)
+                new_pipeline_creation_response = response.content
                 if response.status_code == 406:
                     headers = pipeline_client_obj.regenerate_bearer_token_if_needed(
                         {'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
@@ -304,6 +305,8 @@ class Pipeline:
                     new_pipeline_id = result.get('id')
                 pipeline_client_obj.logger.info(f'Pipeline ID: {new_pipeline_id}')
                 print(f'Pipeline ID: {new_pipeline_id}')
+                if new_pipeline_id is None:
+                    pipeline_client_obj.logger.exception('Pipeline creation response: {}'.format(str(new_pipeline_creation_response)))
             except Exception as ex:
                 pipeline_client_obj.logger.exception('Response from server: {}'.format(str(ex)))
                 print(f'Response from server: {str(ex)}')
