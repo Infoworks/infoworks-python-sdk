@@ -59,15 +59,18 @@ class RDBMSSource:
         parsed_response = IWUtils.ejson_deserialize(response.content)
         return parsed_response.get("result",{}).get("cluster_state","")
 
-    def start_interactive_cluster(self,src_client_obj,environment_id):
-        retries=2
+    def start_interactive_cluster(self,src_client_obj,environment_id,default_section_mappings):
+        retries=1
+        ttl_for_cluster_status_fetch=default_section_mappings.get("ttl_for_cluster_status_fetch",120)
+        ttl_for_cluster_status_fetch=int(ttl_for_cluster_status_fetch) if ttl_for_cluster_status_fetch !="" else 120
+        #print("ttl_for_cluster_status_fetch",ttl_for_cluster_status_fetch)
         while retries!=0:
             #added this because it takes about 120 seconds for ttl to expire and refresh the cluster status
             list_of_persistent_cluster_url = get_environment_interactive_compute_details(config=src_client_obj.client_config,env_id=environment_id)+'?filter={"interactive_job_submit_enabled":true}'
             response = src_client_obj.call_api("GET", list_of_persistent_cluster_url,
                                             IWUtils.get_default_header_for_v3(src_client_obj.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(response.content)
-            time.sleep(60)
+            time.sleep(ttl_for_cluster_status_fetch)
             retries = retries-1
         result = parsed_response.get("result",[])
         print("result",result)
