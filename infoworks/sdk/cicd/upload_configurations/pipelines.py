@@ -3,7 +3,9 @@ import traceback
 import configparser
 import requests
 import yaml
+import re
 import time
+import base64
 from infoworks.core.iw_authentication import get_bearer_token
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create_pipeline_url, create_data_connection, \
@@ -12,66 +14,6 @@ from infoworks.sdk.cicd.upload_configurations.domains import Domain
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 from infoworks.sdk.local_configurations import POLLING_FREQUENCY_IN_SEC
-
-
-def create_sql_pipeline_version(pipeline_client_obj, pipeline_id=None, domain_id=None, sql_query="",
-                                pipeline_parameters=None):
-    pipeline_version_id = None
-    if pipeline_parameters is None:
-        pipeline_parameters = []
-    try:
-        pipeline_id = str(pipeline_id)
-        pipeline_client_obj.logger.info(
-            'Pipeline {id} has been created/found under domain {domain_id}.'.format(id=pipeline_id,
-                                                                                    domain_id=domain_id))
-        create_pipeline_version_url = pipeline_version_base_url(pipeline_client_obj.client_config,
-                                                                domain_id, pipeline_id)
-        pv_response = pipeline_client_obj.call_api("POST", create_pipeline_version_url, {
-            'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
-            'Content-Type': 'application/json'}, data={
-            "pipeline_id": pipeline_id,
-            "type": "sql",
-            "query": sql_query,
-            "pipeline_parameters": pipeline_parameters
-        })
-        parsed_response = IWUtils.ejson_deserialize(pv_response.content)
-        if parsed_response.status_code == 406:
-            pv_response = pipeline_client_obj.call_api("POST", create_pipeline_version_url, {
-                'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
-                'Content-Type': 'application/json'}, data={
-                "pipeline_id": pipeline_id,
-                "type": "sql",
-                "query": sql_query,
-                "pipeline_parameters": pipeline_parameters
-            })
-            parsed_response = IWUtils.ejson_deserialize(pv_response.content)
-
-        if parsed_response["result"].get("status", "") == "success":
-            pipeline_version_id = pv_response["result"]["entity_id"]
-            pipeline_client_obj.logger.info(f"Pipeline version {pipeline_version_id} created")
-            # Make the new created version as active
-            pv_active_response = IWUtils.ejson_deserialize(pipeline_client_obj.call_api("POST",
-                                                                                        create_pipeline_version_url + f"/{pipeline_version_id}/set-active",
-                                                                                        IWUtils.get_default_header_for_v3(
-                                                                                            pipeline_client_obj.client_config[
-                                                                                                'bearer_token'])).content)
-
-            if pv_active_response["result"].get("status", "") != "success":
-                pipeline_client_obj.logger.error(
-                    f"Unable to set the pipeline version {pipeline_version_id} as active")
-                pipeline_client_obj.logger.error(str(pv_active_response))
-            else:
-                pipeline_client_obj.logger.info(f"Pipeline version {pipeline_version_id} set as active")
-        else:
-            pipeline_client_obj.logger.error(f"Unable to create the new pipeline version")
-            pipeline_client_obj.logger.error(str(pv_response))
-
-    except Exception as e:
-        pipeline_client_obj.logger.error('Response from server: ' + str(e))
-        pipeline_client_obj.logger.exception('Error occurred while trying to create a new sql pipeline.')
-
-    return pipeline_version_id
-
 
 class Pipeline:
     def __init__(self, pipeline_config_path, environment_id, storage_id, interactive_id,
@@ -111,6 +53,22 @@ class Pipeline:
                             mapping["recommendation"]["domain_name"] = domain_mappings.get(domain_name.lower(),
                                                                                            domain_name)
                     self.configuration_obj["configuration"]["iw_mappings"] = iw_mappings
+            if self.configuration_obj["configuration"].get("pipeline_configs",{}).get("type","")=="sql":
+                query = self.configuration_obj["configuration"].get("pipeline_configs",{}).get("query","")
+                decode_query_binary = base64.b64decode(query)
+                decoded_query = decode_query_binary.decode("ascii")
+                if "sql_pipeline_text_replace" in config.sections():
+                    text_mappings = dict(config.items("sql_pipeline_text_replace"))
+                    if text_mappings != {}:
+                        for k,v in text_mappings.items():
+                            decoded_query = re.sub(k, v, decoded_query, flags=re.IGNORECASE)
+                            print(f"Replacing '{k}' with '{v}' in sql_query")
+                        encoded_query_binary = base64.b64encode(decoded_query.encode('utf-8'))
+                        encoded_query = encoded_query_binary.decode('utf-8')
+                        self.configuration_obj["configuration"]["pipeline_configs"]["query"]=encoded_query
+                        for item in iw_mappings:
+                            if item.get("entity_type","")=="query":
+                                item["recommendation"]["query"] = encoded_query
         except Exception as e:
             print("Failed while doing the domain mappings")
             print(str(e))
@@ -379,7 +337,6 @@ class Pipeline:
         del self.configuration_obj["user_email"]
         json_string = IWUtils.ejson_serialize(
             {"configuration": self.configuration_obj["configuration"], "import_configs": import_configs})
-
         response = requests.post(url_for_importing_pipeline, data=json_string,
                                  headers={
                                      'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],

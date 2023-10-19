@@ -2,7 +2,7 @@ import traceback
 
 from infoworks.sdk import url_builder
 from infoworks.sdk.base_client import BaseClient
-from infoworks.sdk.cicd.upload_configurations.pipelines import Pipeline, create_sql_pipeline_version
+from infoworks.sdk.cicd.upload_configurations.pipelines import Pipeline
 from infoworks.sdk.cicd.upload_configurations.pipeline_group import PipelineGroup
 from pathlib import Path
 from infoworks.sdk.generic_response import GenericResponse
@@ -181,15 +181,7 @@ class WrapperPipeline(BaseClient):
             pipeline_id, domain_id = pl_obj.create(self, domain_id, domain_name)
 
             if pipeline_id is not None:
-                pl_type = configuration_obj.get("pipeline_configs", {}).get("type", "")
-                if pl_type == "sql":
-                    sql_query = configuration_obj.get("pipeline_configs", {}).get("query", "")
-                    pl_params = configuration_obj.get("pipeline_configs", {}).get("pipeline_parameters", "")
-                    pl_version = create_sql_pipeline_version(pl_obj, pipeline_id=pipeline_id, domain_id=domain_id,
-                                                             sql_query=sql_query,
-                                                             pipeline_parameters=pl_params)
-                else:
-                    status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings,
+                status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings,
                                               read_passwords_from_secrets, env_tag=env_tag, secret_type=secret_type)
         except Exception as e:
             self.logger.error(str(e))
