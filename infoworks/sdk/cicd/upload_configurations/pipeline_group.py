@@ -39,6 +39,64 @@ class PipelineGroup:
                 pass
         self.configuration_obj = d.data
 
+
+    def list_pipelines(self, pipeline_group_obj,domain_id=None, params=None):
+        """
+        Function to list the pipelines
+        :param domain_id: Entity identified for domain
+        :type domain_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response list
+        """
+
+        if None in {domain_id}:
+            pipeline_group_obj.logger.error("Domain ID cannot be None")
+            raise Exception("Domain ID cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_pipelines = list_pipelines_url(pipeline_group_obj.client_config, domain_id) \
+                                + IWUtils.get_query_params_string_from_dict(params=params)
+
+        pipelines_list = []
+        headers={'Authorization': 'Bearer ' + pipeline_group_obj.client_config["bearer_token"],
+                'Content-Type': 'application/json'}
+        try:
+            response = requests.request("GET", url_to_list_pipelines,
+                                 headers=headers, verify=False)
+            if response.status_code == 406:
+                headers = pipeline_group_obj.regenerate_bearer_token_if_needed(
+                    {'Authorization': 'Bearer ' + pipeline_group_obj.client_config["bearer_token"],
+                     'Content-Type': 'application/json'})
+                response = requests.request("GET", url_to_list_pipelines, headers=headers, verify=False)
+            if response.status_code==200:
+                response = response.json()
+                result = response.get("result", [])
+                initial_msg = response.get("message", "")
+                while len(result) > 0:
+                    pipelines_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=pipeline_group_obj.client_config['ip'],
+                                                                      port=pipeline_group_obj.client_config['port'],
+                                                                      protocol=pipeline_group_obj.client_config['protocol'],
+                                                                      )
+                    response = requests.request("GET", nextUrl, headers=headers,verify=False)
+                    if response.status_code == 406:
+                        headers = pipeline_group_obj.regenerate_bearer_token_if_needed(
+                            {'Authorization': 'Bearer ' + pipeline_group_obj.client_config["bearer_token"],
+                             'Content-Type': 'application/json'})
+                        response = requests.request("GET", nextUrl, headers=headers, verify=False)
+                    response = response.json()
+                    result = response.get("result", None)
+                    if result is None:
+                        return response
+                response["result"] = pipelines_list
+                response["message"] = initial_msg
+            return response
+        except Exception as e:
+            pipeline_group_obj.logger.error("Error in listing pipelines")
+            raise Exception("Error in listing pipelines" + str(e))
+
     def create(self, pipeline_group_obj, domain_id, domain_name):
 
         pipeline_group_name = self.configuration_obj["name"]
@@ -71,10 +129,7 @@ class PipelineGroup:
         pipeline_group_details_parsed_response = IWUtils.ejson_deserialize(
             pipeline_group_details_response.content)
         pipeline_name_lookup={}
-        list_pipelines_under_domain_url = list_pipelines_url(pipeline_group_obj.client_config,final_domain_id)
-        list_pipelines_response = requests.request("GET", list_pipelines_under_domain_url, headers=headers, verify=False)
-        list_pipelinesparsed_response = IWUtils.ejson_deserialize(
-            list_pipelines_response.content)
+        list_pipelinesparsed_response = self.list_pipelines(pipeline_group_obj=pipeline_group_obj,domain_id=final_domain_id)
         for item in list_pipelinesparsed_response["result"]:
             pipeline_name_lookup[item["name"]]=item["id"]
         for pipeline in self.configuration_obj["pipelines"]:

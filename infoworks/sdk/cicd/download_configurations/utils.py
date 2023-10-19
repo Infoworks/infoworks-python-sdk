@@ -236,6 +236,52 @@ class Utils:
             print("Configurations exported successfully")
         return filename, config_obj
 
+    def list_pipelines(self,cicd_client, domain_id=None, params=None):
+        """
+        Function to list the pipelines
+        :param domain_id: Entity identified for domain
+        :type domain_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response list
+        """
+
+        if None in {domain_id}:
+            cicd_client.logger.error("Domain ID cannot be None")
+            raise Exception("Domain ID cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_pipelines = list_pipelines_url(cicd_client.client_config, domain_id) \
+                                + IWUtils.get_query_params_string_from_dict(params=params)
+
+        pipelines_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                cicd_client.call_api("GET", url_to_list_pipelines,
+                              IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                initial_msg = response.get("message", "")
+                while len(result) > 0:
+                    pipelines_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=cicd_client.client_config['ip'],
+                                                                      port=cicd_client.client_config['port'],
+                                                                      protocol=cicd_client.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        cicd_client.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            cicd_client.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return response
+                response["result"] = pipelines_list
+                response["message"] = initial_msg
+            return response
+        except Exception as e:
+            cicd_client.logger.error("Error in listing pipelines")
+            raise Exception("Error in listing pipelines" + str(e))
+
     def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path):
         response_to_return = {}
         filename = None
@@ -451,15 +497,8 @@ class Utils:
                                 configuration_obj["dataconnection_configurations"].append(
                                     copy.deepcopy(dataconnection_obj))
                 elif entity_type == "pipeline_group":
-                    list_pipelines_under_domain_url = list_pipelines_url(cicd_client.client_config, domain_id=domain_id)
-                    cicd_client.logger.info(f"Calling the api: {list_pipelines_under_domain_url}")
+                    pipelines_under_domain_parsed_response = self.list_pipelines(cicd_client, domain_id=domain_id)
                     pipeline_name_lookup = {}
-                    pipelines_under_domain_response = cicd_client.call_api("GET", list_pipelines_under_domain_url,
-                                                                           IWUtils.get_default_header_for_v3(
-                                                                               cicd_client.client_config[
-                                                                                   'bearer_token']))
-                    pipelines_under_domain_parsed_response = IWUtils.ejson_deserialize(
-                        pipelines_under_domain_response.content)
                     if pipelines_under_domain_parsed_response.get("result", "") == "":
                         cicd_client.logger.error(f"Failed to list the pipelines under domain {domain_id}")
                         cicd_client.logger.error(pipelines_under_domain_parsed_response)
