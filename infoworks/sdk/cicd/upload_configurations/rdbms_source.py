@@ -5,7 +5,8 @@ import time
 import requests
 import yaml
 
-from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url, create_domain_url, get_environment_interactive_compute_details,restart_persistent_cluster_url
+from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url, create_domain_url, \
+    get_environment_interactive_compute_details, restart_persistent_cluster_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
@@ -51,57 +52,64 @@ class RDBMSSource:
                 cicd_client.logger.info("Secret id is {} ".format(None))
                 return None
 
-    def poll_cluster_start_status(self,cicd_client,environment_id,compute_id):
+    def poll_cluster_start_status(self, cicd_client, environment_id, compute_id):
         list_of_persistent_cluster_url = get_environment_interactive_compute_details(cicd_client.client_config,
-            env_id=environment_id,compute_id=compute_id)
+                                                                                     env_id=environment_id,
+                                                                                     compute_id=compute_id)
         response = cicd_client.call_api("GET", list_of_persistent_cluster_url,
                                         IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token']))
         parsed_response = IWUtils.ejson_deserialize(response.content)
-        return parsed_response.get("result",{}).get("cluster_state","")
+        return parsed_response.get("result", {}).get("cluster_state", "")
 
-    def start_interactive_cluster(self,src_client_obj,environment_id,default_section_mappings):
-        retries=1
-        ttl_for_cluster_status_fetch=default_section_mappings.get("ttl_for_cluster_status_fetch",120)
-        ttl_for_cluster_status_fetch=int(ttl_for_cluster_status_fetch) if ttl_for_cluster_status_fetch !="" else 120
-        #print("ttl_for_cluster_status_fetch",ttl_for_cluster_status_fetch)
-        while retries!=0:
-            #added this because it takes about 120 seconds for ttl to expire and refresh the cluster status
-            list_of_persistent_cluster_url = get_environment_interactive_compute_details(config=src_client_obj.client_config,env_id=environment_id)+'?filter={"interactive_job_submit_enabled":true}'
+    def start_interactive_cluster(self, src_client_obj, environment_id, default_section_mappings):
+        retries = 1
+        ttl_for_cluster_status_fetch = default_section_mappings.get("ttl_for_cluster_status_fetch", 120)
+        ttl_for_cluster_status_fetch = int(ttl_for_cluster_status_fetch) if ttl_for_cluster_status_fetch != "" else 120
+        # print("ttl_for_cluster_status_fetch",ttl_for_cluster_status_fetch)
+        while retries != 0:
+            # added this because it takes about 120 seconds for ttl to expire and refresh the cluster status
+            list_of_persistent_cluster_url = get_environment_interactive_compute_details(
+                config=src_client_obj.client_config,
+                env_id=environment_id) + '?filter={"interactive_job_submit_enabled":true}'
             response = src_client_obj.call_api("GET", list_of_persistent_cluster_url,
-                                            IWUtils.get_default_header_for_v3(src_client_obj.client_config['bearer_token']))
+                                               IWUtils.get_default_header_for_v3(
+                                                   src_client_obj.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(response.content)
             time.sleep(ttl_for_cluster_status_fetch)
-            retries = retries-1
-        result = parsed_response.get("result",[])
-        print("result",result)
+            retries = retries - 1
+        result = parsed_response.get("result", [])
+        print("result", result)
         result = result[0]
-        status = result.get("cluster_state","")
-        compute_id = result.get("id","")
-        environment_id=result.get("environment_id","")
-        if status in ["TERMINATED","STOPPED"]:
+        status = result.get("cluster_state", "")
+        compute_id = result.get("id", "")
+        environment_id = result.get("environment_id", "")
+        if status in ["TERMINATED", "STOPPED"]:
             restart_cluster_template_body = \
-                        {
-                            "compute_template_id":compute_id,
-                            "type":"persistent"
-                        }
+                {
+                    "compute_template_id": compute_id,
+                    "type": "persistent"
+                }
             start_cluster_url = restart_persistent_cluster_url(config=src_client_obj.client_config)
             response = src_client_obj.call_api("PUT", start_cluster_url,
-                                            IWUtils.get_default_header_for_v3(
-                                                src_client_obj.client_config['bearer_token']),data=restart_cluster_template_body)
+                                               IWUtils.get_default_header_for_v3(
+                                                   src_client_obj.client_config['bearer_token']),
+                                               data=restart_cluster_template_body)
             parsed_response = IWUtils.ejson_deserialize(response.content)
             print("Restart persistent cluster response:")
             print(parsed_response)
-            if parsed_response.get("result",{}).get("message","") == "Successfully submitted cluster restart request":
-                while(status not in ["RUNNING","ERROR"]):
+            if parsed_response.get("result", {}).get("message", "") == "Successfully submitted cluster restart request":
+                while (status not in ["RUNNING", "ERROR"]):
                     time.sleep(30)
-                    status = self.poll_cluster_start_status(src_client_obj,environment_id=environment_id,compute_id=compute_id)
+                    status = self.poll_cluster_start_status(src_client_obj, environment_id=environment_id,
+                                                            compute_id=compute_id)
             else:
                 print("Something went wrong while restarting the interactive cluster")
-            if status =="RUNNING":
+            if status == "RUNNING":
                 print("Started interactive cluster successfully!")
             else:
                 print("Interactive cluster start failed!")
-                raise Exception("Interactive cluster start failed!Please start the cluster manually and retrigger CICD process")
+                raise Exception(
+                    "Interactive cluster start failed!Please start the cluster manually and retrigger CICD process")
         elif status == "RUNNING":
             print("Interactive Cluster is already running!")
         else:
@@ -173,16 +181,16 @@ class RDBMSSource:
         additional_keys_in_source_config = data.keys()
         for key in additional_keys_in_source_config:
             if key not in ["connection"] and key not in create_rdbms_source_payload.keys():
-                create_rdbms_source_payload[key]=data[key]
+                create_rdbms_source_payload[key] = data[key]
         # adding associated domains if any
-        accessible_domain_names = data.get("associated_domain_names",[])
+        accessible_domain_names = data.get("associated_domain_names", [])
         accessible_domain_ids = []
         for domain_name in accessible_domain_names:
             domain_response = src_client_obj.call_api("GET",
-                                                         create_domain_url(
-                                                             src_client_obj.client_config) + "?filter={\"name\":\""+domain_name+"\"}",
-                                                         IWUtils.get_default_header_for_v3(
-                                                             src_client_obj.client_config['bearer_token']))
+                                                      create_domain_url(
+                                                          src_client_obj.client_config) + "?filter={\"name\":\"" + domain_name + "\"}",
+                                                      IWUtils.get_default_header_for_v3(
+                                                          src_client_obj.client_config['bearer_token']))
             domain_parsed_response = IWUtils.ejson_deserialize(domain_response.content)
             if domain_response.status_code == 200 and len(domain_parsed_response.get("result", [])) > 0:
                 result = domain_parsed_response.get("result", [])
@@ -192,16 +200,16 @@ class RDBMSSource:
                     if domain_id is not None:
                         accessible_domain_ids.append(domain_id)
             if "associated_domain_names" in create_rdbms_source_payload.keys():
-                create_rdbms_source_payload.pop("associated_domain_names",[])
-                self.configuration_obj["configuration"]["source_configs"].pop("associated_domain_names",[])
+                create_rdbms_source_payload.pop("associated_domain_names", [])
+                self.configuration_obj["configuration"]["source_configs"].pop("associated_domain_names", [])
             if len(accessible_domain_ids) > 0:
                 create_rdbms_source_payload["associated_domains"] = accessible_domain_ids
-                self.configuration_obj["configuration"]["associated_domains"]=accessible_domain_ids
-        print("create_rdbms_source_payload:",create_rdbms_source_payload)
+                self.configuration_obj["configuration"]["associated_domains"] = accessible_domain_ids
+        print("create_rdbms_source_payload:", create_rdbms_source_payload)
         src_create_response = src_client_obj.create_source(source_config=create_rdbms_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id = src_create_response["result"]["response"]["result"]["id"]
-            #added below code to update the source due to IPD-23733
+            # added below code to update the source due to IPD-23733
             associated_domains = create_rdbms_source_payload.get("associated_domains", [])
             if associated_domains:
                 src_client_obj.update_source(source_id=source_id,
@@ -233,14 +241,15 @@ class RDBMSSource:
                 print(response)
                 return SourceResponse.parse_result(status=Response.Status.FAILED, source_id=None, response=response)
             else:
-                existing_source_id =response['result'][0]['id']
+                existing_source_id = response['result'][0]['id']
                 src_client_obj.logger.info(
                     f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 print(f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 # added below code to update the source due to IPD-23733
-                associated_domains=create_rdbms_source_payload.get("associated_domains",[])
+                associated_domains = create_rdbms_source_payload.get("associated_domains", [])
                 if associated_domains:
-                    src_client_obj.update_source(source_id=existing_source_id, update_body={"associated_domains":associated_domains})
+                    src_client_obj.update_source(source_id=existing_source_id,
+                                                 update_body={"associated_domains": associated_domains})
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,
                                                    source_id=response['result'][0]['id'], response=response)
 
@@ -318,8 +327,8 @@ class RDBMSSource:
         tables_already_added_in_source = src_client_obj.list_tables_in_source(source_id).get("result", {}).get(
             "response", {}).get("result", [])
         tables_already_added_in_source = [table.get("schema_name_at_source",
-                                                                     table.get("catalog_name",
-                                                                                                "")) + "." + table[
+                                                    table.get("catalog_name",
+                                                              "")) + "." + table[
                                               "name"] for table in tables_already_added_in_source]
         tables_list = []
         tables = self.configuration_obj["configuration"]["table_configs"]
@@ -330,14 +339,15 @@ class RDBMSSource:
                         table["configuration"][
                             "name"] not in tables_already_added_in_source:
                     temp = {"table_name": table["configuration"]["name"],
-                            "table_type": table.get("table_type","TABLE").upper(),
+                            "table_type": table.get("table_type", "TABLE").upper(),
                             "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                             "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                     if table["configuration"].get("catalog_name", "") != "":
                         temp["catalog_name"] = table["configuration"]["catalog_name"]
                     if table["configuration"].get("schema_name_at_source", "") != "":
                         temp["schema_name"] = table["configuration"]["schema_name_at_source"]
-                    if table["configuration"].get("configuration", {}).get("configuration", {}).get("target_database_name","") != "":
+                    if table["configuration"].get("configuration", {}).get("configuration", {}).get(
+                            "target_database_name", "") != "":
                         temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
                     tables_list.append(copy.deepcopy(temp))
                     src_client_obj.logger.info(
@@ -345,7 +355,7 @@ class RDBMSSource:
         else:
             for table in tables:
                 temp = {"table_name": table["configuration"]["name"],
-                        "table_type": table.get("table_type","TABLE").upper(),
+                        "table_type": table.get("table_type", "TABLE").upper(),
                         "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                         "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                 if table["configuration"].get("catalog_name", "") != "":
@@ -367,42 +377,55 @@ class RDBMSSource:
             return SourceResponse.parse_result(status="SUCCESS", source_id=source_id,
                                                response={})
 
-    def update_schema_for_tables(self,src_client_obj, source_id, export_configuration_file=None,
-                                         export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,
-                                         env_tag="", secret_type="", dont_skip_step=True):
+    def update_schema_for_tables(self, src_client_obj, source_id, export_configuration_file=None,
+                                 export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,
+                                 env_tag="", secret_type="", dont_skip_step=True):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         tables = self.configuration_obj["configuration"]["table_configs"]
-        table_schema_update_dict={}
+        table_schema_update_dict = {}
         for table in tables:
             table_name = table["configuration"]["name"]
             src_client_obj.logger.info(f"Updating the schema information for table {table_name}")
             columns = table["configuration"]["columns"]
-            table_update_payload = {"name": table_name,"source":source_id,"columns":columns}
-            table_document=[]
-            if table["configuration"].get("schema_name_at_source","")!="":
-                table_document = src_client_obj.list_tables_in_source(source_id,params={"filter":{"origTableName":table["configuration"]["name"],"schemaNameAtSource":table["configuration"]["schema_name_at_source"]}}).get("result",{}).get("response",{}).get("result",[])
+            table_update_payload = {"name": table_name, "source": source_id, "columns": columns}
+            if table["configuration"].get("schema_name_at_source", "") != "":
+                table_document = src_client_obj.list_tables_in_source(source_id, params={
+                    "filter": {"origTableName": table["configuration"]["name"],
+                               "schemaNameAtSource": table["configuration"]["schema_name_at_source"]}}).get("result",
+                                                                                                            {}).get(
+                    "response", {}).get("result", [])
             else:
-                table_document = src_client_obj.list_tables_in_source(source_id,params={"filter":{"origTableName":table["configuration"]["name"],"catalog_name":table["configuration"]["catalog_name"]}}).get("result",{}).get("response",{}).get("result",[])
-            if len(table_document)>0:
-                table_document=table_document[0]
-            table_id = table_document["id"]
-            response = src_client_obj.update_table_configuration(source_id=source_id,table_id=table_id,config_body=table_update_payload)
-            if response["result"]["status"].upper() != "SUCCESS":
-                src_client_obj.logger.error("Failed to update schema for table {table_name}".format(table_name=table_name))
-                src_client_obj.logger.error(response.get("result", {}).get("response",{}).get("message", ""))
-                table_schema_update_dict[table_name] = ("FAILED",response.get("result", {}).get("response",{}).get("message", ""))
-            else:
-                src_client_obj.logger.info("Successfully updated schema for table {table_name}".format(table_name=table_name))
-                table_schema_update_dict[table_name] = ("SUCCESS","")
-        failed_schema_update_tables = [(table_name,status[1]) for table_name,status in table_schema_update_dict.items() if status[0].upper() == "FAILED"]
-        overall_update_status = "FAILED" if len(failed_schema_update_tables)>0 else "SUCCESS"
-        if overall_update_status =="FAILED":
+                table_document = src_client_obj.list_tables_in_source(source_id, params={
+                    "filter": {"origTableName": table["configuration"]["name"],
+                               "catalog_name": table["configuration"]["catalog_name"]}}).get("result", {}).get(
+                    "response", {}).get("result", [])
+            table_id = None
+            if len(table_document) > 0:
+                table_document = table_document[0]
+                table_id = table_document["id"]
+            if table_id is not None:
+                response = src_client_obj.update_table_configuration(source_id=source_id, table_id=table_id,
+                                                                     config_body=table_update_payload)
+                if response["result"]["status"].upper() != "SUCCESS":
+                    src_client_obj.logger.error(
+                        "Failed to update schema for table {table_name}".format(table_name=table_name))
+                    src_client_obj.logger.error(response.get("result", {}).get("response", {}).get("message", ""))
+                    table_schema_update_dict[table_name] = (
+                    "FAILED", response.get("result", {}).get("response", {}).get("message", ""))
+                else:
+                    src_client_obj.logger.info(
+                        "Successfully updated schema for table {table_name}".format(table_name=table_name))
+                    table_schema_update_dict[table_name] = ("SUCCESS", "")
+        failed_schema_update_tables = [(table_name, status[1]) for table_name, status in
+                                       table_schema_update_dict.items() if status[0].upper() == "FAILED"]
+        overall_update_status = "FAILED" if len(failed_schema_update_tables) > 0 else "SUCCESS"
+        if overall_update_status == "FAILED":
             response = {f"Tables schema update failed for tables:{failed_schema_update_tables}"}
         else:
             response = {f"Tables schema updated successfully"}
         return SourceResponse.parse_result(status=overall_update_status, source_id=source_id,
-                                                   response=response)
+                                           response=response)
 
     def configure_tables_and_tablegroups(self, src_client_obj, source_id, export_configuration_file=None,
                                          export_config_lookup=True, mappings=None, read_passwords_from_secrets=False,

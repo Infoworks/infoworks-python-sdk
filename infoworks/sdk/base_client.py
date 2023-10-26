@@ -129,7 +129,7 @@ class BaseClient(object):
             self.logger.info(f"Calling {url}")
             response = self.http.get(url, headers=headers, timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC,
                                      verify=False, data=data)
-            if response.status_code == 406:
+            if response.status_code in [401, 406]:
                 headers = self.regenerate_bearer_token_if_needed(headers)
                 return self.http.get(url, headers=headers, timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC,
                                      verify=False, data=data)
@@ -139,7 +139,7 @@ class BaseClient(object):
             self.logger.info(f"Calling {url}")
             response = self.http.post(url, headers=headers, json=data,
                                       timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
-            if response.status_code == 406:
+            if response.status_code in [401, 406]:
                 headers = self.regenerate_bearer_token_if_needed(headers)
                 return self.http.post(url, headers=headers, json=data,
                                       timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
@@ -149,7 +149,7 @@ class BaseClient(object):
             self.logger.info(f"Calling {url}")
             response = self.http.put(url, headers=headers, json=data,
                                      timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
-            if response.status_code == 406:
+            if response.status_code in [401, 406]:
                 headers = self.regenerate_bearer_token_if_needed(headers)
                 return self.http.put(url, headers=headers, json=data,
                                      timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
@@ -159,7 +159,7 @@ class BaseClient(object):
             self.logger.info(f"Calling {url}")
             response = self.http.patch(url, headers=headers, json=data,
                                        timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
-            if response.status_code == 406:
+            if response.status_code in [401, 406]:
                 headers = self.regenerate_bearer_token_if_needed(headers)
                 return self.http.put(url, headers=headers, json=data,
                                      timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
@@ -169,7 +169,7 @@ class BaseClient(object):
             self.logger.info(f"Calling {url}")
             response = self.http.delete(url, headers=headers, timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC,
                                         verify=False)
-            if response.status_code == 406:
+            if response.status_code in [401, 406]:
                 headers = self.regenerate_bearer_token_if_needed(headers)
                 return self.http.delete(url, headers=headers, timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC,
                                         verify=False)
