@@ -474,6 +474,7 @@ class SourceClient(BaseClient):
             result = response.get('result', {}).get("configuration", {}).get("iw_mappings", [])
             count = 0
             print("Config Migration API Response:", response)
+
             self.logger.debug(response)
             if result is not None:
                 for config_item in result:

@@ -339,7 +339,6 @@ class RDBMSSource:
                         table["configuration"][
                             "name"] not in tables_already_added_in_source:
                     temp = {"table_name": table["configuration"]["name"],
-                            "table_type": table.get("table_type", "TABLE").upper(),
                             "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                             "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                     if table["configuration"].get("catalog_name", "") != "":
@@ -349,13 +348,14 @@ class RDBMSSource:
                     if table["configuration"].get("configuration", {}).get("configuration", {}).get(
                             "target_database_name", "") != "":
                         temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
+                    if table.get("table_type", "") != "":
+                        temp["table_type"] = table.get("table_type", "TABLE").upper()
                     tables_list.append(copy.deepcopy(temp))
                     src_client_obj.logger.info(
                         f"Adding table {temp['table_name']} to source {source_id} config payload")
         else:
             for table in tables:
                 temp = {"table_name": table["configuration"]["name"],
-                        "table_type": table.get("table_type", "TABLE").upper(),
                         "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                         "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
                 if table["configuration"].get("catalog_name", "") != "":
@@ -365,10 +365,13 @@ class RDBMSSource:
                 if table["configuration"].get("configuration", {}).get("configuration", {}).get("target_database_name",
                                                                                                 "") != "":
                     temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
+                if table.get("table_type", "") != "":
+                    temp["table_type"] = table.get("table_type", "TABLE").upper()
                 tables_list.append(copy.deepcopy(temp))
                 src_client_obj.logger.info(f"Adding table {temp['table_name']} to source {source_id} config payload")
         if len(tables_list) > 0:
             response = src_client_obj.add_tables_to_source(source_id, tables_list)
+            print("Add tables API response:",response)
             return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
                                                response=response)
         else:
