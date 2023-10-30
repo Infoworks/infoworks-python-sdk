@@ -29,7 +29,7 @@ class DownloadPipeline(BaseClient):
                                                         "pipeline_group.csv")
         if files_overwrite:
             open(target_file_path, 'w').close()
-            open(target_file_path_pipeline_groups, 'w').close()
+            open(target_file_path_pipeline_groups, 'a').close()
             mode = "a"
         else:
             mode = "a"
