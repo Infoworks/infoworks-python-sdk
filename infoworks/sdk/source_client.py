@@ -473,7 +473,8 @@ class SourceClient(BaseClient):
             parsed_response = IWUtils.ejson_deserialize(response.content)
             result = parsed_response.get('result', {}).get("configuration", {}).get("iw_mappings", [])
             count = 0
-            #print(response)
+            print("Config Migration API Response:", response)
+
             self.logger.debug(response)
             if result is not None:
                 for config_item in result:
