@@ -467,11 +467,11 @@ class SourceClient(BaseClient):
                 raise Exception("source id or configuration_obj cannot be None")
             configure_tables_tg_url = url_builder.configure_tables_and_tablegroups_url(self.client_config, source_id)
             errors = {}
-            response = IWUtils.ejson_deserialize(
-                self.call_api("POST", configure_tables_tg_url,
+            response = self.call_api("POST", configure_tables_tg_url,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
-                              {"configuration": configuration_obj}).content)
-            result = response.get('result', {}).get("configuration", {}).get("iw_mappings", [])
+                              {"configuration": configuration_obj})
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            result = parsed_response.get('result', {}).get("configuration", {}).get("iw_mappings", [])
             count = 0
             #print(response)
             self.logger.debug(response)
@@ -492,22 +492,31 @@ class SourceClient(BaseClient):
                     self.logger.debug(str(config_item))
                 if len(errors) != 0:
                     self.logger.error(f"Failed due to multiple errors\n{errors}")
+                    result = parsed_response.get("result",[])
                     return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                        error_code=ErrorCode.GENERIC_ERROR,
-                                                       error_desc=f"Failed to configure tables and table groups {response} ",
+                                                       error_desc=f"Failed to configure tables and table groups",
                                                        job_id=None,
-                                                       response=response,
+                                                       response=result,
+                                                       source_id=source_id)
+                elif response.status_code != 200:
+                    self.logger.error(f"Failed during config migration")
+                    return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                       error_code=ErrorCode.GENERIC_ERROR,
+                                                       error_desc=f"Failed to configure tables and table groups {parsed_response} ",
+                                                       job_id=None,
+                                                       response=parsed_response,
                                                        source_id=source_id)
                 else:
                     self.logger.info(f"Successfully configured tables and table groups for the source")
-                    return SourceResponse.parse_result(status=Response.Status.SUCCESS)
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
             else:
                 self.logger.error("Failed to configure tables and table groups")
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                    error_code=ErrorCode.GENERIC_ERROR,
-                                                   error_desc=f"Failed to configure tables and table groups {response} ",
+                                                   error_desc=f"Failed to configure tables and table groups {parsed_response} ",
                                                    job_id=None,
-                                                   response=response,
+                                                   response=parsed_response,
                                                    source_id=source_id)
         except Exception as e:
             traceback.print_exc()

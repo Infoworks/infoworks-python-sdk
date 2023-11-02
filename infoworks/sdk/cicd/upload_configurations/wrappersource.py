@@ -224,8 +224,12 @@ class WrapperSource(BaseClient):
                                 status = configure_tables_and_tablegroups_response["result"]["status"]
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
-                                    print(configure_tables_and_tablegroups_response)
-                                    self.logger.info(configure_tables_and_tablegroups_response)
+                                    minimal_response = configure_tables_and_tablegroups_response["result"].get(
+                                        "response", {}).get("result", {}).get("response").get("result", {}).get("configuration", {}).get(
+                                        "iw_mappings", [])
+                                    minimal_response_with_error = [iw_mappings for iw_mappings in minimal_response if iw_mappings.get("table_upsert_status",{}).get("error",[])!=[]]
+                                    print(minimal_response_with_error)
+                                    self.logger.info(minimal_response_with_error)
                                     # added below code since the config migration api doesn't support schema updatation as of 5.4.2.4
                                     # to be removed after api fix
                                     update_schema_response = source_obj.update_schema_for_tables(self, source_id,
@@ -253,8 +257,17 @@ class WrapperSource(BaseClient):
                                 else:
                                     self.logger.error("Failed to configure source")
                                     print("Failed to configure source")
-                                    print(configure_tables_and_tablegroups_response)
-                                    self.logger.error(configure_tables_and_tablegroups_response)
+                                    minimal_response = configure_tables_and_tablegroups_response["result"].get(
+                                        "response", {}).get("result",{}).get("response").get("configuration", {}).get("iw_mappings",[])
+                                    if minimal_response!=[]:
+                                        minimal_response_with_error = [iw_mappings for iw_mappings in minimal_response if
+                                                                   iw_mappings.get("table_upsert_status", {}).get(
+                                                                       "error", []) != []]
+                                        print(minimal_response_with_error)
+                                        self.logger.info(minimal_response_with_error)
+                                    else:
+                                        print(configure_tables_and_tablegroups_response)
+                                        self.logger.error(configure_tables_and_tablegroups_response)
                                     raise Exception("Failed to configure source")
                             else:
                                 self.logger.error("Failed while browsing tables")
