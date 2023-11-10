@@ -160,20 +160,23 @@ class Pipeline:
         # 5.2.x versions need storage id and compute id
         batch_engine = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("batch_engine", "")
         storage_id = self.storage_id
-        if storage_id:
+        if storage_id and batch_engine not in ["SNOWFLAKE"]:
             pipeline_json_object["storage_id"] = storage_id
         if batch_engine != "":
             pipeline_json_object["batch_engine"] = batch_engine
-
-        # 5.3.x onwards CDW support
-        if self.interactive_id is None:
-            pipeline_json_object["run_job_on_data_plane"] = False
-        else:
-            pipeline_json_object["compute_id"] = self.interactive_id
-
+        run_job_on_data_plane = False
+        compute_name = self.configuration_obj["configuration"].get("entity", {}).get("computeName", "")
+        if compute_name != "" and self.interactive_id:
+            pipeline_json_object["compute_template_id"] = self.interactive_id
+            run_job_on_data_plane=True
+        pipeline_json_object["run_job_on_data_plane"] = run_job_on_data_plane
+        snowflake_profile = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("snowflake_profile", "")
+        if snowflake_profile!="":
+            pipeline_json_object["snowflake_profile"] = snowflake_profile
         warehouse = self.configuration_obj["configuration"].get("entity", {}).get("warehouse", "")
         if warehouse:
             pipeline_json_object["snowflake_warehouse"] = warehouse
+
         if domain_id is None and domain_name is None:
             pipeline_client_obj.logger.error('Either domainId or domain Name is required to create pipeline.')
             print('Either domainId or domain Name is required to create pipeline.')
@@ -229,6 +232,7 @@ class Pipeline:
                     'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
                     'Content-Type': 'application/json'}, verify=False)
                 new_pipeline_creation_response = response.content
+                print("Pipeline creation response:",new_pipeline_creation_response)
                 if response.status_code == 406:
                     headers = pipeline_client_obj.regenerate_bearer_token_if_needed(
                         {'Authorization': 'Bearer ' + pipeline_client_obj.client_config["bearer_token"],
