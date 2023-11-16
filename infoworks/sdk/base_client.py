@@ -125,6 +125,10 @@ class BaseClient(object):
 
     def call_api(self, method, url, headers=None, data=None):
         # headers = self.regenerate_bearer_token_if_needed(headers)
+        # adding the below code to encode the # in the url so it doesn't fragment the url
+        import urllib.parse
+        encoded_url = url.replace("#","%23")
+        url = encoded_url
         if method.upper() == "GET":
             self.logger.info(f"Calling {url}")
             response = self.http.get(url, headers=headers, timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC,

@@ -48,6 +48,7 @@ class WrapperSource(BaseClient):
         except Exception as e:
             self.logger.error("Error in getting environment details")
             print("Error in getting environment details")
+            print(str(e))
 
     def __wrapper_get_storage_details(self, environment_id, storage_id=None, params=None):
         if params is None and storage_id is None:
