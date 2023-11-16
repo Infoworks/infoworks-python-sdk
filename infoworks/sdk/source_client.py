@@ -745,14 +745,20 @@ class SourceClient(BaseClient):
                               body).content)
             result = response.get('result', {})
             if len(result) != 0:
-                job_id = result["id"]
-                if not poll:
-                    self.logger.info(f"Job successfully submitted for {source_id}. JobID to track is: {job_id}")
-                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, job_id=job_id, response=response)
+                job_id = result.get("id",None)
+                if job_id is not None:
+                    if not poll:
+                        self.logger.info(f"Job successfully submitted for {source_id}. JobID to track is: {job_id}")
+                        return SourceResponse.parse_result(status=Response.Status.SUCCESS, job_id=job_id, response=response)
+                    else:
+                        return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
+                                             polling_frequency=polling_frequency,
+                                             retries=retries)
                 else:
-                    return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
-                                         polling_frequency=polling_frequency,
-                                         retries=retries)
+                    self.logger.error(f"Failed to submit the source job.")
+                    return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                       error_desc=f"Failed to submit the source job.",
+                                                       response=response)
             else:
                 self.logger.error(f"Failed to submit the source job.")
                 return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
