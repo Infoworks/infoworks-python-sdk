@@ -15,7 +15,7 @@ from infoworks.sdk.cicd.upload_configurations.update_configurations import Infow
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 
 
-class RDBMSSource:
+class GenericJDBCSource:
     def __init__(self):
         self.configuration_obj = None
         self.source_config_path = None
@@ -162,11 +162,11 @@ class RDBMSSource:
             self.update_table_schema_and_database("database", dict(
                 config.items("configuration$source_configs$target_database_name")))
 
-    def create_rdbms_source(self, src_client_obj):
+    def create_generic_jdbc_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]
         create_rdbms_source_payload = {
             "name": data["name"],
-            "type": "rdbms",
+            "type": "generic_jdbc",
             "sub_type": data["sub_type"],
             "data_lake_path": data["data_lake_path"],
             "data_lake_schema": data["data_lake_schema"] if "data_lake_schema" in data else "",
@@ -253,7 +253,7 @@ class RDBMSSource:
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,
                                                    source_id=response['result'][0]['id'], response=response)
 
-    def configure_rdbms_source_connection(self, src_client_obj, source_id, override_config_file=None,
+    def configure_generic_jdbc_source_connection(self, src_client_obj, source_id, override_config_file=None,
                                           read_passwords_from_secrets=False, env_tag="", secret_type="",
                                           config_ini_path=None, dont_skip_step=True):
         if not dont_skip_step:
