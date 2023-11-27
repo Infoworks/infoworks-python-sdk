@@ -2173,3 +2173,18 @@ def configure_table_group_schedule_user_url(config, source_id, table_group_id):
         protocol=config['protocol'], ip=config['ip'], port=config['port'], source_id=source_id,
         table_group_id=table_group_id)
     return request
+
+
+def stop_streaming_job_url(config, source_id):
+    """
+        returns URL to stop streaming job
+        :param config: client configurations
+        :type config: dict
+        :param source_id: Identifier for source
+        :type source_id: string
+    """
+    request = '{protocol}://{ip}:{port}/v3/source/{source_id}/stop-streaming'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'],
+        source_id=source_id)
+    return request
