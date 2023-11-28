@@ -331,13 +331,50 @@ class RDBMSSource:
                                                               "")) + "." + table[
                                               "name"] for table in tables_already_added_in_source]
         tables_list = []
+        query_tables_list=[]
         tables = self.configuration_obj["configuration"]["table_configs"]
         if len(tables_already_added_in_source) > 0:
             for table in tables:
-                if table["configuration"].get("schema_name_at_source",
-                                              table["configuration"].get("catalog_name", "")) + "." + \
-                        table["configuration"][
-                            "name"] not in tables_already_added_in_source:
+                if table["configuration"].get("configuration", {}).get("query","")=="":
+                    if table["configuration"].get("schema_name_at_source",
+                                                  table["configuration"].get("catalog_name", "")) + "." + \
+                            table["configuration"][
+                                "name"] not in tables_already_added_in_source:
+                        temp = {"table_name": table["configuration"]["name"],
+                                "target_table_name": table["configuration"]["configuration"]["target_table_name"],
+                                "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
+                        if table["configuration"].get("catalog_name", "") != "":
+                            temp["catalog_name"] = table["configuration"]["catalog_name"]
+                        if table["configuration"].get("schema_name_at_source", "") != "":
+                            temp["schema_name"] = table["configuration"]["schema_name_at_source"]
+                        if table["configuration"].get("configuration", {}).get(
+                                "target_database_name", "") != "":
+                            temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
+                        if table.get("table_type", "") != "":
+                            temp["table_type"] = table.get("table_type", "TABLE").upper()
+                        tables_list.append(copy.deepcopy(temp))
+                        src_client_obj.logger.info(
+                            f"Adding table {temp['table_name']} to source {source_id} config payload")
+                else:
+                    if table["configuration"].get("schema_name_at_source",
+                                                  table["configuration"].get("catalog_name", "")) + "." + \
+                            table["configuration"][
+                                "name"] not in tables_already_added_in_source:
+                        temp = {
+                                "target_table_name": table["configuration"]["configuration"]["target_table_name"],
+                                "target_schema_name": table["configuration"]["configuration"]["target_schema_name"],
+                                "is_query_table": True,
+                                "query": table["configuration"].get("configuration", {}).get("query","")
+                                }
+                        if table["configuration"].get("configuration", {}).get("target_database_name",
+                                                                                                        "") != "":
+                            temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
+                        if table.get("table_type", "") != "":
+                            temp["table_type"] = table.get("table_type", "TABLE").upper()
+                        query_tables_list.append(temp)
+        else:
+            for table in tables:
+                if table["configuration"].get("configuration", {}).get("query", "") == "":
                     temp = {"table_name": table["configuration"]["name"],
                             "target_table_name": table["configuration"]["configuration"]["target_table_name"],
                             "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
@@ -345,30 +382,34 @@ class RDBMSSource:
                         temp["catalog_name"] = table["configuration"]["catalog_name"]
                     if table["configuration"].get("schema_name_at_source", "") != "":
                         temp["schema_name"] = table["configuration"]["schema_name_at_source"]
-                    if table["configuration"].get("configuration", {}).get("configuration", {}).get(
-                            "target_database_name", "") != "":
+                    if table["configuration"].get("configuration", {}).get("target_database_name",
+                                                                                                    "") != "":
                         temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
                     if table.get("table_type", "") != "":
                         temp["table_type"] = table.get("table_type", "TABLE").upper()
                     tables_list.append(copy.deepcopy(temp))
-                    src_client_obj.logger.info(
-                        f"Adding table {temp['table_name']} to source {source_id} config payload")
+                    src_client_obj.logger.info(f"Adding table {temp['table_name']} to source {source_id} config payload")
+                else:
+                    temp = {
+                            "target_table_name": table["configuration"]["configuration"]["target_table_name"],
+                            "target_schema_name": table["configuration"]["configuration"]["target_schema_name"],
+                            "is_query_table": True,
+                            "query": table["configuration"].get("configuration", {}).get("query", "")
+                            }
+                    if table["configuration"].get("configuration", {}).get("target_database_name",
+                                                                                                    "") != "":
+                        temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
+                    if table.get("table_type", "") != "":
+                        temp["table_type"] = table.get("table_type", "TABLE").upper()
+                    query_tables_list.append(temp)
+        print("query_tables_list",query_tables_list)
+        if len(query_tables_list)>0:
+            response = src_client_obj.add_query_tables_to_source(source_id, query_tables_list)
+            print("Add query tables API response:", response)
         else:
-            for table in tables:
-                temp = {"table_name": table["configuration"]["name"],
-                        "target_table_name": table["configuration"]["configuration"]["target_table_name"],
-                        "target_schema_name": table["configuration"]["configuration"]["target_schema_name"]}
-                if table["configuration"].get("catalog_name", "") != "":
-                    temp["catalog_name"] = table["configuration"]["catalog_name"]
-                if table["configuration"].get("schema_name_at_source", "") != "":
-                    temp["schema_name"] = table["configuration"]["schema_name_at_source"]
-                if table["configuration"].get("configuration", {}).get("configuration", {}).get("target_database_name",
-                                                                                                "") != "":
-                    temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
-                if table.get("table_type", "") != "":
-                    temp["table_type"] = table.get("table_type", "TABLE").upper()
-                tables_list.append(copy.deepcopy(temp))
-                src_client_obj.logger.info(f"Adding table {temp['table_name']} to source {source_id} config payload")
+            src_client_obj.logger.info(f"No new query tables found to add.")
+            print(f"No new query tables found to add.")
+        print("tables_list",tables_list)
         if len(tables_list) > 0:
             response = src_client_obj.add_tables_to_source(source_id, tables_list)
             print("Add tables API response:",response)
@@ -398,11 +439,17 @@ class RDBMSSource:
                                "schemaNameAtSource": table["configuration"]["schema_name_at_source"]}}).get("result",
                                                                                                             {}).get(
                     "response", {}).get("result", [])
-            else:
+            elif table["configuration"].get("catalog_name", ""):
                 table_document = src_client_obj.list_tables_in_source(source_id, params={
                     "filter": {"origTableName": table["configuration"]["name"],
                                "catalog_name": table["configuration"]["catalog_name"]}}).get("result", {}).get(
                     "response", {}).get("result", [])
+            elif table["configuration"]["configuration"].get("query",""):
+                table_document = src_client_obj.list_tables_in_source(source_id, params={
+                    "filter": {"table": table_name}}).get("result", {}).get(
+                    "response", {}).get("result", [])
+            else:
+                print(f"Skipping schema updation for table {table_name} as it did not match any existing table.")
             table_id = None
             if len(table_document) > 0:
                 table_document = table_document[0]

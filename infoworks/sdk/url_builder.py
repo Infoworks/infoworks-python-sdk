@@ -215,6 +215,20 @@ def add_tables_to_source_url(config, source_id):
                                                                                             source_id=source_id)
     return request
 
+def add_query_tables_to_source_url(config, source_id):
+    """
+    returns URL to add query tables using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param source_id: source entity id
+    :type source_id: string
+    :return: url to browse source tables details
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/query_tables'.format(ip=config['ip'],
+                                                                                            port=config['port'],
+                                                                                            protocol=config['protocol'],
+                                                                                            source_id=source_id)
+    return request
 
 def configure_tables_and_tablegroups_url(config, source_id):
     """

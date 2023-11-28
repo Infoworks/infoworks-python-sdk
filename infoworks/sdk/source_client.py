@@ -405,7 +405,7 @@ class SourceClient(BaseClient):
                 "target_schema_name": ""
         }]
         ```
-        :param poll_timeout: test connection job timeout in seconds
+        :param poll_timeout: metacrawl job timeout in seconds
         :type poll_timeout: integer. Default 300 seconds
         :param polling_frequency: polling frequency for the job in seconds. Default 15 seconds
         :type polling_frequency: integer
@@ -440,6 +440,76 @@ class SourceClient(BaseClient):
                     return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
                                          polling_frequency=polling_frequency,
                                          retries=retries)
+            else:
+                self.logger.error(f"Failed to add the tables to the source {source_id}")
+                self.logger.debug(response)
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.GENERIC_ERROR,
+                                                   error_desc=f"Failed to add the tables to the source {source_id}",
+                                                   response=response, job_id=None,
+                                                   source_id=source_id)
+        except Exception as e:
+            raise SourceError(f"Failed to add the tables to the source {source_id} " + str(e))
+
+    def add_query_tables_to_source(self, source_id=None, tables_to_add_config=None, poll_timeout=300, polling_frequency=15,
+                             retries=3, poll=True):
+        """
+        Function to add query tables to source
+        :param source_id: source identifier entity id
+        :type source_id: String
+        :param tables_to_add_config: Array of JSON configuration object
+        :type tables_to_add_config: List
+        ```
+        tables_to_add_config = [{
+                "table_type": "TABLE",
+                "target_table_name": "",
+                "target_schema_name": ""
+                "is_query_table": true,
+                "query": "select * from \"SALESDB\".\"ORDERS\""
+        }]
+        ```
+        :param poll_timeout: metacrawl job timeout in seconds
+        :type poll_timeout: integer. Default 300 seconds
+        :param polling_frequency: polling frequency for the job in seconds. Default 15 seconds
+        :type polling_frequency: integer
+        :param retries: Number of retries during job poll. Default is 3
+        :type retries: integer
+        :param poll: Poll job until its completion
+        :type poll: Boolean
+        :return: response dict
+        """
+        if None in {source_id} or tables_to_add_config is None:
+            self.logger.error("source id or tables_to_add_config cannot be None")
+            raise Exception("source id or tables_to_add_config cannot be None")
+        try:
+            url_for_add_tables_to_source = url_builder.add_query_tables_to_source_url(self.client_config, source_id)
+            add_tables_dict = {"tables_to_add": tables_to_add_config}
+            response = IWUtils.ejson_deserialize(
+                self.call_api("POST", url_for_add_tables_to_source,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                              add_tables_dict).content)
+            result = response.get('result', None)
+            self.logger.debug(response)
+            if result is not None:
+                self.logger.info(f"Added the below table Ids to the source {source_id}")
+                self.logger.info(result["added_tables"])
+                self.logger.info(response["message"])
+                self.logger.info(f"Triggered metacrawl job for tables. Infoworks JobID {result['job_created']}")
+                job_id = result['job_created']
+                if not poll:
+                    self.logger.info(f"Tables added to source {source_id} and metacrawl job was submitted {job_id}")
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+                else:
+                    if job_id:
+                        return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
+                                         polling_frequency=polling_frequency,
+                                         retries=retries)
+                    else:
+                        return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                           error_code=ErrorCode.GENERIC_ERROR,
+                                                           error_desc=f"Failed to add the tables to the source {source_id}",
+                                                           response=response, job_id=None,
+                                                           source_id=source_id)
             else:
                 self.logger.error(f"Failed to add the tables to the source {source_id}")
                 self.logger.debug(response)

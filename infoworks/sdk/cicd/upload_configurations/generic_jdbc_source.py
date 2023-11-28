@@ -1,18 +1,21 @@
 import copy
 import json
 import time
+
 import requests
 import yaml
-import configparser
-from infoworks.sdk.url_builder import get_source_details_url,list_secrets_url,create_domain_url, \
+
+from infoworks.sdk.url_builder import get_source_details_url, list_secrets_url, create_domain_url, \
     get_environment_interactive_compute_details, restart_persistent_cluster_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.source_response import SourceResponse
 from infoworks.sdk.local_configurations import Response
+import configparser
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 
-class CdataSource:
+
+class GenericJDBCSource:
     def __init__(self):
         self.configuration_obj = None
         self.source_config_path = None
@@ -31,53 +34,6 @@ class CdataSource:
                     json_string = json_string.replace(key, value)
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
         self.secrets = secrets
-
-    def update_table_schema_and_database(self, type, mappings):
-        data = self.configuration_obj
-        for table in data.get("configuration", {}).get("table_configs", []):
-            if type == "target_schema":
-                schema_from_config = table.get("configuration", {}).get("configuration", {}).get("target_schema_name",
-                                                                                                 "")
-                if schema_from_config != "" and schema_from_config.lower() in mappings.keys():
-                    table["configuration"]["configuration"]["target_schema_name"] = mappings.get(
-                        schema_from_config.lower())
-            elif type == "stage_schema":
-                schema_from_config = table.get("configuration", {}).get("configuration", {}).get("staging_schema_name",
-                                                                                                 "")
-                if schema_from_config != "" and schema_from_config.lower() in mappings.keys():
-                    table["configuration"]["configuration"]["staging_schema_name"] = mappings.get(
-                        schema_from_config.lower())
-            elif type == "database":
-                database_from_config = table.get("configuration", {}).get("configuration", {}).get(
-                    "target_database_name", "")
-                if database_from_config != "" and database_from_config.lower() in mappings.keys():
-                    table["configuration"]["configuration"]["target_database_name"] = mappings.get(
-                        database_from_config.lower())
-            else:
-                pass
-
-    def update_mappings_for_configurations(self, mappings):
-        config = configparser.ConfigParser()
-        config.read_dict(mappings)
-        d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
-        for section in config.sections():
-            if section in PRE_DEFINED_MAPPINGS:
-                continue
-            print("section:", section)
-            try:
-                final = d.setval(section.split("$"), dict(config.items(section)))
-            except KeyError as e:
-                pass
-        self.configuration_obj = d.data
-        if "configuration$source_configs$data_lake_schema" in config.sections():
-            self.update_table_schema_and_database("target_schema",
-                                                  dict(config.items("configuration$source_configs$data_lake_schema")))
-        if "configuration$source_configs$staging_schema_name" in config.sections():
-            self.update_table_schema_and_database("stage_schema", dict(
-                config.items("configuration$source_configs$staging_schema_name")))
-        if "configuration$source_configs$target_database_name" in config.sections():
-            self.update_table_schema_and_database("database", dict(
-                config.items("configuration$source_configs$target_database_name")))
 
     def get_secret_id_from_name(self, cicd_client, secret_name):
         secret_id = None
@@ -159,11 +115,58 @@ class CdataSource:
         else:
             print(f"Unknown cluster state {status}")
 
-    def create_cdata_source(self, src_client_obj):
+    def update_table_schema_and_database(self, type, mappings):
+        data = self.configuration_obj
+        for table in data.get("configuration", {}).get("table_configs", []):
+            if type == "target_schema":
+                schema_from_config = table.get("configuration", {}).get("configuration", {}).get("target_schema_name",
+                                                                                                 "")
+                if schema_from_config != "" and schema_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["target_schema_name"] = mappings.get(
+                        schema_from_config.lower())
+            elif type == "stage_schema":
+                schema_from_config = table.get("configuration", {}).get("configuration", {}).get("staging_schema_name",
+                                                                                                 "")
+                if schema_from_config != "" and schema_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["staging_schema_name"] = mappings.get(
+                        schema_from_config.lower())
+            elif type == "database":
+                database_from_config = table.get("configuration", {}).get("configuration", {}).get(
+                    "target_database_name", "")
+                if database_from_config != "" and database_from_config.lower() in mappings.keys():
+                    table["configuration"]["configuration"]["target_database_name"] = mappings.get(
+                        database_from_config.lower())
+            else:
+                pass
+
+    def update_mappings_for_configurations(self, mappings):
+        config = configparser.ConfigParser()
+        config.read_dict(mappings)
+        d = InfoworksDynamicAccessNestedDict(self.configuration_obj)
+        for section in config.sections():
+            if section in PRE_DEFINED_MAPPINGS:
+                continue
+            print("section:", section)
+            try:
+                final = d.setval(section.split("$"), dict(config.items(section)))
+            except KeyError as e:
+                pass
+        self.configuration_obj = d.data
+        if "configuration$source_configs$data_lake_schema" in config.sections():
+            self.update_table_schema_and_database("target_schema",
+                                                  dict(config.items("configuration$source_configs$data_lake_schema")))
+        if "configuration$source_configs$staging_schema_name" in config.sections():
+            self.update_table_schema_and_database("stage_schema", dict(
+                config.items("configuration$source_configs$staging_schema_name")))
+        if "configuration$source_configs$target_database_name" in config.sections():
+            self.update_table_schema_and_database("database", dict(
+                config.items("configuration$source_configs$target_database_name")))
+
+    def create_generic_jdbc_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]
-        create_cdata_source_payload = {
+        create_generic_jdbc_source_payload = {
             "name": data["name"],
-            "type": data["type"],
+            "type": "generic_jdbc",
             "sub_type": data["sub_type"],
             "data_lake_path": data["data_lake_path"],
             "data_lake_schema": data["data_lake_schema"] if "data_lake_schema" in data else "",
@@ -172,13 +175,13 @@ class CdataSource:
             "is_source_ingested": True
         }
         if data.get("target_database_name", ""):
-            create_cdata_source_payload["target_database_name"] = data.get("target_database_name", "")
+            create_generic_jdbc_source_payload["target_database_name"] = data.get("target_database_name", "")
         if data.get("staging_schema_name", ""):
-            create_cdata_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
+            create_generic_jdbc_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
         additional_keys_in_source_config = data.keys()
         for key in additional_keys_in_source_config:
-            if key not in ["connection"] and key not in create_cdata_source_payload.keys():
-                create_cdata_source_payload[key] = data[key]
+            if key not in ["connection"] and key not in create_generic_jdbc_source_payload.keys():
+                create_generic_jdbc_source_payload[key] = data[key]
         # adding associated domains if any
         accessible_domain_names = data.get("associated_domain_names", [])
         accessible_domain_ids = []
@@ -196,18 +199,18 @@ class CdataSource:
                     domain_id = result.get("id", None)
                     if domain_id is not None:
                         accessible_domain_ids.append(domain_id)
-            if "associated_domain_names" in create_cdata_source_payload.keys():
-                create_cdata_source_payload.pop("associated_domain_names", [])
+            if "associated_domain_names" in create_generic_jdbc_source_payload.keys():
+                create_generic_jdbc_source_payload.pop("associated_domain_names", [])
                 self.configuration_obj["configuration"]["source_configs"].pop("associated_domain_names", [])
             if len(accessible_domain_ids) > 0:
-                create_cdata_source_payload["associated_domains"] = accessible_domain_ids
+                create_generic_jdbc_source_payload["associated_domains"] = accessible_domain_ids
                 self.configuration_obj["configuration"]["associated_domains"] = accessible_domain_ids
-        print("create_rdbms_source_payload:", create_cdata_source_payload)
-        src_create_response = src_client_obj.create_source(source_config=create_cdata_source_payload)
+        print("create_generic_jdbc_source_payload:", create_generic_jdbc_source_payload)
+        src_create_response = src_client_obj.create_source(source_config=create_generic_jdbc_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id = src_create_response["result"]["response"]["result"]["id"]
             # added below code to update the source due to IPD-23733
-            associated_domains = create_cdata_source_payload.get("associated_domains", [])
+            associated_domains = create_generic_jdbc_source_payload.get("associated_domains", [])
             if associated_domains:
                 src_client_obj.update_source(source_id=source_id,
                                              update_body={"associated_domains": associated_domains})
@@ -243,14 +246,14 @@ class CdataSource:
                     f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 print(f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 # added below code to update the source due to IPD-23733
-                associated_domains = create_cdata_source_payload.get("associated_domains", [])
+                associated_domains = create_generic_jdbc_source_payload.get("associated_domains", [])
                 if associated_domains:
                     src_client_obj.update_source(source_id=existing_source_id,
                                                  update_body={"associated_domains": associated_domains})
                 return SourceResponse.parse_result(status=Response.Status.SUCCESS,
                                                    source_id=response['result'][0]['id'], response=response)
 
-    def configure_cdata_source_connection(self, src_client_obj, source_id, override_config_file=None,
+    def configure_generic_jdbc_source_connection(self, src_client_obj, source_id, override_config_file=None,
                                           read_passwords_from_secrets=False, env_tag="", secret_type="",
                                           config_ini_path=None, dont_skip_step=True):
         if not dont_skip_step:
@@ -441,7 +444,7 @@ class CdataSource:
                     "filter": {"origTableName": table["configuration"]["name"],
                                "catalog_name": table["configuration"]["catalog_name"]}}).get("result", {}).get(
                     "response", {}).get("result", [])
-            elif table["configuration"]["configuration"].get("query", ""):
+            elif table["configuration"]["configuration"].get("query",""):
                 table_document = src_client_obj.list_tables_in_source(source_id, params={
                     "filter": {"table": table_name}}).get("result", {}).get(
                     "response", {}).get("result", [])
@@ -459,7 +462,7 @@ class CdataSource:
                         "Failed to update schema for table {table_name}".format(table_name=table_name))
                     src_client_obj.logger.error(response.get("result", {}).get("response", {}).get("message", ""))
                     table_schema_update_dict[table_name] = (
-                        "FAILED", response.get("result", {}).get("response", {}).get("message", ""))
+                    "FAILED", response.get("result", {}).get("response", {}).get("message", ""))
                 else:
                     src_client_obj.logger.info(
                         "Successfully updated schema for table {table_name}".format(table_name=table_name))
