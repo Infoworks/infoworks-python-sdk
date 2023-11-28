@@ -218,13 +218,11 @@ class PipelineGroupClient(BaseClient):
         url_to_list_pipeline_grp_jobs = url_builder.get_pipeline_group_jobs_base_url(self.client_config, domain_id,
                                                                                      pipeline_group_id) + f"/{job_id}/pipeline-jobs" + IWUtils.get_query_params_string_from_dict(
             params=params)
-        print(url_to_list_pipeline_grp_jobs)
         pipelines_in_pipeline_groups_jobs_list = []
         try:
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_to_list_pipeline_grp_jobs,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
-            print(response)
             if response is not None:
                 result = response.get("result", [])
                 initial_msg = response.get("message", "")
