@@ -164,7 +164,7 @@ class GenericJDBCSource:
 
     def create_generic_jdbc_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]
-        create_rdbms_source_payload = {
+        create_generic_jdbc_source_payload = {
             "name": data["name"],
             "type": "generic_jdbc",
             "sub_type": data["sub_type"],
@@ -175,13 +175,13 @@ class GenericJDBCSource:
             "is_source_ingested": True
         }
         if data.get("target_database_name", ""):
-            create_rdbms_source_payload["target_database_name"] = data.get("target_database_name", "")
+            create_generic_jdbc_source_payload["target_database_name"] = data.get("target_database_name", "")
         if data.get("staging_schema_name", ""):
-            create_rdbms_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
+            create_generic_jdbc_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
         additional_keys_in_source_config = data.keys()
         for key in additional_keys_in_source_config:
-            if key not in ["connection"] and key not in create_rdbms_source_payload.keys():
-                create_rdbms_source_payload[key] = data[key]
+            if key not in ["connection"] and key not in create_generic_jdbc_source_payload.keys():
+                create_generic_jdbc_source_payload[key] = data[key]
         # adding associated domains if any
         accessible_domain_names = data.get("associated_domain_names", [])
         accessible_domain_ids = []
@@ -199,18 +199,18 @@ class GenericJDBCSource:
                     domain_id = result.get("id", None)
                     if domain_id is not None:
                         accessible_domain_ids.append(domain_id)
-            if "associated_domain_names" in create_rdbms_source_payload.keys():
-                create_rdbms_source_payload.pop("associated_domain_names", [])
+            if "associated_domain_names" in create_generic_jdbc_source_payload.keys():
+                create_generic_jdbc_source_payload.pop("associated_domain_names", [])
                 self.configuration_obj["configuration"]["source_configs"].pop("associated_domain_names", [])
             if len(accessible_domain_ids) > 0:
-                create_rdbms_source_payload["associated_domains"] = accessible_domain_ids
+                create_generic_jdbc_source_payload["associated_domains"] = accessible_domain_ids
                 self.configuration_obj["configuration"]["associated_domains"] = accessible_domain_ids
-        print("create_rdbms_source_payload:", create_rdbms_source_payload)
-        src_create_response = src_client_obj.create_source(source_config=create_rdbms_source_payload)
+        print("create_generic_jdbc_source_payload:", create_generic_jdbc_source_payload)
+        src_create_response = src_client_obj.create_source(source_config=create_generic_jdbc_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id = src_create_response["result"]["response"]["result"]["id"]
             # added below code to update the source due to IPD-23733
-            associated_domains = create_rdbms_source_payload.get("associated_domains", [])
+            associated_domains = create_generic_jdbc_source_payload.get("associated_domains", [])
             if associated_domains:
                 src_client_obj.update_source(source_id=source_id,
                                              update_body={"associated_domains": associated_domains})
@@ -246,7 +246,7 @@ class GenericJDBCSource:
                     f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 print(f"Source Id with the same Source name {data['name']} : {response['result'][0]['id']}")
                 # added below code to update the source due to IPD-23733
-                associated_domains = create_rdbms_source_payload.get("associated_domains", [])
+                associated_domains = create_generic_jdbc_source_payload.get("associated_domains", [])
                 if associated_domains:
                     src_client_obj.update_source(source_id=existing_source_id,
                                                  update_body={"associated_domains": associated_domains})

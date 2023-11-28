@@ -449,41 +449,137 @@ class WrapperSource(BaseClient):
                 source_obj = CdataSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
-                source_obj.update_mappings_for_configurations(self.mappings)
                 source_obj.configuration_obj = configuration_obj
-                source_id = source_obj.create_cdata_source(self)
+                source_obj.update_mappings_for_configurations(self.mappings)
+                default_section_mappings = dict(self.mappings.get("api_mappings"))
+                source_obj.start_interactive_cluster(self, environment_id=source_obj.environment_id,
+                                                     default_section_mappings=default_section_mappings)
+                source_creation_response = source_obj.create_cdata_source(self)
+                source_id = source_creation_response["result"]["source_id"]
                 if source_id is not None:
                     # Proceed to configure the source connection details
-                    if source_obj.configure_cdata_source_connection(self, source_id, override_configuration_file,
-                                                                    read_passwords_from_secrets=read_passwords_from_secrets,
-                                                                    env_tag=env_tag,
-                                                                    secret_type=secret_type) == "SUCCESS":
-                        status = source_obj.test_source_connection(self, source_id)
-                        if status == "SUCCESS":
-                            status = source_obj.browse_source_tables(self, source_id)
-                            if status == "SUCCESS":
-                                status = source_obj.add_tables_to_source(self, source_id)
-                                if status == "SUCCESS":
+                    source_connection_configurations_response = source_obj.configure_cdata_source_connection(self,
+                                                                                                             source_id,
+                                                                                                             override_configuration_file,
+                                                                                                             read_passwords_from_secrets=read_passwords_from_secrets,
+                                                                                                             env_tag=env_tag,
+                                                                                                             secret_type=secret_type,
+                                                                                                             config_ini_path=config_ini_path,
+                                                                                                             dont_skip_step=
+                                                                                                             configuration_obj[
+                                                                                                                 "steps_to_run"][
+                                                                                                                 "configure_rdbms_source_connection"])
+                    if source_connection_configurations_response["result"]["status"].upper() in ["SUCCESS", "SKIPPED"]:
+                        print("Successfully configured the connection details")
+                        self.logger.info("Successfully configured the connection details")
+                        source_test_connection_response = source_obj.test_source_connection(self, source_id,
+                                                                                            dont_skip_step=
+                                                                                            configuration_obj[
+                                                                                                "steps_to_run"][
+                                                                                                "test_source_connection"])
+                        if source_test_connection_response["result"]["status"].upper() in ["SUCCESS", "SKIPPED"]:
+                            source_browse_source_tables_response = source_obj.browse_source_tables(self, source_id,
+                                                                                                   configuration_obj[
+                                                                                                       "steps_to_run"][
+                                                                                                       "browse_source_tables"])
+                            if source_browse_source_tables_response["result"]["status"].upper() in ["SUCCESS",
+                                                                                                    "SKIPPED"]:
+                                add_tables_to_source_response = source_obj.add_tables_to_source(self, source_id,
+                                                                                                configuration_obj[
+                                                                                                    "steps_to_run"][
+                                                                                                    "add_tables_to_source"])
+                                status = add_tables_to_source_response["result"]["status"]
+                                if status.upper() in ["SUCCESS", "SKIPPED"] or add_tables_to_source_response[
+                                    "result"].get("response", {}).get("result", {}).get("response", {}).get("iw_code",
+                                                                                                            "") == "IW10003":
                                     self.logger.info("Added tables to source successfully")
                                     print("Added tables to source successfully")
-                                status = source_obj.configure_tables_and_tablegroups(self, source_id,
-                                                                                     override_configuration_file,
-                                                                                     export_lookup, self.mappings,
-                                                                                     read_passwords_from_secrets,
-                                                                                     env_tag=env_tag,
-                                                                                     secret_type=secret_type)
+                                else:
+                                    print("Failed to add tables to source")
+                                    print(add_tables_to_source_response)
+                                    self.logger.error("Failed to add tables to source")
+                                    self.logger.error(add_tables_to_source_response)
+                                    raise Exception("Failed to add tables to source")
+                                configure_tables_and_tablegroups_response = source_obj.configure_tables_and_tablegroups(
+                                    self, source_id,
+                                    override_configuration_file,
+                                    export_lookup, self.mappings,
+                                    read_passwords_from_secrets,
+                                    env_tag=env_tag,
+                                    secret_type=secret_type, dont_skip_step=configuration_obj["steps_to_run"][
+                                        "configure_tables_and_tablegroups"])
+                                status = configure_tables_and_tablegroups_response["result"]["status"]
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
-                                    print("Configured source successfully")
+                                    minimal_response = configure_tables_and_tablegroups_response["result"].get(
+                                        "response", {}).get("result", {}).get("response").get("result", {}).get(
+                                        "configuration", {}).get(
+                                        "iw_mappings", [])
+                                    minimal_response_with_error = [iw_mappings for iw_mappings in minimal_response if
+                                                                   iw_mappings.get("table_upsert_status", {}).get(
+                                                                       "error", []) != []]
+                                    print(minimal_response_with_error)
+                                    self.logger.info(minimal_response_with_error)
+                                    # added below code since the config migration api doesn't support schema updatation as of 5.4.2.4
+                                    # to be removed after api fix
+                                    update_schema_response = source_obj.update_schema_for_tables(self, source_id,
+                                                                                                 override_configuration_file,
+                                                                                                 export_lookup,
+                                                                                                 self.mappings,
+                                                                                                 read_passwords_from_secrets,
+                                                                                                 env_tag=env_tag,
+                                                                                                 secret_type=secret_type,
+                                                                                                 dont_skip_step=
+                                                                                                 configuration_obj[
+                                                                                                     "steps_to_run"][
+                                                                                                     "configure_tables_and_tablegroups"])
+                                    update_schema_status = update_schema_response["result"]["status"]
+                                    if update_schema_status == "SUCCESS":
+                                        # print(update_schema_response)
+                                        self.logger.info(update_schema_response)
+                                        print("Configured source successfully")
+                                    else:
+                                        self.logger.error("Failed to update schema for tables")
+                                        print("Failed to update schema for tables")
+                                        print(update_schema_response)
+                                        self.logger.error(update_schema_response)
+                                        raise Exception("Failed to update schema for tables")
+                                else:
+                                    self.logger.error("Failed to configure source")
+                                    print("Failed to configure source")
+                                    minimal_response = configure_tables_and_tablegroups_response["result"].get(
+                                        "response", {}).get("result", {}).get("response").get("configuration", {}).get(
+                                        "iw_mappings", [])
+                                    if minimal_response != []:
+                                        minimal_response_with_error = [iw_mappings for iw_mappings in minimal_response
+                                                                       if
+                                                                       iw_mappings.get("table_upsert_status", {}).get(
+                                                                           "error", []) != []]
+                                        print(minimal_response_with_error)
+                                        self.logger.info(minimal_response_with_error)
+                                    else:
+                                        print(configure_tables_and_tablegroups_response)
+                                        self.logger.error(configure_tables_and_tablegroups_response)
+                                    raise Exception("Failed to configure source")
                             else:
-                                self.logger.error("Failed to configure the source")
-                                print("Failed to configure the source")
-                                raise Exception("Failed to configure the source")
+                                self.logger.error("Failed while browsing tables")
+                                self.logger.error(source_browse_source_tables_response)
+                                print("Failed while browsing tables")
+                                print(source_browse_source_tables_response)
+                                self.logger.error(source_browse_source_tables_response)
+                                raise Exception("Failed while browsing tables")
+                        else:
+                            print(source_test_connection_response)
+                            self.logger.error(source_test_connection_response)
+                            raise Exception("Failed to launch test connection job")
                     else:
-                        self.logger.error("Failed to configure the source connection")
-                        print("Failed to configure the source connection")
-                        raise Exception("Failed to configure the source connection")
-            return response_to_return
+                        print(source_connection_configurations_response)
+                        self.logger.error(source_connection_configurations_response)
+                        raise Exception("Failed to configure source connection details")
+                else:
+                    print(source_creation_response)
+                    self.logger.error(source_creation_response)
+                    raise Exception("Failed to create source")
         except Exception as e:
             self.logger.error(str(e))
             self.logger.error(traceback.format_exc())
