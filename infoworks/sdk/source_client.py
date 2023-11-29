@@ -3560,35 +3560,3 @@ class SourceClient(BaseClient):
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to get table group schedule.')
             raise SourceError('Error occurred while trying to get table group schedule.')
-
-    def stop_streaming_job(self, source_id, table_ids):
-        """
-        Function to stop the streaming job
-        :param source_id: Entity identifier for source
-        :type source_id: String
-        :param table_ids: Comma seperated table ids for which the streaming job has to be stopped
-        :return: response dict
-        """
-        try:
-            body = {"table_ids": [
-                    table_ids.split(',')
-                ]}
-            response = self.call_api("POST", url_builder.stop_streaming_job_url(self.client_config, source_id),
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
-                                     data=body)
-            parsed_response = IWUtils.ejson_deserialize(
-                response.content
-            )
-            iw_code = parsed_response.get("iw_code", None)
-            if iw_code is None:
-                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response,
-                                                   source_id=source_id)
-            else:
-                return SourceResponse.parse_result(status=Response.Status.FAILED,
-                                                   error_code=ErrorCode.GENERIC_ERROR,
-                                                   error_desc="Failed to stop streaming job",
-                                                   response=parsed_response
-                                                   )
-        except Exception as e:
-            self.logger.error("Error in stopping the streaming job")
-            raise SourceError("Error in stopping the streaming job" + str(e))

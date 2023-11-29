@@ -2235,7 +2235,7 @@ def stop_streaming_job_url(config, source_id):
         :param source_id: Identifier for source
         :type source_id: string
     """
-    request = '{protocol}://{ip}:{port}/v3/source/{source_id}/stop-streaming'.format(
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/stop-streaming'.format(
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'],
         source_id=source_id)
