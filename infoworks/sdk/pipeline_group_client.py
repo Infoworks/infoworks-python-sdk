@@ -790,3 +790,32 @@ class PipelineGroupClient(BaseClient):
             self.logger.error('Response from server: ' + str(e))
             self.logger.exception('Error occurred while trying to get/delete adv config details.')
             raise PipelineError('Error occurred while trying to get/delete adv config details.')
+
+    def get_pipeline_group_job_summary(self, domain_id, pipeline_group_id, job_id):
+        """
+        Function to get pipeline group job summary
+        :param domain_id: Entity identifier for domain
+        :param pipeline_group_id: Entity identifier for pipeline group
+        :param job_id: Entity identifier for job
+        :return: response dict
+        """
+        try:
+            if None in {domain_id, pipeline_group_id, job_id}:
+                self.logger.error("domain id or pipeline group id or job_id cannot be None")
+                raise Exception("domain id or pipeline group id or job_id cannot be None")
+
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_pipeline_group_job_summary_url
+            (self.client_config, domain_id, pipeline_group_id, job_id),
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']), ).content)
+            result = response.get('result', None)
+            if not result:
+                self.logger.error(f"Failed to get the pipeline group job summary for job {job_id} ")
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    error_desc=f"Failed to get pipeline group job summary for job {job_id} ",
+                                                    response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            raise PipelineError(f"Failed to get pipeline group job summary for job {job_id} " + str(e))

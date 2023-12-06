@@ -2195,3 +2195,56 @@ def configure_table_group_schedule_user_url(config, source_id, table_group_id):
         protocol=config['protocol'], ip=config['ip'], port=config['port'], source_id=source_id,
         table_group_id=table_group_id)
     return request
+
+
+def get_pipeline_job_summary_url(config, domain_id, pipeline_id, job_id):
+    """
+    returns URL to add tables to replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param pipeline_id: Identifier for Pipeline
+    :type pipeline_id: string
+    :param job_id: Identifier of Job
+    :type job_id: string
+    :return: url to submit replication data job
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipelines/{pipeline_id}/jobs/{job_id}/summary' \
+        .format(ip=config['ip'], port=config['port'], protocol=config['protocol'], domain_id=domain_id,
+                pipeline_id=pipeline_id, job_id=job_id)
+    return request
+
+
+def get_pipeline_group_job_summary_url(config, domain_id, pipeline_group_id, job_id):
+    """
+    returns URL to add tables to replicator definition using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :param pipeline_group_id: Identifier for Pipeline Group
+    :type pipeline_group_id: string
+    :param job_id: Identifier of Job
+    :type job_id: string
+    :return: url to submit replication data job
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/pipeline-groups/{pipeline_group_id}/jobs' \
+              '/{job_id}/summary'.format(ip=config['ip'], port=config['port'], protocol=config['protocol'],
+                                         domain_id=domain_id, pipeline_group_id=pipeline_group_id, job_id=job_id)
+    return request
+
+
+def stop_streaming_job_url(config, source_id):
+    """
+        returns URL to stop streaming job
+        :param config: client configurations
+        :type config: dict
+        :param source_id: Identifier for source
+        :type source_id: string
+    """
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/stop-streaming'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'],
+        source_id=source_id)
+    return request

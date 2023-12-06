@@ -436,6 +436,8 @@ class JobMetricsClient(BaseClient):
                 job_type = job["type"]
                 job_status = job["status"]
                 job_createdAt = job["created_at"]
+                job_cluster_id = job.get('cluster_id')
+                job_created_by = job.get('created_by')
                 running_job_template = {
                     'workflow_id': job.get('triggered_by', {}).get('parent_id', ''),
                     'workflow_run_id': job.get('triggered_by', {}).get('run_id', ''),
@@ -443,6 +445,8 @@ class JobMetricsClient(BaseClient):
                     'job_type': self.job_type_mappings[job_type.upper()],
                     'job_start_time': job_createdAt.split('.')[0].replace('T', ' '),
                     'job_end_time': "",
+                    'job_created_by': job_created_by,
+                    'cluster_id': job_cluster_id,
                     "source_file_names": [],
                     'job_status': job_status.upper(),
                     'entity_type': "source",
@@ -454,7 +458,7 @@ class JobMetricsClient(BaseClient):
                 running_od = OrderedDict()
                 if job_status.upper() in ["RUNNING", "PENDING", "CANCELED", "ABORTED", "FAILED"]:
                     for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
-                                'job_end_time', 'job_status',
+                                'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
                                 'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
                                 'table_group_name',
                                 'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value',
@@ -538,9 +542,11 @@ class JobMetricsClient(BaseClient):
                         table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
                         table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
                         table['fetch_records_count'] = int(table['fetch_records_count'])
+                        table['cluster_id'] = job_cluster_id
+                        table['job_created_by'] = job_created_by
                         for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type',
                                     'job_start_time',
-                                    'job_end_time', 'job_status',
+                                    'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
                                     'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
                                     'table_group_name',
                                     'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value',
@@ -564,6 +570,8 @@ class JobMetricsClient(BaseClient):
                             'job_type': synctype.upper(),
                             'job_start_time': processedAt.split('.')[0].replace('T', ' '),
                             'job_end_time': job_end_time.split('.')[0].replace('T', ' '),
+                            'job_created_by': job_created_by,
+                            'cluster_id': job_cluster_id,
                             'job_status': job_status.upper(),
                             'entity_type': entity_type,
                             "source_file_names": [],
@@ -577,7 +585,7 @@ class JobMetricsClient(BaseClient):
                             "target_records_count": row_count}
                         for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type',
                                     'job_start_time',
-                                    'job_end_time', 'job_status',
+                                    'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
                                     'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
                                     'table_group_name',
                                     'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value',
@@ -636,8 +644,10 @@ class JobMetricsClient(BaseClient):
                             table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
                             table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
                             table['fetch_records_count'] = int(table['number_of_records_written'])
+                            table['cluster_id'] = job_cluster_id
+                            table['job_created_by'] = job_created_by
                             for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type',
-                                        'job_start_time', 'job_end_time', 'job_status',
+                                        'job_start_time', 'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
                                         'source_name', 'source_file_names', 'source_schema_name',
                                         'source_database_name',
                                         'table_group_name',
@@ -661,6 +671,8 @@ class JobMetricsClient(BaseClient):
                                 'job_type': "EXPORT",
                                 'job_start_time': processedAt.split('.')[0].replace('T', ' '),
                                 'job_end_time': job_end_time.split('.')[0].replace('T', ' '),
+                                'job_created_by': job_created_by,
+                                'cluster_id': job_cluster_id,
                                 'job_status': job_status.upper(),
                                 'entity_type': entity_type,
                                 "source_file_names": [],
@@ -670,7 +682,7 @@ class JobMetricsClient(BaseClient):
                                 "pre_target_count": row_count, "fetch_records_count": 0,
                                 "target_records_count": row_count}
                             for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type',
-                                        'job_start_time', 'job_end_time', 'job_status',
+                                        'job_start_time', 'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
                                         'source_name', 'source_file_names', 'source_schema_name',
                                         'source_database_name',
                                         'table_group_name',
@@ -702,8 +714,10 @@ class JobMetricsClient(BaseClient):
         job_id = job['id']
         job_type = job['type']
         job_status = job['status']
+        job_cluster_id = job.get('cluster_id')
         job_createdAt = job['created_at']
         entity_type = job['entity_type']
+        job_created_by = job.get('created_by')
         running_job_template = {
             'workflow_id': job.get('triggered_by', {}).get('parent_id', ''),
             'workflow_run_id': job.get('triggered_by', {}).get('run_id', ''),
@@ -711,6 +725,8 @@ class JobMetricsClient(BaseClient):
             'job_type': job_type.upper(),
             'job_start_time': job_createdAt.split('.')[0].replace('T', ' '),
             'job_end_time': "",
+            'job_created_by': job_created_by,
+            'cluster_id': job_cluster_id,
             "source_file_names": [],
             'job_status': job_status.upper(),
             'entity_type': entity_type,
@@ -722,7 +738,7 @@ class JobMetricsClient(BaseClient):
         running_od = OrderedDict()
         if job_status.upper() in ["RUNNING", "PENDING", "CANCELED", "ABORTED", "FAILED"]:
             for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
-                        'job_end_time', 'job_status',
+                        'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
                         'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
                         'table_group_name',
                         'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value', 'target_schema_name',
@@ -761,6 +777,8 @@ class JobMetricsClient(BaseClient):
                 table["ending_watermark_value"] = table.pop('last_merged_watermark', '')
                 table["target_records_count"] = table.get("target_records_count", None)
                 table["job_status"] = table.get("job_status", "")
+                table["cluster_id"] = job_cluster_id
+                table['job_created_by'] = job_created_by
                 if math.isnan(table.get('target_records_count')):
                     table['pre_target_count'] = None
                     table['target_records_count'] = None
@@ -777,7 +795,7 @@ class JobMetricsClient(BaseClient):
                     table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
                     table['fetch_records_count'] = int(table['number_of_records_written'])
                     for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
-                                'job_end_time', 'job_status',
+                                'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
                                 'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
                                 'table_group_name',
                                 'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value',
@@ -819,7 +837,7 @@ class JobMetricsClient(BaseClient):
 
             result = []
             header = ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
-                      'job_end_time', 'job_status', 'source_name', 'source_file_names', 'source_schema_name',
+                      'job_end_time', 'job_created_by', 'cluster_id', 'job_status', 'source_name', 'source_file_names', 'source_schema_name',
                       'source_database_name', 'table_group_name', 'iwx_table_name', 'starting_watermark_value',
                       'ending_watermark_value', 'target_schema_name', 'target_table_name', 'pre_target_count',
                       'fetch_records_count', 'target_records_count', 'job_link']

@@ -394,7 +394,7 @@ class PipelineClient(BaseClient):
             response = IWUtils.ejson_deserialize(self.call_api("DELETE", url_builder.delete_pipeline_version_url(
                 self.client_config, domain_id, pipeline_id, pipeline_version_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
-            if response.get("message","")!="Successfully removed Pipeline Version":
+            if response.get("message", "") != "Successfully removed Pipeline Version":
                 self.logger.error('Failed to delete the pipeline version')
                 return PipelineResponse.parse_result(status=Response.Status.FAILED,
                                                      error_code=ErrorCode.USER_ERROR,
@@ -1170,3 +1170,32 @@ class PipelineClient(BaseClient):
             self.logger.error('Response from server: ' + str(e))
             self.logger.exception('Error occurred while trying to create a new sql pipeline.')
             raise PipelineError('Error occurred while trying to create a new sql pipeline.')
+
+    def get_pipeline_job_summary(self, domain_id, pipeline_id, job_id):
+        """
+        Function to get pipeline job summary
+        :param domain_id: Entity identifier for domain
+        :param pipeline_id: Entity identifier for pipeline
+        :param job_id: Entity identifier for job
+        :return: response dict
+        """
+        try:
+            if None in {domain_id, pipeline_id, job_id}:
+                self.logger.error("domain id or pipeline id or job_id cannot be None")
+                raise Exception("domain id or pipeline id or job_id cannot be None")
+
+            response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_pipeline_job_summary_url
+            (self.client_config, domain_id, pipeline_id, job_id),
+                                                               IWUtils.get_default_header_for_v3(
+                                                                   self.client_config['bearer_token']), ).content)
+            result = response.get('result', None)
+            if not result:
+                self.logger.error(f"Failed to get the pipeline job summary for job {job_id} ")
+                return PipelineResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc=f"Failed to get pipeline job summary for job {job_id} ",
+                                                     response=response)
+            else:
+                return PipelineResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            raise PipelineError(f"Failed to get pipeline job summary for job {job_id} " + str(e))

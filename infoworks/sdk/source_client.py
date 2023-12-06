@@ -1,3 +1,4 @@
+import json
 import time
 import traceback
 from infoworks.error import SourceError
@@ -815,7 +816,9 @@ class SourceClient(BaseClient):
                               body).content)
             result = response.get('result', {})
             if len(result) != 0:
-                job_id = result.get("id",None)
+                if body.get('job_type') == "streaming_start":
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+                job_id = result.get("id", None)
                 if job_id is not None:
                     if not poll:
                         self.logger.info(f"Job successfully submitted for {source_id}. JobID to track is: {job_id}")
@@ -836,6 +839,34 @@ class SourceClient(BaseClient):
                                                    response=response)
         except Exception as e:
             raise SourceError(f"Failed to create source job: " + str(e))
+
+    def stop_streaming_job(self, source_id=None, table_ids=None):
+        """
+        Function to stop Streaming Jobs.
+        :param source_id: Identifier for Source
+        :type source_id: String
+        :table_ids: Identifier for Tables
+        :type table_ids: Array
+        """
+        try:
+            if source_id is None or table_ids is None:
+                self.logger.error("source_id or table_ids cannot be None")
+                raise Exception("source_id or table_ids cannot be None")
+
+            request_body = {
+                "table_ids": [table_id.strip() for table_id in table_ids]
+            }
+            response = self.call_api(
+                "POST", url_builder.stop_streaming_job_url(self.client_config, source_id),
+                IWUtils.get_default_header_for_v3(self.client_config['bearer_token']), request_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            if response.status_code == 200:
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return SourceResponse.parse_result(status=Response.Status.FAILED, error_code=ErrorCode.USER_ERROR,
+                                                   error_desc="Failed to stop streaming jobs", response=parsed_response)
+        except Exception as e:
+            raise SourceError(f"Failed to stop streaming job: " + str(e))
 
     def resubmit_source_job(self, job_id=None, poll=False, poll_timeout=300, polling_frequency=15, retries=3):
         """
