@@ -468,7 +468,7 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to fetch status of workflow.')
             raise WorkflowError('Error occurred while trying to fetch status of workflow.')
 
-    def poll_workflow_run_till_completion(self, workflow_run_id=None, workflow_id=None, poll_interval=30):
+    def poll_workflow_run_till_completion(self, workflow_run_id=None, workflow_id=None,domain_id=None, poll_interval=30):
         """
         Polls Infoworks Data workflow for given workflow id and run id
         :param workflow_run_id: run id of the workflow running
@@ -485,14 +485,14 @@ class WorkflowClient(BaseClient):
             raise Exception("workflow_id or workflow_run_id cannot be None")
         try:
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_status_url(
-                self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
+                self.client_config,workflow_id, workflow_run_id,domain_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
             result = response.get('result', {})
             if result:
                 workflow_status = result['workflow_status']["state"]
                 while workflow_status.lower() not in ['success', 'completed', 'failed', 'aborted', 'canceled']:
                     response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_status_url(
-                        self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
+                        self.client_config, workflow_id, workflow_run_id,domain_id), IWUtils.get_default_header_for_v3(
                         self.client_config['bearer_token'])).content)
                     result = response.get('result', {})
                     workflow_status = result['workflow_status']["state"]
