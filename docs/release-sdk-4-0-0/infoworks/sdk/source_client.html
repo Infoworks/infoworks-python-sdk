@@ -58,6 +58,9 @@
                                 <a class="function" href="#SourceClient.add_tables_to_source">add_tables_to_source</a>
                         </li>
                         <li>
+                                <a class="function" href="#SourceClient.add_query_tables_to_source">add_query_tables_to_source</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#SourceClient.configure_tables_and_tablegroups">configure_tables_and_tablegroups</a>
                         </li>
                         <li>
@@ -74,6 +77,9 @@
                         </li>
                         <li>
                                 <a class="function" href="#SourceClient.submit_source_job">submit_source_job</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#SourceClient.stop_streaming_job">stop_streaming_job</a>
                         </li>
                         <li>
                                 <a class="function" href="#SourceClient.resubmit_source_job">resubmit_source_job</a>
@@ -598,7 +604,58 @@
 </code></pre>
 
 <ul>
-<li><strong>poll_timeout</strong>:  test connection job timeout in seconds</li>
+<li><strong>poll_timeout</strong>:  metacrawl job timeout in seconds</li>
+<li><strong>polling_frequency</strong>:  polling frequency for the job in seconds. Default 15 seconds</li>
+<li><strong>retries</strong>:  Number of retries during job poll. Default is 3</li>
+<li><strong>poll</strong>:  Poll job until its completion</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>response dict</p>
+</blockquote>
+</div>
+
+
+                            </div>
+                            <div id="SourceClient.add_query_tables_to_source" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#SourceClient.add_query_tables_to_source">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_query_tables_to_source</span><span class="signature">(
+    self,
+    source_id=None,
+    tables_to_add_config=None,
+    poll_timeout=300,
+    polling_frequency=15,
+    retries=3,
+    poll=True
+)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>Function to add query tables to source</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>source_id</strong>:  source identifier entity id</li>
+<li><strong>tables_to_add_config</strong>:  Array of JSON configuration object</li>
+</ul>
+
+<pre><code>tables_to_add_config = [{
+        "table_type": "TABLE",
+        "target_table_name": "",
+        "target_schema_name": ""
+        "is_query_table": true,
+        "query": "select * from "SALESDB"."ORDERS""
+}]
+</code></pre>
+
+<ul>
+<li><strong>poll_timeout</strong>:  metacrawl job timeout in seconds</li>
 <li><strong>polling_frequency</strong>:  polling frequency for the job in seconds. Default 15 seconds</li>
 <li><strong>retries</strong>:  Number of retries during job poll. Default is 3</li>
 <li><strong>poll</strong>:  Poll job until its completion</li>
@@ -832,6 +889,27 @@ ingest_table_group_body_example = {
 <blockquote>
   <p>response dict</p>
 </blockquote>
+</div>
+
+
+                            </div>
+                            <div id="SourceClient.stop_streaming_job" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#SourceClient.stop_streaming_job">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">stop_streaming_job</span><span class="signature">(self, source_id=None, table_ids=None)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>Function to stop Streaming Jobs.</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>source_id</strong>:  Identifier for Source
+:table_ids: Identifier for Tables</li>
+</ul>
 </div>
 
 

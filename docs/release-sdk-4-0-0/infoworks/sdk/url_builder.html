@@ -76,6 +76,9 @@
                     <a class="function" href="#add_tables_to_source_url">add_tables_to_source_url</a>
             </li>
             <li>
+                    <a class="function" href="#add_query_tables_to_source_url">add_query_tables_to_source_url</a>
+            </li>
+            <li>
                     <a class="function" href="#configure_tables_and_tablegroups_url">configure_tables_and_tablegroups_url</a>
             </li>
             <li>
@@ -486,6 +489,15 @@
             <li>
                     <a class="function" href="#configure_table_group_schedule_user_url">configure_table_group_schedule_user_url</a>
             </li>
+            <li>
+                    <a class="function" href="#get_pipeline_job_summary_url">get_pipeline_job_summary_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#get_pipeline_group_job_summary_url">get_pipeline_group_job_summary_url</a>
+            </li>
+            <li>
+                    <a class="function" href="#stop_streaming_job_url">stop_streaming_job_url</a>
+            </li>
     </ul>
 
 
@@ -887,6 +899,33 @@
 
     
             <div class="docstring"><p>returns URL to browse source tables using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>source_id</strong>:  source entity id</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to browse source tables details</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="add_query_tables_to_source_url">
+                            <div class="attr function"><a class="headerlink" href="#add_query_tables_to_source_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_query_tables_to_source_url</span><span class="signature">(config, source_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add query tables using v3 api</p>
 
 <h6 id="parameters">Parameters</h6>
 
@@ -1456,7 +1495,7 @@
 
         
             <span class="def">def</span>
-            <span class="name">get_workflow_status_url</span><span class="signature">(config, workflow_id, workflow_run_id)</span>:
+            <span class="name">get_workflow_status_url</span><span class="signature">(config, workflow_id, workflow_run_id, domain_id)</span>:
     </div>
 
     
@@ -3803,6 +3842,85 @@
 
     
             <div class="docstring"><p>Return URL to configure Table Group schedule user</p>
+</div>
+
+
+                </section>
+                <section id="get_pipeline_job_summary_url">
+                            <div class="attr function"><a class="headerlink" href="#get_pipeline_job_summary_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_pipeline_job_summary_url</span><span class="signature">(config, domain_id, pipeline_id, job_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add tables to replicator definition using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+<li><strong>pipeline_id</strong>:  Identifier for Pipeline</li>
+<li><strong>job_id</strong>:  Identifier of Job</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to submit replication data job</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="get_pipeline_group_job_summary_url">
+                            <div class="attr function"><a class="headerlink" href="#get_pipeline_group_job_summary_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">get_pipeline_group_job_summary_url</span><span class="signature">(config, domain_id, pipeline_group_id, job_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to add tables to replicator definition using v3 api</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>domain_id</strong>:  Identifier for domain</li>
+<li><strong>pipeline_group_id</strong>:  Identifier for Pipeline Group</li>
+<li><strong>job_id</strong>:  Identifier of Job</li>
+</ul>
+
+<h6 id="returns">Returns</h6>
+
+<blockquote>
+  <p>url to submit replication data job</p>
+</blockquote>
+</div>
+
+
+                </section>
+                <section id="stop_streaming_job_url">
+                            <div class="attr function"><a class="headerlink" href="#stop_streaming_job_url">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">stop_streaming_job_url</span><span class="signature">(config, source_id)</span>:
+    </div>
+
+    
+            <div class="docstring"><p>returns URL to stop streaming job</p>
+
+<h6 id="parameters">Parameters</h6>
+
+<ul>
+<li><strong>config</strong>:  client configurations</li>
+<li><strong>source_id</strong>:  Identifier for source</li>
+</ul>
 </div>
 
 
