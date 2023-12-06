@@ -580,7 +580,7 @@ def trigger_workflow_url(config, domain_id, workflow_id):
     return request
 
 
-def get_workflow_status_url(config, workflow_id, workflow_run_id):
+def get_workflow_status_url(config, workflow_id, workflow_run_id,domain_id):
     """
     returns URL to fetch status of workflow using v3 api
     :param config: client configurations
@@ -591,13 +591,21 @@ def get_workflow_status_url(config, workflow_id, workflow_run_id):
     :type workflow_run_id: string
     :return: url to fetch status of workflow using v3 api
     """
-    request = '{protocol}://{ip}:{port}/v3/admin/workflows/{workflow_id}/runs/{workflow_run_id}'.format(
-        ip=config['ip'], port=config['port'],
-        protocol=config['protocol'],
-        workflow_id=workflow_id,
-        workflow_run_id=workflow_run_id)
-    return request
-
+    if domain_id is None:
+        request = '{protocol}://{ip}:{port}/v3/admin/workflows/{workflow_id}/runs/{workflow_run_id}'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            workflow_id=workflow_id,
+            workflow_run_id=workflow_run_id)
+        return request
+    else:
+        request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/runs/{workflow_run_id}'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            workflow_id=workflow_id,
+            workflow_run_id=workflow_run_id,
+            domain_id=domain_id)
+        return request
 
 def get_all_workflows_url(config):
     """
