@@ -1,6 +1,8 @@
 import json
 import time
 import traceback
+import urllib
+
 from infoworks.error import SourceError
 from infoworks.sdk import url_builder, local_configurations
 from infoworks.sdk.base_client import BaseClient
@@ -313,8 +315,9 @@ class SourceClient(BaseClient):
         try:
             url_for_browse_source = url_builder.browse_source_tables_url(self.client_config, source_id)
             if filter_tables_properties is not None:
-                filter_condition = f"?is_filter_enabled=true&tables_filter={filter_tables_properties.get('tables_filter', '')}&catalogs_filter={filter_tables_properties.get('catalogs_filter', '')}&schemas_filter={filter_tables_properties.get('schemas_filter', '')}"
+                filter_condition = f"?is_filter_enabled=true&tables_filter={filter_tables_properties.get('tables_filter', '%')}&catalogs_filter={filter_tables_properties.get('catalogs_filter', '%')}&schemas_filter={filter_tables_properties.get('schemas_filter', '%')}"
                 url_for_browse_source = url_for_browse_source + filter_condition
+                #print("url_for_browse_source: ",url_for_browse_source)
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_for_browse_source,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
@@ -551,7 +554,7 @@ class SourceClient(BaseClient):
                 for config_item in result:
                     table_upsert_status = config_item.get('table_upsert_status', None)
                     if table_upsert_status is not None and len(table_upsert_status.get("error", [])) != 0:
-                        if not table_upsert_status["error"][0].startswith("Truncate the table:"):
+                        if not table_upsert_status["error"][0].startswith("Truncate the table:") and not table_upsert_status["error"][0].startswith("After ingestion you can't change"):
                             self.logger.info(f"{table_upsert_status}")
                             count = count + 1
                             errors[count] = table_upsert_status["error"]

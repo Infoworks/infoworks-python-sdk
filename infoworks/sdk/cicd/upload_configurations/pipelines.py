@@ -269,6 +269,7 @@ class Pipeline:
                 print(f'Pipeline ID: {new_pipeline_id}')
                 if new_pipeline_id is None:
                     pipeline_client_obj.logger.exception('Pipeline creation response: {}'.format(str(new_pipeline_creation_response)))
+                    print('Pipeline creation response: {}'.format(str(new_pipeline_creation_response)))
             except Exception as ex:
                 pipeline_client_obj.logger.exception('Response from server: {}'.format(str(ex)))
                 print(f'Response from server: {str(ex)}')

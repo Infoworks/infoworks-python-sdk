@@ -312,16 +312,36 @@ class GenericJDBCSource:
                                                                   polling_frequency=15, retries=1)
         return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id, response=response)
 
-    def browse_source_tables(self, src_client_obj, source_id, dont_skip_step=True):
+    def browse_source_tables(self, src_client_obj, source_id, dont_skip_step=True,index=0,batch_size=50):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         filter_tables_properties = self.configuration_obj["filter_tables_properties"]
+        tables=self.configuration_obj.get("configuration",{}).get("table_configs",[])
+        tables=tables[index:index+batch_size]
+        print("index:",index)
+        print("batch_size:",batch_size)
+        #print("tables:",tables)
+        tables_filter=[]
+        schema_filter=[]
+        for table in tables:
+            if table.get("configuration",{}).get("name","") != "" and table.get("configuration",{}).get("schema_name_at_source","") != "":
+                table_name = table.get("configuration",{}).get("name","")
+                #table_name = table_name.replace("#","%23")
+                #adding below code because # breaks the URL ,and encoding it will try to search for encoded table name in teradata
+                table_name=table_name.replace("#","%")
+                tables_filter.append(table_name)
+            if table.get("configuration",{}).get("schema_name_at_source","") != "":
+                schema_filter.append(table.get("configuration",{}).get("schema_name_at_source",""))
+        tables_filter=list(set(tables_filter))
+        schema_filter=list(set(schema_filter))
+        filter_tables_properties["tables_filter"]=",".join(tables_filter)
+        filter_tables_properties["schemas_filter"] = ",".join(schema_filter)
         response = src_client_obj.browse_source_tables(source_id, filter_tables_properties=filter_tables_properties,
                                                        poll_timeout=300, polling_frequency=15, retries=1)
         return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
                                            response=response)
 
-    def add_tables_to_source(self, src_client_obj, source_id, dont_skip_step=True):
+    def add_tables_to_source(self, src_client_obj, source_id, dont_skip_step=True,index=0,batch_size=50):
         if not dont_skip_step:
             return SourceResponse.parse_result(status="SKIPPED", source_id=source_id)
         tables_already_added_in_source = src_client_obj.list_tables_in_source(source_id).get("result", {}).get(
@@ -333,6 +353,7 @@ class GenericJDBCSource:
         tables_list = []
         query_tables_list=[]
         tables = self.configuration_obj["configuration"]["table_configs"]
+        tables = tables[index:index+batch_size]
         if len(tables_already_added_in_source) > 0:
             for table in tables:
                 if table["configuration"].get("configuration", {}).get("query","")=="":

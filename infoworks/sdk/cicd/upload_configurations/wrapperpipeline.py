@@ -114,7 +114,6 @@ class WrapperPipeline(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=compute_details)
         except Exception as e:
             self.logger.error("Error in getting compute template details")
-
     def cicd_create_configure_pipeline(self, configuration_file_path, domain_id=None, domain_name=None,
                                        override_configuration_file=None,
                                        replace_words="", read_passwords_from_secrets=False, env_tag="", secret_type=""):
