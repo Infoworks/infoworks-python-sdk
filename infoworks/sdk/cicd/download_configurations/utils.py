@@ -1,9 +1,6 @@
 import copy
 import os
 import traceback
-
-import jwt
-
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, configure_pipeline_url, \
     configure_workflow_url, \
@@ -13,7 +10,6 @@ from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, c
     create_domain_url
 from infoworks.sdk.cicd.cicd_response import CICDResponse
 import json
-
 
 class Utils:
     def __init__(self, serviceaccountemail):
@@ -199,8 +195,8 @@ class Utils:
             environment_compute_template_id,
             environment_storage_id)
 
-        decoded_jwt = jwt.decode(cicd_client.client_config['bearer_token'], options={"verify_signature": False})
-        user_email = json.loads(decoded_jwt.get("sub")).get("email")
+        # decoded_jwt = jwt.decode(cicd_client.client_config['bearer_token'], options={"verify_signature": False})
+        # user_email = json.loads(decoded_jwt.get("sub")).get("email")
         config_obj = {
             "configuration": {
                 "entity": {
@@ -222,8 +218,7 @@ class Utils:
             },
             "environment_configurations": {"environment_name": env_name,
                                            "environment_compute_template_name": compute_name,
-                                           "environment_storage_name": storage_name},
-            "user_email": user_email
+                                           "environment_storage_name": storage_name}
         }
         target_file_path = os.path.join(target_file_path, "pipeline", filename)
         if filename is not None and target_file_path is not None:
