@@ -22,6 +22,22 @@ class CSVSource:
                     json_string = json_string.replace(key, value)
         self.configuration_obj = IWUtils.ejson_deserialize(json_string)
 
+    def replace_secret_name_with_mapping(self,data,src_client_obj):
+        for key, value in data.items():
+            if isinstance(value, dict):
+                # If the value is a dictionary, recurse into it
+                secret_name = self.replace_secret_name_with_mapping(value,src_client_obj)
+                if secret_name:
+                    return secret_name
+            elif key == "secret_name":
+                #print(f"Found secret_name: {value}")
+                # resolve secret name to ID
+                secret_id = self.get_secret_id_from_name(src_client_obj, value)
+                if secret_id:
+                    data["secret_id"] = secret_id
+                    data.pop('secret_name', None)
+                return value
+
     def update_table_schema_and_database(self,type,mappings):
         data=self.configuration_obj
         for table in data.get("configuration",{}).get("table_configs",[]):
@@ -158,28 +174,7 @@ class CSVSource:
         src_name = str(self.configuration_obj["configuration"]["source_configs"]["name"])
         storage_type = data["storage"]["storage_type"]
         cloud_type = data["storage"].get("cloud_type", None)
-        if storage_type == "cloud" and cloud_type == "s3":
-            access_id = data["storage"].get("access_id", "")
-            secret_key = data["storage"].get("secret_key", "")
-            if "source_secrets" in mappings:
-                access_id = mappings.get("source_secrets").get("access_id", access_id)
-                secret_key = mappings.get("source_secrets").get("secret_key", secret_key)
-            source_configure_payload = {
-                "source_base_path_relative": data.get("source_base_path_relative",""),
-                "source_base_path": data.get("source_base_path",""),
-                "storage": {
-                    "storage_type": data["storage"]["storage_type"],
-                    "cloud_type": data["storage"]["cloud_type"],
-                    "access_id": access_id,
-                    "secret_key": secret_key,
-                    "account_type": data["storage"]["account_type"],
-                    "access_type": data["storage"]["access_type"]
-                }
-            }
-        elif storage_type == "cloud" and cloud_type == "wasb":
-            source_configure_payload = {}
-            pass
-        elif storage_type == "cloud" and "project_id" in data["storage"]:
+        if storage_type == "cloud" and "project_id" in data["storage"]:
             project_id = data["storage"]["project_id"]
             server_path = data["storage"]["server_path"]
             if "gcp_details" in mappings:
@@ -204,44 +199,44 @@ class CSVSource:
                     "file_details": []
                 }
             }
-        elif storage_type == "remote":
-            # SFTP Source
-            data = self.configuration_obj["configuration"]["source_configs"]["connection"]
-            source_configure_payload = data
-            source_configure_payload["source_base_path"]=""
-            if data.get("storage", {}).get("password", {}).get("password_type","") == "secret_store":
-                # for SFTP password auth
-                secret_name = data["storage"]["password"]["secret_name"]
-                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
-                if secret_name:
-                    data["storage"]["password"]["secret_id"] = secret_id
-                    data["storage"]["password"].pop('secret_name', None)
-            elif data.get("storage", {}).get("access_key_name", {}).get("password_type","") == "secret_store":
-                # for adls gen2 storage account access key auth
-                secret_name = data["storage"]["access_key_name"]["secret_name"]
-                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
-                if secret_name:
-                    data["storage"]["access_key_name"]["secret_id"] = secret_id
-                    data["storage"]["access_key_name"].pop('secret_name', None)
-            elif data.get("storage", {}).get("service_credential", {}).get("password_type","") == "secret_store":
-                # for adls gen2 service credential auth
-                secret_name = data["storage"]["service_credential"]["secret_name"]
-                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
-                if secret_name:
-                    data["storage"]["service_credential"]["secret_id"] = secret_id
-                    data["storage"]["service_credential"].pop('secret_name', None)
-            elif data.get("storage", {}).get("account_key", {}).get("password_type","") == "secret_store":
-                #for blob storage account key auth
-                secret_name = data["storage"]["account_key"]["secret_name"]
-                secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
-                if secret_name:
-                    data["storage"]["account_key"]["secret_id"] = secret_id
-                    data["storage"]["account_key"].pop('secret_name', None)
-            else:
-                pass
+        # elif storage_type == "remote":
+        #     # SFTP Source
+        #     data = self.configuration_obj["configuration"]["source_configs"]["connection"]
+        #     source_configure_payload = data
+        #     source_configure_payload["source_base_path"]=""
+        #     if data.get("storage", {}).get("password", {}).get("password_type","") == "secret_store":
+        #         # for SFTP password auth
+        #         secret_name = data["storage"]["password"]["secret_name"]
+        #         secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+        #         if secret_name:
+        #             data["storage"]["password"]["secret_id"] = secret_id
+        #             data["storage"]["password"].pop('secret_name', None)
+        #     elif data.get("storage", {}).get("access_key_name", {}).get("password_type","") == "secret_store":
+        #         # for adls gen2 storage account access key auth
+        #         secret_name = data["storage"]["access_key_name"]["secret_name"]
+        #         secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+        #         if secret_name:
+        #             data["storage"]["access_key_name"]["secret_id"] = secret_id
+        #             data["storage"]["access_key_name"].pop('secret_name', None)
+        #     elif data.get("storage", {}).get("service_credential", {}).get("password_type","") == "secret_store":
+        #         # for adls gen2 service credential auth
+        #         secret_name = data["storage"]["service_credential"]["secret_name"]
+        #         secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+        #         if secret_name:
+        #             data["storage"]["service_credential"]["secret_id"] = secret_id
+        #             data["storage"]["service_credential"].pop('secret_name', None)
+        #     elif data.get("storage", {}).get("account_key", {}).get("password_type","") == "secret_store":
+        #         #for blob storage account key auth
+        #         secret_name = data["storage"]["account_key"]["secret_name"]
+        #         secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+        #         if secret_name:
+        #             data["storage"]["account_key"]["secret_id"] = secret_id
+        #             data["storage"]["account_key"].pop('secret_name', None)
+        #     else:
+        #         pass
         else:
-            source_configure_payload = {}
-
+            source_configure_payload = data
+            self.replace_secret_name_with_mapping(data,src_client_obj)
         response = src_client_obj.configure_source_connection(source_id, connection_object=source_configure_payload)
         return response
 

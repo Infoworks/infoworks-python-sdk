@@ -147,6 +147,7 @@ class WrapperSource(BaseClient):
             source_type = configuration_obj["configuration"]["source_configs"]["type"]
             source_sub_type = configuration_obj["configuration"]["source_configs"]["sub_type"]
             if source_type == "file" and (source_sub_type == "structured" or source_sub_type == "fixedwidth"):
+                overall_steps_status = []
                 source_obj = CSVSource(env_id, storage_id, configuration_file_path, self.secrets_config, replace_words)
                 # adding below line to prevent missing out mappings done above (compute_mappings,environment_mappings etc
                 source_obj.configuration_obj=configuration_obj
@@ -159,27 +160,70 @@ class WrapperSource(BaseClient):
                                                     read_passwords_from_secrets=read_passwords_from_secrets,
                                                     env_tag=env_tag, secret_type=secret_type,config_ini_path=config_ini_path,dont_skip_step=configuration_obj["steps_to_run"]["configure_rdbms_source_connection"])
                     if source_connection_configurations_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
+                        overall_steps_status.append(("source_connection_configuration",
+                                                     source_connection_configurations_response["result"][
+                                                         "status"].upper(),
+                                                     source_connection_configurations_response.get("result", {}).get("response",
+                                                                                                           {})))
                         print("Successfully configured the connection details")
                         self.logger.info("Successfully configured the connection details")
                         # Proceed to configure tables and table groups
                         source_import_configuration_response = source_obj.import_source_configuration(self, source_id, self.mappings,
                                                                         override_configuration_file, export_lookup,
                                                                         read_passwords_from_secrets)
+                        # with open("/Users/nitin.bs/Desktop/source_import_configuration_response.json","w") as f:
+                        #     json.dump(source_import_configuration_response,f,indent=4)
                         if source_import_configuration_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
+                            minimal_response = source_import_configuration_response["result"].get(
+                                "response", {}).get(
+                                "configuration", {}).get(
+                                "iw_mappings", [])
+                            minimal_response_with_error = [iw_mappings for iw_mappings in
+                                                           minimal_response if
+                                                           iw_mappings.get("table_upsert_status",
+                                                                           {}).get("error", []) != []]
+                            print(minimal_response_with_error)
+                            self.logger.info(minimal_response_with_error)
+                            status=source_import_configuration_response["result"]["status"]
+                            overall_steps_status.append(("source_import_configuration",
+                                                         status,
+                                                         minimal_response_with_error))
                             self.logger.info("Configured source successfully")
                             print("Configured Source successfully!")
                         else:
+
                             self.logger.info("Failed to configure source")
                             print("Failed to configure source")
                             print(source_import_configuration_response)
                             self.logger.error("Failed to configure source")
+                            minimal_response = source_import_configuration_response["result"].get(
+                                "response", {}).get(
+                                "configuration", {}).get(
+                                "iw_mappings", [])
+                            minimal_response_with_error=""
+                            if minimal_response!=[]:
+                                minimal_response_with_error = [iw_mappings for iw_mappings in
+                                                           minimal_response if
+                                                           iw_mappings.get("table_upsert_status",
+                                                                           {}).get("error", []) != []]
+                            else:
+                                minimal_response_with_error=source_import_configuration_response.get("result",{}).get("response",{})
+                            print(minimal_response_with_error)
+                            self.logger.info(minimal_response_with_error)
+                            status = source_import_configuration_response["result"]["status"]
+                            overall_steps_status.append(("source_import_configuration",
+                                                         "FAILED",
+                                                         minimal_response_with_error))
+                            self.print_overall_steps_status(overall_steps_status)
                             self.logger.error(source_import_configuration_response)
                             raise Exception("Failed to configure source")
                         response_to_return[
                             "source_import_configuration_response"] = source_import_configuration_response
+
                     else:
                         print("Failed to configure the source connection details")
                         print(source_connection_configurations_response)
+                        self.print_overall_steps_status(overall_steps_status)
                         self.logger.error("Failed to configure the source connection details")
                         self.logger.error(source_connection_configurations_response)
                         raise Exception("Failed to configure the source connection details")
@@ -190,6 +234,7 @@ class WrapperSource(BaseClient):
                     self.logger.error("Failed to create source")
                     raise Exception("Failed to create source")
                 response_to_return["create_source_response"] = create_source_response
+                self.print_overall_steps_status(overall_steps_status)
             elif source_type == "rdbms" and source_sub_type!="snowflake":
                 overall_steps_status=[]
                 source_obj = RDBMSSource()
@@ -339,12 +384,17 @@ class WrapperSource(BaseClient):
                                                                                    "error", []) != []]
                                                 print(minimal_response_with_error)
                                                 overall_steps_status.append(("configure_tables_and_table_groups",
-                                                                             status,
+                                                                             status.upper(),
                                                                              minimal_response_with_error))
                                                 self.logger.info(minimal_response_with_error)
                                             else:
                                                 print(configure_tables_and_tablegroups_response)
                                                 self.logger.error(configure_tables_and_tablegroups_response)
+                                                minimal_response_with_error = configure_tables_and_tablegroups_response.get(
+                                                    "result", {}).get("response", {})
+                                                overall_steps_status.append(("configure_tables_and_table_groups",
+                                                                             status.upper(),
+                                                                             minimal_response_with_error))
                                             self.print_overall_steps_status(overall_steps_status)
                                             raise Exception("Failed to configure source")
 
@@ -568,6 +618,7 @@ class WrapperSource(BaseClient):
                 self.print_overall_steps_status(overall_steps_status)
 
             else:    #assumes to be cdata source
+                overall_steps_status = []
                 source_obj = CdataSource()
                 source_obj.set_variables(env_id, storage_id, configuration_file_path, self.secrets_config,
                                          replace_words)
@@ -592,6 +643,12 @@ class WrapperSource(BaseClient):
                                                                                                                  "steps_to_run"][
                                                                                                                  "configure_rdbms_source_connection"])
                     if source_connection_configurations_response["result"]["status"].upper() in ["SUCCESS", "SKIPPED"]:
+                        overall_steps_status.append(("source_connection_configuration",
+                                                     source_connection_configurations_response["result"][
+                                                         "status"].upper(),
+                                                     source_connection_configurations_response.get("result", {}).get(
+                                                         "response",
+                                                         {})))
                         print("Successfully configured the connection details")
                         self.logger.info("Successfully configured the connection details")
                         source_test_connection_response = source_obj.test_source_connection(self, source_id,
@@ -600,6 +657,13 @@ class WrapperSource(BaseClient):
                                                                                                 "steps_to_run"][
                                                                                                 "test_source_connection"])
                         if source_test_connection_response["result"]["status"].upper() in ["SUCCESS", "SKIPPED"]:
+                            overall_steps_status.append(("source_test_connection_response",
+                                                         source_test_connection_response["result"][
+                                                             "status"].upper(),
+                                                         source_test_connection_response.get("result",
+                                                                                                       {}).get(
+                                                             "response",
+                                                             {})))
                             source_browse_source_tables_response = source_obj.browse_source_tables(self, source_id,
                                                                                                    configuration_obj[
                                                                                                        "steps_to_run"][

@@ -277,6 +277,22 @@ class Utils:
             cicd_client.logger.error("Error in listing pipelines")
             raise Exception("Error in listing pipelines" + str(e))
 
+    def add_secret_name_to_id(self,data,cicd_client):
+        for key, value in data.items():
+            if isinstance(value, dict):
+                # If the value is a dictionary, recurse into it
+                secret_name = self.add_secret_name_to_id(value,cicd_client)
+                if secret_name:
+                    return secret_name
+            elif key == "secret_id":
+                #print(f"Found secret_name: {value}")
+                # resolve secret name to ID
+                secret_name = self.get_secret_name_from_id(cicd_client=cicd_client, secret_id=value)
+                if secret_name:
+                    data["secret_name"] = secret_name
+                # Add your logic here to do something with the secret_name
+                return value
+
     def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path):
         response_to_return = {}
         filename = None
@@ -334,47 +350,49 @@ class Utils:
                         configuration_obj["configuration"]["source_configs"]["data_lake_path"] = data_lake_path
                         configuration_obj["filter_tables_properties"] = result.get("filter_tables_properties", {})
                         source_connection_objects = configuration_obj["configuration"]["source_configs"]["connection"]
-                        if source_connection_objects.get("storage", None) is not None:
+                        self.add_secret_name_to_id(data=source_connection_objects, cicd_client=cicd_client)
+                        # if source_connection_objects.get("storage", None) is not None:
+
                             # for File based sources
-                            if source_connection_objects.get("storage", {}).get("password", {}).get("password_type",
-                                                                                                    "") == "secret_store":
-                                # for SFTP password auth
-                                secret_id = source_connection_objects["storage"]["password"]["secret_id"]
-                                secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                                if secret_name:
-                                    source_connection_objects["storage"]["password"]["secret_name"] = secret_name
-                            elif source_connection_objects.get("storage", {}).get("access_key_name", {}).get(
-                                    "password_type", "") == "secret_store":
-                                # for adls gen2 storage account access key auth
-                                secret_id = source_connection_objects["storage"]["access_key_name"]["secret_id"]
-                                secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                                if secret_name:
-                                    source_connection_objects["storage"]["access_key_name"]["secret_name"] = secret_name
-                            elif source_connection_objects.get("storage", {}).get("service_credential", {}).get(
-                                    "password_type", "") == "secret_store":
-                                # for adls gen2 service credential auth
-                                secret_id = source_connection_objects["storage"]["service_credential"]["secret_id"]
-                                secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                                if secret_name:
-                                    source_connection_objects["storage"]["service_credential"][
-                                        "secret_name"] = secret_name
-                            elif source_connection_objects.get("storage", {}).get("account_key", {}).get(
-                                    "password_type", "") == "secret_store":
-                                # for blob storage account key auth
-                                secret_id = source_connection_objects["storage"]["account_key"]["secret_id"]
-                                secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                                if secret_name:
-                                    source_connection_objects["storage"]["account_key"]["secret_name"] = secret_name
-                            else:
-                                pass
-                        else:
-                            # for RDBMS sources
-                            if source_connection_objects.get("password", {}).get("password_type", "") == "secret_store":
-                                # for SFTP password auth
-                                secret_id = source_connection_objects["password"]["secret_id"]
-                                secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                                if secret_name:
-                                    source_connection_objects["password"]["secret_name"] = secret_name
+                            # if source_connection_objects.get("storage", {}).get("password", {}).get("password_type",
+                            #                                                                         "") == "secret_store":
+                            #     # for SFTP password auth
+                            #     secret_id = source_connection_objects["storage"]["password"]["secret_id"]
+                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
+                            #     if secret_name:
+                            #         source_connection_objects["storage"]["password"]["secret_name"] = secret_name
+                            # elif source_connection_objects.get("storage", {}).get("access_key_name", {}).get(
+                            #         "password_type", "") == "secret_store":
+                            #     # for adls gen2 storage account access key auth
+                            #     secret_id = source_connection_objects["storage"]["access_key_name"]["secret_id"]
+                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
+                            #     if secret_name:
+                            #         source_connection_objects["storage"]["access_key_name"]["secret_name"] = secret_name
+                            # elif source_connection_objects.get("storage", {}).get("service_credential", {}).get(
+                            #         "password_type", "") == "secret_store":
+                            #     # for adls gen2 service credential auth
+                            #     secret_id = source_connection_objects["storage"]["service_credential"]["secret_id"]
+                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
+                            #     if secret_name:
+                            #         source_connection_objects["storage"]["service_credential"][
+                            #             "secret_name"] = secret_name
+                            # elif source_connection_objects.get("storage", {}).get("account_key", {}).get(
+                            #         "password_type", "") == "secret_store":
+                            #     # for blob storage account key auth
+                            #     secret_id = source_connection_objects["storage"]["account_key"]["secret_id"]
+                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
+                            #     if secret_name:
+                            #         source_connection_objects["storage"]["account_key"]["secret_name"] = secret_name
+                            # else:
+                            #     pass
+                        # else:
+                        #     # for RDBMS sources
+                        #     if source_connection_objects.get("password", {}).get("password_type", "") == "secret_store":
+                        #         # for SFTP password auth
+                        #         secret_id = source_connection_objects["password"]["secret_id"]
+                        #         secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
+                        #         if secret_name:
+                        #             source_connection_objects["password"]["secret_name"] = secret_name
                         # handle associated domains
                         if configuration_obj.get("configuration", {}).get("source_configs", {}).get(
                                 "associated_domains", None) is None:

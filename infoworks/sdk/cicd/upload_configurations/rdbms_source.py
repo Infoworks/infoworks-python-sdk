@@ -163,6 +163,22 @@ class RDBMSSource:
             self.update_table_schema_and_database("database", dict(
                 config.items("configuration$source_configs$target_database_name")))
 
+    def replace_secret_name_with_mapping(self,data,src_client_obj):
+        for key, value in data.items():
+            if isinstance(value, dict):
+                # If the value is a dictionary, recurse into it
+                secret_name = self.replace_secret_name_with_mapping(value,src_client_obj)
+                if secret_name:
+                    return secret_name
+            elif key == "secret_name":
+                #print(f"Found secret_name: {value}")
+                # resolve secret name to ID
+                secret_id = self.get_secret_id_from_name(src_client_obj, value)
+                if secret_id:
+                    data["secret_id"] = secret_id
+                    data.pop('secret_name', None)
+                return value
+
     def create_rdbms_source(self, src_client_obj):
         data = self.configuration_obj["configuration"]["source_configs"]
         create_rdbms_source_payload = {
@@ -273,13 +289,14 @@ class RDBMSSource:
                 override_keys = information["source_details"].get(src_name).keys()
                 for key in override_keys:
                     connection_object[key] = information["source_details"][src_name][key]
-        if connection_object.get("password", {}).get("password_type", "") == "secret_store":
-            # for RDBMS passwords in keyvault
-            secret_name = connection_object["password"]["secret_name"]
-            secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
-            if secret_name:
-                connection_object["password"]["secret_id"] = secret_id
-                connection_object["password"].pop('secret_name', None)
+        self.replace_secret_name_with_mapping(connection_object, src_client_obj)
+        # if connection_object.get("password", {}).get("password_type", "") == "secret_store":
+        #     # for RDBMS passwords in keyvault
+        #     secret_name = connection_object["password"]["secret_name"]
+        #     secret_id = self.get_secret_id_from_name(src_client_obj, secret_name)
+        #     if secret_name:
+        #         connection_object["password"]["secret_id"] = secret_id
+        #         connection_object["password"].pop('secret_name', None)
         # if read_passwords_from_secrets and self.secrets["custom_secrets_read"] is True:
         #     encrypted_key_name = f"{env_tag}-" + src_name
         #     decrypt_value = self.secrets.get(encrypted_key_name, "")
