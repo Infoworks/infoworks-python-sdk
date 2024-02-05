@@ -441,7 +441,7 @@ class JobMetricsClient(BaseClient):
         except:
             raise AdminError("Unable to get pipeline NAME")
 
-    def get_source_jobs_metrics_results_new(self, date_string, source, workflow_id=None, workflow_run_id=None):
+    def get_source_jobs_metrics_results_table_level(self, date_string, source, workflow_id=None, workflow_run_id=None):
         src_name = source["name"]
         source_id = source["id"]
         list_of_jobs_obj = self.get_jobs_of_single_source(source_id, date_string)
@@ -1062,7 +1062,7 @@ class JobMetricsClient(BaseClient):
             source_jobs_source_ids = list(set([i['entity_id'] for i in source_jobs]))
             sources_info = [i for i in sources_info if i['id'] in source_jobs_source_ids]
             with ThreadPoolExecutor(max_workers=10) as executor:
-                executor.map(self.get_source_jobs_metrics_results_new,
+                executor.map(self.get_source_jobs_metrics_results_table_level,
                              [date_string] * len(sources_info), sources_info,
                              [workflow_id, workflow_run_id] * len(sources_info))
                 executor.shutdown(wait=True)
