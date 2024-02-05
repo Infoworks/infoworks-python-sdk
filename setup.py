@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/Infoworks/InfoworksPythonSDK",
     packages=setuptools.find_packages(),
     install_requires=[
-        'requests', 'bson', 'urllib3', 'pandas', 'networkx', 'pyyaml'],
+        'requests', 'bson', 'urllib3', 'pandas', 'networkx', 'pyyaml', 'tabulate'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

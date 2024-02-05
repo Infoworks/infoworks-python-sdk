@@ -313,6 +313,30 @@ class JobMetricsClient(BaseClient):
         except Exception as e:
             raise AdminError("Unable to get ingestion jobs list of source")
 
+    def get_cluster_runs_of_job(self, job_id):
+        try:
+            cluster_runs = []
+            url_to_get_cluster_jobs = url_builder.get_cluster_jobs_status_url(self.client_config, job_id)
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_cluster_jobs,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])
+                              ).content)
+            if response is not None and "result" in response:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    cluster_runs.extend(result)
+                    next_url = response.get('links')['next']
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=next_url,
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(self.callurl(nextUrl).content)
+                    result = response.get("result", [])
+                return cluster_runs
+        except Exception as e:
+            raise AdminError("Unable to get cluster jobs list of source")
+
     def get_pipeline_jobs(self, date_string):
         try:
             combinedJobs = []
@@ -416,6 +440,219 @@ class JobMetricsClient(BaseClient):
                 return result.get('name')
         except:
             raise AdminError("Unable to get pipeline NAME")
+
+    def get_source_jobs_metrics_results_new(self, date_string, source, workflow_id=None, workflow_run_id=None):
+        src_name = source["name"]
+        source_id = source["id"]
+        list_of_jobs_obj = self.get_jobs_of_single_source(source_id, date_string)
+        try:
+            for job in list_of_jobs_obj:
+                # self.logger.info(f"Job Data: {json.dumps(job)}")
+                job_id = job["id"]
+                job_type = job["type"]
+                job_status = job["status"]
+                job_createdAt = job["created_at"]
+                job_start_time = job_createdAt.split('.')[0].replace('T', ' ')
+                job_created_by = job.get('created_by')
+                workflow_id = job.get('triggered_by', {}).get('parent_id', '')
+                workflow_run_id = job.get('triggered_by', {}).get('run_id', '')
+
+                # Fetches Cluster Run Info (i.e. Table Data in a Job)
+                cluster_data = self.get_cluster_runs_of_job(job_id)
+
+                # Fetches Table Group Info
+                try:
+                    tg_id, processedAt, job_end_time, job_status, entity_type = self.get_tablegroup_id_from_job(
+                        job_id, source["id"])
+                    table_group_name, all_tables_list = self.get_table_group_name(tg_id, source["id"])
+                except Exception as error:
+                    # This means the job is non-table group job
+                    table_group_name = ""
+                    entity_type = "TABLE"
+                    all_tables_list = []
+
+                # Fetches Ingestion Metrics
+                ing_metrics = self.get_ingestion_metrics(str(job_id), source["id"])
+                ing_metrics_df = pd.DataFrame(ing_metrics)
+                if ing_metrics is not None:
+                    ing_metrics_tables_list = list(set([i['table_id'] for i in ing_metrics]))
+                else:
+                    ing_metrics_tables_list = []
+
+                # Fetches Export Metrics
+                export_metrics = self.get_export_metrics(str(job_id), source_id)
+                df_export = pd.DataFrame(export_metrics)
+                if export_metrics is not None:
+                    export_metrics_tables_list = list([i['table_id'] for i in export_metrics])
+                else:
+                    export_metrics_tables_list = []
+
+                # Job Level Properties
+                source_job_row_template = {
+                    'workflow_id': workflow_id, 'workflow_run_id': workflow_run_id,
+                    'job_id': job_id, 'job_type': self.job_type_mappings[job_type.upper()],
+                    'job_start_time': job_start_time, 'job_end_time': "",
+                    'job_created_by': job_created_by, 'cluster_id': "",
+                    'job_status': job_status.upper(), 'job_table_status': '',
+                    'entity_type': "source", "source_name": src_name, "source_schema_name": "",
+                    "source_database_name": "", "source_file_names": [], "table_group_name": table_group_name,
+                    "iwx_table_name": "", 'starting_watermark_value': '', 'ending_watermark_value': '',
+                    "target_schema_name": "", "target_table_name": "", "pre_target_count": "", "fetch_records_count": 0,
+                    "target_records_count": "", "job_link": ""}
+
+                if cluster_data:
+                    # Table Level in a Job
+                    for row in cluster_data:
+                        cluster_id = row.get('cluster_id', '')
+                        table_job_start_time = row.get('started_at', '').split('.')[0].replace('T', ' ')
+                        table_job_end_time = row.get('ended_at', '').split('.')[0].replace('T', ' ')
+                        iwx_table_name = row.get('entity_name', '')
+                        table_id = row.get('sub_entity_id', '')
+                        job_table_status = row.get('entity_run_details', {}).get('entity_run_status', '')
+
+                        table_info = self.get_table_info(source_id, table_id)
+                        table_name = table_info.get('name')
+                        target_table_name = table_info.get("configuration", {}).get('target_table_name', '')
+                        target_schema_name = table_info.get("configuration", {}).get('target_schema_name', '')
+                        table_row_count = table_info.get('row_count', 0)
+
+                        source_job_row_template["job_start_time"] = table_job_start_time
+                        source_job_row_template["job_end_time"] = table_job_end_time
+                        source_job_row_template['cluster_id'] = cluster_id
+                        source_job_row_template['job_table_status'] = job_table_status
+                        source_job_row_template['iwx_table_name'] = table_name
+                        source_job_row_template['target_schema_name'] = target_schema_name
+                        source_job_row_template['target_table_name'] = target_table_name
+
+                        if ing_metrics != [] and job_type != "export_data" and job_table_status.upper() == "SUCCESS":
+                            if table_id in ing_metrics_tables_list:
+                                filter1 = ing_metrics_df["table_id"] == table_id
+                                table = {}
+                                if len(ing_metrics_df.loc[filter1]) > 1:
+                                    # Incremental Job
+                                    filter2 = ing_metrics_df["job_type"] == "CDC"
+                                    filter3 = ing_metrics_df["job_type"] == "MERGE"
+                                    cdc_output = ing_metrics_df.loc[filter1 & filter2].to_dict('records')[0]
+                                    merge_output = ing_metrics_df.loc[filter1 & filter3].to_dict('records')[0]
+                                    for item in ['source_id', 'fetch_records_count', 'job_id', 'job_start_time',
+                                                 'source_schema_name', 'source_database_name']:
+                                        table[item] = cdc_output.get(item, "")
+                                        table['job_type'] = "INCREMENTAL"
+                                    for item in ['workflow_id', 'workflow_run_id', 'job_end_time', 'job_status',
+                                                 'target_records_count', 'first_merged_watermark', 'last_merged_watermark']:
+                                        table[item] = merge_output.get(item, "")
+                                        table['job_type'] = "INCREMENTAL"
+                                else:
+                                    table = ing_metrics_df.loc[filter1].to_dict('records')[0]
+                                table["source_schema_name"] = table.get("source_schema_name", "")
+                                table["source_database_name"] = table.get("source_database_name", "")
+                                table["source_file_names"] = self.get_source_file_paths(
+                                    source['id'], table_id, job_id) if table["source_schema_name"] == "" else []
+                                table["workflow_id"] = table.get("workflow_id", "")
+                                table["workflow_run_id"] = table.get('workflow_run_id', "")
+                                if workflow_id is not None and workflow_run_id is not None:
+                                    if not (table["workflow_id"] == workflow_id and
+                                            table["workflow_run_id"] == workflow_run_id):
+                                        continue
+                                table["entity_type"] = entity_type
+                                table["starting_watermark_value"] = table.pop('first_merged_watermark', '')
+                                table["ending_watermark_value"] = table.pop('last_merged_watermark', '')
+                                if math.isnan(table.get('target_records_count')):
+                                    table['pre_target_count'] = None
+                                    table['target_records_count'] = None
+                                else:
+                                    if table["job_status"] == "FAILED":
+                                        table['pre_target_count'] = table.get('target_records_count')
+                                        table['target_records_count'] = int(table.get('target_records_count'))
+                                    else:
+                                        table['pre_target_count'] = int(
+                                            table.get('target_records_count') - int(table.get('fetch_records_count')))
+                                        table['target_records_count'] = int(table.get('target_records_count'))
+                                if table.get('job_type') == "CDC":
+                                    table['job_type'] = "INCREMENTAL"
+                                table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
+                                table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
+                                table['fetch_records_count'] = int(table['fetch_records_count'])
+
+                                # self.logger.info(f"Ingestion Table Data: {json.dumps(table)}")
+                                # Metrics in Consideration from Ingestion Data
+                                for key in ["job_type", "job_start_time", "job_end_time", "source_schema_name", "source_database_name",
+                                            "source_file_names", "entity_type", "starting_watermark_value", "ending_watermark_value",
+                                            "target_records_count", "pre_target_count", "fetch_records_count"]:
+                                    source_job_row_template[key] = table.get(key, '')
+
+                            # Table not in Ingestion Metrics
+                            else:
+                                sync_type = table_info.get('configuration', {}).get('sync_type', '')
+                                source_job_row_template['job_type'] = sync_type.upper()
+                                source_job_row_template["pre_target_count"] = table_row_count
+                                source_job_row_template["target_records_count"] = table_row_count
+
+                        if job_type == "export_data":
+                            if export_metrics is not None:
+                                if table_id in export_metrics_tables_list:
+                                    filter1 = df_export["table_id"] == table_id
+                                    table = df_export.loc[filter1].to_dict('records')[0]
+                                    table["job_type"] = "EXPORT"
+                                    table_export_config = self.get_table_export_info(table.get('source_id'), table_id)
+                                    if table_export_config.get("target_type", "") == "BIGQUERY":
+                                        table["target_schema_name"] = ".".join(
+                                            [table_export_config.get("connection", {}).get("project_id", ""),
+                                             table_export_config.get("target_configuration", {}).get("dataset_name",
+                                                                                                     "")])
+                                    else:
+                                        table["target_schema_name"] = ".".join(
+                                            [table_export_config.get("target_configuration", {}).get("schema_name", ""),
+                                             table_export_config.get("target_configuration", {}).get("database_name",
+                                                                                                     "")])
+                                    table["target_table_name"] = table_export_config.get("target_configuration",
+                                                                                         {}).get(
+                                        "table_name", "")
+                                    table["workflow_id"] = table.get("workflow_id", "")
+                                    table["workflow_run_id"] = table.get("workflow_run_id", "")
+                                    table["entity_type"] = entity_type
+                                    table["starting_watermark_value"] = table.pop('first_merged_watermark', '')
+                                    table["ending_watermark_value"] = table.pop('last_merged_watermark', '')
+                                    if math.isnan(table.get('target_records_count')):
+                                        table['pre_target_count'] = None
+                                        table['target_records_count'] = None
+                                    else:
+                                        if table["job_status"] == "FAILED":
+                                            table['pre_target_count'] = table.get('target_records_count')
+                                            table['target_records_count'] = int(table.get('target_records_count'))
+                                        else:
+                                            table['pre_target_count'] = int(
+                                                table.get('target_records_count') - int(
+                                                    table.get('number_of_records_written')))
+                                            table['target_records_count'] = int(table.get('target_records_count'))
+                                    od = OrderedDict()
+                                    table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
+                                    table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
+                                    table['fetch_records_count'] = int(table['number_of_records_written'])
+
+                                    for key in ["job_type", "job_start_time", "job_end_time", "target_schema_name",
+                                                "target_table_name", "entity_type", "starting_watermark_value",
+                                                "ending_watermark_value", "target_records_count", "pre_target_count", "fetch_records_count"]:
+                                        source_job_row_template[key] = table.get(key, "")
+                                else:
+                                    source_job_row_template['job_type'] = "EXPORT"
+                                    source_job_row_template['pre_target_count'] = table_row_count
+                                    source_job_row_template['target_records_count'] = table_row_count
+                                    source_job_row_template['entity_type'] = entity_type
+
+                        # self.logger.info(f"Source Row Template: {json.dumps(source_job_row_template)}")
+                        job_od = OrderedDict()
+                        for key in source_job_row_template.keys():
+                            job_od[key] = source_job_row_template.get(key, "")
+                        self.job_metrics_final.append(job_od)
+                else:
+                    job_od = OrderedDict()
+                    for key in source_job_row_template.keys():
+                        job_od[key] = source_job_row_template.get(key, "")
+                    self.job_metrics_final.append(job_od)
+        except Exception as e:
+            print(str(e))
+            traceback.print_exc()
 
     def get_source_jobs_metrics_results(self, date_string, source, workflow_id=None, workflow_run_id=None):
         """
@@ -825,7 +1062,7 @@ class JobMetricsClient(BaseClient):
             source_jobs_source_ids = list(set([i['entity_id'] for i in source_jobs]))
             sources_info = [i for i in sources_info if i['id'] in source_jobs_source_ids]
             with ThreadPoolExecutor(max_workers=10) as executor:
-                executor.map(self.get_source_jobs_metrics_results,
+                executor.map(self.get_source_jobs_metrics_results_new,
                              [date_string] * len(sources_info), sources_info,
                              [workflow_id, workflow_run_id] * len(sources_info))
                 executor.shutdown(wait=True)
@@ -837,7 +1074,8 @@ class JobMetricsClient(BaseClient):
 
             result = []
             header = ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
-                      'job_end_time', 'job_created_by', 'cluster_id', 'job_status', 'source_name', 'source_file_names', 'source_schema_name',
+                      'job_end_time', 'job_created_by', 'cluster_id', 'job_status', 'job_table_status', 'source_name',
+                      'source_file_names', 'source_schema_name',
                       'source_database_name', 'table_group_name', 'iwx_table_name', 'starting_watermark_value',
                       'ending_watermark_value', 'target_schema_name', 'target_table_name', 'pre_target_count',
                       'fetch_records_count', 'target_records_count', 'job_link']

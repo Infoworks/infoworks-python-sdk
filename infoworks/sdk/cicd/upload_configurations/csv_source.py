@@ -132,6 +132,7 @@ class CSVSource:
             if len(accessible_domain_ids) > 0:
                 create_csv_source_payload["associated_domains"] = accessible_domain_ids
                 self.configuration_obj["configuration"]["associated_domains"] = accessible_domain_ids
+        print("create_csv_source_payload:", create_csv_source_payload)
         src_create_response = src_client_obj.create_source(source_config=create_csv_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id_created = src_create_response["result"]["source_id"]
@@ -139,6 +140,8 @@ class CSVSource:
             return src_create_response
         else:
             src_client_obj.logger.info('Cant create source {} '.format(data["name"]))
+            print('Cant create source {} '.format(data["name"]))
+            print(src_create_response)
             src_client_obj.logger.info(f"Getting the existing SourceId with name {data['name']} if exists")
             filter_condition = IWUtils.ejson_serialize({"name": data['name']})
             source_detail_url = get_source_details_url(

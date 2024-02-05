@@ -225,9 +225,9 @@ def add_query_tables_to_source_url(config, source_id):
     :return: url to browse source tables details
     """
     request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/query_tables'.format(ip=config['ip'],
-                                                                                            port=config['port'],
-                                                                                            protocol=config['protocol'],
-                                                                                            source_id=source_id)
+                                                                                           port=config['port'],
+                                                                                           protocol=config['protocol'],
+                                                                                           source_id=source_id)
     return request
 
 def configure_tables_and_tablegroups_url(config, source_id):
@@ -313,6 +313,23 @@ def get_job_status_url(config, job_id=None):
                                                                            port=config['port'],
                                                                            job_id=job_id,
                                                                            protocol=config['protocol'])
+    return request
+
+
+def get_cluster_jobs_status_url(config, job_id):
+    """
+    returns URL for checking job progress
+
+    :param config: client configurations
+    :type config: dict
+    :param job_id: Identifier for Job
+    :type job_id: string
+    :return: url for the job status
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/jobs/{job_id}/runs'.format(ip=config['ip'],
+                                                                            port=config['port'],
+                                                                            job_id=job_id,
+                                                                            protocol=config['protocol'])
     return request
 
 
@@ -2065,7 +2082,7 @@ def list_domains_admin_url(config):
     :return: url to list domains
     """
     request = '{protocol}://{ip}:{port}/v3/admin/domains'.format(ip=config['ip'], port=config['port'],
-                                                                  protocol=config['protocol'])
+                                                                 protocol=config['protocol'])
     return request
 
 

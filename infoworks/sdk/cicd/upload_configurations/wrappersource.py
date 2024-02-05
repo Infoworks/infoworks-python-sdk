@@ -153,12 +153,20 @@ class WrapperSource(BaseClient):
                 source_obj.configuration_obj=configuration_obj
                 source_obj.update_mappings_for_configurations(self.mappings)
                 create_source_response = source_obj.create_csv_source(self)
+                print("create_source_response:",create_source_response)
                 source_id=create_source_response["result"]["source_id"]
                 if source_id is not None:
+                    overall_steps_status.append(("create_source",
+                                                 create_source_response["result"][
+                                                     "status"].upper(),
+                                                 create_source_response.get("result", {}).get(
+                                                     "response",
+                                                     {})))
                     # Proceed to configure the source connection details
                     source_connection_configurations_response = source_obj.configure_csv_source(self, source_id, self.mappings,
                                                     read_passwords_from_secrets=read_passwords_from_secrets,
                                                     env_tag=env_tag, secret_type=secret_type,config_ini_path=config_ini_path,dont_skip_step=configuration_obj["steps_to_run"]["configure_rdbms_source_connection"])
+                    print("source_connection_configurations_response:",source_connection_configurations_response)
                     if source_connection_configurations_response["result"]["status"].upper() in ["SUCCESS","SKIPPED"]:
                         overall_steps_status.append(("source_connection_configuration",
                                                      source_connection_configurations_response["result"][
