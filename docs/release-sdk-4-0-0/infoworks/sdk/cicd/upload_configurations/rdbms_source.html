@@ -55,6 +55,9 @@
                                 <a class="function" href="#RDBMSSource.update_mappings_for_configurations">update_mappings_for_configurations</a>
                         </li>
                         <li>
+                                <a class="function" href="#RDBMSSource.replace_secret_name_with_mapping">replace_secret_name_with_mapping</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#RDBMSSource.create_rdbms_source">create_rdbms_source</a>
                         </li>
                         <li>
@@ -199,6 +202,18 @@
     
 
                             </div>
+                            <div id="RDBMSSource.replace_secret_name_with_mapping" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#RDBMSSource.replace_secret_name_with_mapping">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">replace_secret_name_with_mapping</span><span class="signature">(self, data, src_client_obj)</span>:
+    </div>
+
+    
+    
+
+                            </div>
                             <div id="RDBMSSource.create_rdbms_source" class="classattr">
                                         <div class="attr function"><a class="headerlink" href="#RDBMSSource.create_rdbms_source">#&nbsp;&nbsp</a>
 
@@ -250,7 +265,14 @@
 
         
             <span class="def">def</span>
-            <span class="name">browse_source_tables</span><span class="signature">(self, src_client_obj, source_id, dont_skip_step=True)</span>:
+            <span class="name">browse_source_tables</span><span class="signature">(
+    self,
+    src_client_obj,
+    source_id,
+    dont_skip_step=True,
+    index=0,
+    batch_size=50
+)</span>:
     </div>
 
     
@@ -262,7 +284,14 @@
 
         
             <span class="def">def</span>
-            <span class="name">add_tables_to_source</span><span class="signature">(self, src_client_obj, source_id, dont_skip_step=True)</span>:
+            <span class="name">add_tables_to_source</span><span class="signature">(
+    self,
+    src_client_obj,
+    source_id,
+    dont_skip_step=True,
+    index=0,
+    batch_size=50
+)</span>:
     </div>
 
     
