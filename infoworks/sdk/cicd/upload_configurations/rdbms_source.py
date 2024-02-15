@@ -490,9 +490,32 @@ class RDBMSSource:
             else:
                 print(f"Skipping schema updation for table {table_name} as it did not match any existing table.")
             table_id = None
+            columns_dict={}
+            updated_columns_dict={}
+            updated_columns=[]
             if len(table_document) > 0:
                 table_document = table_document[0]
                 table_id = table_document["id"]
+                # do this only based on config merge_table_schema is set to true
+                default_section_mappings = dict(mappings.get("api_mappings",{}))
+                if default_section_mappings.get("merge_table_schema","false")=="true":
+                    columns_dict = {d['original_name']: d for d in table_document["columns"]}
+                    updated_columns_dict = {d['original_name']: d for d in table_update_payload["columns"]}
+                    merged_column_list = []
+                    for column in set(columns_dict.keys()) | set(updated_columns_dict.keys()):
+                        merged_column_dict = {}
+                        if column in columns_dict:
+                            merged_column_dict.update(columns_dict[column])
+                        if column in updated_columns_dict:
+                            merged_column_dict.update(updated_columns_dict[column])
+                        merged_column_list.append(merged_column_dict)
+
+                    def sort_by_target_column_order(d):
+                        return d.get('target_column_order',9999)
+                    # Sort the merged_column_list based on the 'target_column_order' value
+                    merged_column_list = sorted(merged_column_list, key=sort_by_target_column_order)
+                    #print(merged_column_list)
+                    table_update_payload["columns"]=merged_column_list
             if table_id is not None:
                 response = src_client_obj.update_table_configuration(source_id=source_id, table_id=table_id,
                                                                      config_body=table_update_payload)

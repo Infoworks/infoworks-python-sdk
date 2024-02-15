@@ -3059,7 +3059,7 @@ class SourceClient(BaseClient):
             self.logger.exception('Error occurred while trying to get/delete adv config details.')
             raise SourceError('Error occurred while trying to get/delete adv config details.')
 
-    def update_table_configurations(self, source_id=None, table_id=None, config_body=None):
+    def update_table_configurations(self, source_id=None, table_id=None, config_body=None,update_type="PUT"):
         """
         Function to update the table configurations including columns and ingestion configurations
         :param table_id: Entity identifier for table
@@ -3067,6 +3067,8 @@ class SourceClient(BaseClient):
         :param source_id: Entity identifier for source
         :type source_id: String
         :param config_body: JSON body
+        :param update_type: Specify PUT/PATCH
+        :type update_type: String
         ```
         config_body_example: {
             "id": "9376bf97a286e35efe86d321",
@@ -3152,9 +3154,12 @@ class SourceClient(BaseClient):
         if None in {source_id, table_id} or config_body is None:
             self.logger.error("source id or table_id or config_body cannot be None")
             raise Exception("source id or table_id or config_body cannot be None")
+        if update_type not in ["PUT","PATCH"]:
+            self.logger.error("update_type can only be PUT/PATCH")
+            raise Exception("update_type can only be PUT/PATCH")
         try:
             table_config_url = url_builder.get_table_configuration(self.client_config, source_id, table_id)
-            response = IWUtils.ejson_deserialize(self.call_api("PUT", table_config_url,
+            response = IWUtils.ejson_deserialize(self.call_api(update_type, table_config_url,
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token']), data=config_body
                                                                ).content)

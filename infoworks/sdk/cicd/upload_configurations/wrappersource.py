@@ -328,11 +328,11 @@ class WrapperSource(BaseClient):
                                     self.logger.info("Updated schema for tables successfully")
                                     # added below code since the config migration api doesn't support schema updatation as of 5.4.2.4
                                     # to be removed after api fix
-                                    update_schema_response = source_obj.update_schema_for_tables(self, source_id,
-                                                                                                 override_configuration_file,
-                                                                                                 export_lookup,
-                                                                                                 self.mappings,
-                                                                                                 read_passwords_from_secrets,
+                                    update_schema_response = source_obj.update_schema_for_tables(self, source_id=source_id,
+                                                                                                 export_configuration_file=override_configuration_file,
+                                                                                                 export_config_lookup=export_lookup,
+                                                                                                 mappings=self.mappings,
+                                                                                                 read_passwords_from_secrets=read_passwords_from_secrets,
                                                                                                  env_tag=env_tag,
                                                                                                  secret_type=secret_type,
                                                                                                  dont_skip_step=
