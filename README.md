@@ -35,7 +35,11 @@ Python 3.4+ (PyPy supported)
 
 ## Usage
 
-The library needs to be configured with your user's refresh token key which is available in your Infoworks UI. Set refresh_token to its value:
+The library needs to be configured with your user's refresh token key which is available in your Infoworks UI. Set refresh_token to its value.
+
+### Steps to get refresh token:
+
+https://docs.infoworks.io/infoworks-5.5.0/developer-resources/rest-api#using-refresh-token
 
 ```python
 from infoworks.sdk.client import InfoworksClientSDK
