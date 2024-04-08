@@ -44,10 +44,13 @@ https://docs.infoworks.io/infoworks-5.5.0/developer-resources/rest-api#using-ref
 ```python
 from infoworks.sdk.client import InfoworksClientSDK
 # Your refresh token here
+protocol="https"
+host="<your infoworks hostname>"
+port="443"
 refresh_token = "<your_refresh_token>"
 # Initialise the client
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("http", "10.18.1.28", "3001", refresh_token)
+iwx_client.initialize_client_with_defaults(protocol=protocol, ip=host, port=port, refresh_token=refresh_token)
 ```
 ## Example
 
