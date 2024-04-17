@@ -1658,23 +1658,31 @@ class SourceClient(BaseClient):
             self.logger.error("Error in updating the export configuration of the table")
             raise SourceError(f"Error in updating the export configuration of the table for {table_id} " + str(e))
 
-    def get_table_ingestion_metrics(self, source_id=None, table_id=None):
+    def get_table_ingestion_metrics(self, source_id=None, table_id=None, params=None, pagination=True):
         """
         Function to fetch ingestion metrics of source tables
         :param source_id: Entity identifier for source
         :type source_id: String
         :param table_id: table entity id
         :type table_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
         if table_id is None:
-            url_to_get_ing_metrics = url_builder.get_ingestion_metrics_source_url(self.client_config, source_id)
+            url_to_get_ing_metrics = url_builder.get_ingestion_metrics_source_url(self.client_config, source_id) \
+                                     + IWUtils.get_query_params_string_from_dict(params=params)
         else:
             url_to_get_ing_metrics = url_builder.get_ingestion_metrics_table_url(self.client_config, source_id,
-                                                                                 table_id)
+                                                                                 table_id)\
+                                     + IWUtils.get_query_params_string_from_dict(params=params)
         metric_results = []
         try:
             response = IWUtils.ejson_deserialize(
@@ -1684,6 +1692,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     metric_results.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
