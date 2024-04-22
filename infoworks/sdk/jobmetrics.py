@@ -1,5 +1,6 @@
 import copy
 import datetime
+import json
 import math
 import traceback
 from collections import OrderedDict
@@ -45,7 +46,8 @@ class JobMetricsClient(BaseClient):
                 processedAt = result.get("processed_at", "")
                 job_end_time = result.get("last_updated", "")
                 status = result.get("status", "")
-                entity_type = result.get("entity_type", "")
+                # entity_type = result.get("entity_type", "")
+                entity_type = "table"
                 return table_group_id, processedAt, job_end_time, status, entity_type
         except Exception as e:
             raise AdminError("Unable to get table group details from the Job Id")
@@ -468,7 +470,7 @@ class JobMetricsClient(BaseClient):
                 except Exception as error:
                     # This means the job is non-table group job
                     table_group_name = ""
-                    entity_type = "TABLE"
+                    entity_type = "table"
                     all_tables_list = []
 
                 # Fetches Ingestion Metrics
@@ -494,7 +496,7 @@ class JobMetricsClient(BaseClient):
                     'job_start_time': job_start_time, 'job_end_time': "",
                     'job_created_by': job_created_by, 'cluster_id': "",
                     'job_status': job_status.upper(), 'job_table_status': '',
-                    'entity_type': "source", "source_name": src_name, "source_schema_name": "",
+                    'entity_type': entity_type, "source_name": src_name, "source_schema_name": "",
                     "source_database_name": "", "source_file_names": [], "table_group_name": table_group_name,
                     "iwx_table_name": "", 'starting_watermark_value': '', 'ending_watermark_value': '',
                     "target_schema_name": "", "target_table_name": "", "pre_target_count": "", "fetch_records_count": 0,
@@ -534,12 +536,13 @@ class JobMetricsClient(BaseClient):
                                     filter3 = ing_metrics_df["job_type"] == "MERGE"
                                     cdc_output = ing_metrics_df.loc[filter1 & filter2].to_dict('records')[0]
                                     merge_output = ing_metrics_df.loc[filter1 & filter3].to_dict('records')[0]
-                                    for item in ['source_id', 'fetch_records_count', 'job_id', 'job_start_time',
+                                    for item in ['source_id', 'fetch_records_count', 'job_id',
                                                  'source_schema_name', 'source_database_name']:
                                         table[item] = cdc_output.get(item, "")
                                         table['job_type'] = "INCREMENTAL"
-                                    for item in ['workflow_id', 'workflow_run_id', 'job_end_time', 'job_status',
-                                                 'target_records_count', 'first_merged_watermark', 'last_merged_watermark']:
+                                    for item in ['workflow_id', 'workflow_run_id', 'job_status',
+                                                 'target_records_count', 'first_merged_watermark',
+                                                 'last_merged_watermark']:
                                         table[item] = merge_output.get(item, "")
                                         table['job_type'] = "INCREMENTAL"
                                 else:
@@ -570,14 +573,15 @@ class JobMetricsClient(BaseClient):
                                         table['target_records_count'] = int(table.get('target_records_count'))
                                 if table.get('job_type') == "CDC":
                                     table['job_type'] = "INCREMENTAL"
-                                table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
-                                table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
+                                # table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
+                                # table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
                                 table['fetch_records_count'] = int(table['fetch_records_count'])
 
                                 # self.logger.info(f"Ingestion Table Data: {json.dumps(table)}")
                                 # Metrics in Consideration from Ingestion Data
-                                for key in ["job_type", "job_start_time", "job_end_time", "source_schema_name", "source_database_name",
-                                            "source_file_names", "entity_type", "starting_watermark_value", "ending_watermark_value",
+                                for key in ["job_type", "source_schema_name", "source_database_name",
+                                            "source_file_names", "entity_type", "starting_watermark_value",
+                                            "ending_watermark_value",
                                             "target_records_count", "pre_target_count", "fetch_records_count"]:
                                     source_job_row_template[key] = table.get(key, '')
 
@@ -626,13 +630,14 @@ class JobMetricsClient(BaseClient):
                                                     table.get('number_of_records_written')))
                                             table['target_records_count'] = int(table.get('target_records_count'))
                                     od = OrderedDict()
-                                    table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
-                                    table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
+                                    # table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
+                                    # table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
                                     table['fetch_records_count'] = int(table['number_of_records_written'])
 
-                                    for key in ["job_type", "job_start_time", "job_end_time", "target_schema_name",
+                                    for key in ["job_type", "target_schema_name",
                                                 "target_table_name", "entity_type", "starting_watermark_value",
-                                                "ending_watermark_value", "target_records_count", "pre_target_count", "fetch_records_count"]:
+                                                "ending_watermark_value", "target_records_count", "pre_target_count",
+                                                "fetch_records_count"]:
                                         source_job_row_template[key] = table.get(key, "")
                                 else:
                                     source_job_row_template['job_type'] = "EXPORT"
@@ -947,6 +952,7 @@ class JobMetricsClient(BaseClient):
         if job is None:
             self.logger.error("job is a mandatory parameter")
             raise Exception("job is a mandatory parameter")
+        self.logger.info(f"Pipeline Job ID : {job}")
         temp = []
         job_id = job['id']
         job_type = job['type']
@@ -985,6 +991,18 @@ class JobMetricsClient(BaseClient):
             self.job_metrics_final.append(running_od)
             return
         pipeline_metrics = self.get_pipeline_build_metrics(str(job_id))
+        # For SQL Pipeline successful jobs (No Pipeline Metrics)
+        if job_status.upper() == "COMPLETED" and len(pipeline_metrics) == 0:
+            for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
+                        'job_end_time', 'job_created_by', 'cluster_id', 'job_status',
+                        'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
+                        'table_group_name',
+                        'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value', 'target_schema_name',
+                        'target_table_name', 'pre_target_count', 'fetch_records_count',
+                        'target_records_count']:
+                running_od[key] = running_job_template.get(key, "")
+            self.job_metrics_final.append(running_od)
+            return
         pipeline_successful_tables = []
         if pipeline_metrics is not None:
             tables_list = list(set([i['target_table_name'] for i in pipeline_metrics]))
