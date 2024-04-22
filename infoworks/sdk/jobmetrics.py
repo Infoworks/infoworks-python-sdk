@@ -952,7 +952,6 @@ class JobMetricsClient(BaseClient):
         if job is None:
             self.logger.error("job is a mandatory parameter")
             raise Exception("job is a mandatory parameter")
-        self.logger.info(f"Pipeline Job ID : {job}")
         temp = []
         job_id = job['id']
         job_type = job['type']
