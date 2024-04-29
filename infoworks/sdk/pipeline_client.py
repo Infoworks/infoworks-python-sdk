@@ -78,13 +78,15 @@ class PipelineClient(BaseClient):
                 failed_count = failed_count + 1
             time.sleep(polling_frequency)
 
-    def list_pipelines(self, domain_id=None, params=None):
+    def list_pipelines(self, domain_id=None, params=None, pagination=True):
         """
         Function to list the pipelines
         :param domain_id: Entity identified for domain
         :type domain_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response list
         """
 
@@ -106,6 +108,8 @@ class PipelineClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     pipelines_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -823,7 +827,7 @@ class PipelineClient(BaseClient):
             self.logger.exception('Error occurred while trying to add/update adv config pipeline.')
             raise PipelineError('Error occurred while trying to add/update adv config pipeline.')
 
-    def list_pipeline_versions(self, domain_id=None, pipeline_id=None, params=None):
+    def list_pipeline_versions(self, domain_id=None, pipeline_id=None, params=None, pagination=True):
         """
         Function to list the pipeline versions
         :param domain_id: Entity identified for domain
@@ -831,6 +835,8 @@ class PipelineClient(BaseClient):
         :param pipeline_id: Entity identified for pipeline
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response list
         """
         if None in {domain_id, pipeline_id}:
@@ -852,6 +858,8 @@ class PipelineClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     pipelines_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],

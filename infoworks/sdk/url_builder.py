@@ -1546,7 +1546,7 @@ def get_table_audit_logs_url(config, source_id, table_id):
     """
     returns url to get table audit logs
     """
-    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}//tables/table_id/audit-logs'.format(
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/tables/{table_id}/audit-logs'.format(
         source_id=source_id,
         table_id=table_id,
         ip=config['ip'], port=config['port'],
@@ -1558,7 +1558,7 @@ def get_table_group_audit_logs_url(config, source_id, table_group_id):
     """
     returns url to get table group audit logs
     """
-    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/table_group_id/audit-logs'.format(
+    request = '{protocol}://{ip}:{port}/v3/sources/{source_id}/table-groups/{table_group_id}/audit-logs'.format(
         source_id=source_id,
         table_group_id=table_group_id,
         ip=config['ip'], port=config['port'],
@@ -2264,6 +2264,18 @@ def stop_streaming_job_url(config, source_id):
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'],
         source_id=source_id)
+    return request
+
+
+def verify_refresh_token_url(config):
+    """
+        returns URL to verify refresh token
+        :param config: client configurations
+        :return: dict
+    """
+    request = '{protocol}://{ip}:{port}/v3/verify-refresh-token'.format(
+        ip=config['ip'], port=config['port'], protocol=config['protocol']
+    )
     return request
 
 

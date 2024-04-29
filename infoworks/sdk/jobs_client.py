@@ -11,13 +11,15 @@ class JobsClient(BaseClient):
     def __init__(self):
         super(JobsClient, self).__init__()
 
-    def get_job_details(self, job_id=None, params=None):
+    def get_job_details(self, job_id=None, params=None, pagination=True):
         """
         Function to get the job details
         :param job_id: entity identifier for job
         :type: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response list of dict
         """
         if params is None:
@@ -48,6 +50,8 @@ class JobsClient(BaseClient):
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -148,7 +152,7 @@ class JobsClient(BaseClient):
             self.logger.exception('Error occurred while trying to get logs for job.')
             raise JobsError('Error occurred while trying to get logs for job.')
 
-    def get_cluster_job_details(self, job_id=None, run_id=None, params=None):
+    def get_cluster_job_details(self, job_id=None, run_id=None, params=None, pagination=True):
         """
         Function to get cluster job logs for iw_job using job_id
         :param job_id: job_id for the job
@@ -157,6 +161,8 @@ class JobsClient(BaseClient):
         :type run_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {job_id}:
@@ -190,6 +196,8 @@ class JobsClient(BaseClient):
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -206,11 +214,13 @@ class JobsClient(BaseClient):
             self.logger.error("Error in getting cluster job details")
             raise JobsError("Error in getting cluster job details" + str(e))
 
-    def get_admin_job_details(self, params=None):
+    def get_admin_job_details(self, params=None, pagination=True):
         """
         Function to get the admin job details
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response list of dict
         """
         if params is None:
@@ -235,6 +245,8 @@ class JobsClient(BaseClient):
                                                         response=response)
                 while len(result) > 0:
                     job_details.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -251,13 +263,15 @@ class JobsClient(BaseClient):
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
 
-    def get_all_jobs_for_source(self, source_id=None, params=None):
+    def get_all_jobs_for_source(self, source_id=None, params=None, pagination=True):
         """
         Function to get all jobs for a particular source
         :param source_id: entity identifier for which the jobs are to be fetched
         :type: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by limit under params
+        :type pagination: Boolean
         :return: response list of dict
         """
         if None in {source_id}:
@@ -290,6 +304,8 @@ class JobsClient(BaseClient):
 
                 while len(result) > 0:
                     job_details.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -314,6 +330,7 @@ class JobsClient(BaseClient):
         :param job_id: job_id for the job
         :type job_id: String
         :param type: can be either summary/logs
+        :param num_of_lines: Number of log lines to capture
         :return: response dict
         """
         if None in {job_id, source_id}:
@@ -341,7 +358,7 @@ class JobsClient(BaseClient):
         except Exception as e:
             raise JobsError(f"Failed to get the crawl job summary/log for job_id {job_id}." + str(e))
 
-    def get_interactive_jobs_list(self, source_id=None, job_id=None, params=None):
+    def get_interactive_jobs_list(self, source_id=None, job_id=None, params=None, pagination=True):
         """
         Function to get all interactive jobs
         :param source_id: source_id for the interactive jobs
@@ -349,6 +366,8 @@ class JobsClient(BaseClient):
         :param job_id: Entity identifier of the job
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by limit under params
+        :type pagination: Boolean
         :return: response list of dict
         """
         if None in {source_id}:
@@ -381,6 +400,8 @@ class JobsClient(BaseClient):
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -397,7 +418,7 @@ class JobsClient(BaseClient):
             self.logger.error("Error in getting job details")
             raise JobsError("Error in getting job details" + str(e))
 
-    def get_list_of_pipeline_jobs(self, domain_id=None, pipeline_id=None, params=None):
+    def get_list_of_pipeline_jobs(self, domain_id=None, pipeline_id=None, params=None, pagination=True):
         """
         Function to get all jobs for a particular pipeline
         :param domain_id: entity identifier for domain
@@ -406,6 +427,8 @@ class JobsClient(BaseClient):
         :type pipeline_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by limit under params
+        :type pagination: Boolean
         :return: response list of dict
         """
         if None in {domain_id, pipeline_id}:
@@ -428,6 +451,8 @@ class JobsClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     job_details.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -516,13 +541,15 @@ class JobsClient(BaseClient):
         except Exception as e:
             raise JobsError(f"Failed to cancel job for job_id {job_id}." + str(e))
 
-    def get_job_details_by_prodops_user(self, job_id=None, params=None):
+    def get_job_details_by_prodops_user(self, job_id=None, params=None, pagination=True):
         """
         Function to get the job details by prodops user
         :param job_id: entity identifier for job
         :type: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by limit under params
+        :type pagination: Boolean
         :return: response list of dict
         """
         if None in {job_id}:
@@ -556,6 +583,8 @@ class JobsClient(BaseClient):
                 else:
                     while len(result) > 0:
                         job_details.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],

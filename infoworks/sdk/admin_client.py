@@ -467,13 +467,15 @@ class AdminClient(BaseClient):
             src_id, table_id = src_table_id.split(":")
             self.alation_compatible_lineage_for_source(src_id, table_id)
 
-    def get_environment_details(self, environment_id=None, params=None):
+    def get_environment_details(self, environment_id=None, params=None, pagination=True):
         """
         Function to get environment details
         :param environment_id: Entity identifier of the environment
         :type environment_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type params: Dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by limit under params
+        :type pagination: Boolean
         :return: Response Dict
         """
         if params is None and environment_id is None:
@@ -500,6 +502,8 @@ class AdminClient(BaseClient):
                 else:
                     while len(result) > 0:
                         env_details.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],

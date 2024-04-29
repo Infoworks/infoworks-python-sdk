@@ -317,7 +317,7 @@ class SourceClient(BaseClient):
             if filter_tables_properties is not None:
                 filter_condition = f"?is_filter_enabled=true&tables_filter={filter_tables_properties.get('tables_filter', '%')}&catalogs_filter={filter_tables_properties.get('catalogs_filter', '%')}&schemas_filter={filter_tables_properties.get('schemas_filter', '%')}"
                 url_for_browse_source = url_for_browse_source + filter_condition
-                #print("url_for_browse_source: ",url_for_browse_source)
+                # print("url_for_browse_source: ",url_for_browse_source)
             response = IWUtils.ejson_deserialize(
                 self.call_api("GET", url_for_browse_source,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
@@ -455,8 +455,9 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to add the tables to the source {source_id} " + str(e))
 
-    def add_query_tables_to_source(self, source_id=None, tables_to_add_config=None, poll_timeout=300, polling_frequency=15,
-                             retries=3, poll=True):
+    def add_query_tables_to_source(self, source_id=None, tables_to_add_config=None, poll_timeout=300,
+                                   polling_frequency=15,
+                                   retries=3, poll=True):
         """
         Function to add query tables to source
         :param source_id: source identifier entity id
@@ -506,8 +507,8 @@ class SourceClient(BaseClient):
                 else:
                     if job_id:
                         return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
-                                         polling_frequency=polling_frequency,
-                                         retries=retries)
+                                             polling_frequency=polling_frequency,
+                                             retries=retries)
                     else:
                         return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                            error_code=ErrorCode.GENERIC_ERROR,
@@ -542,8 +543,8 @@ class SourceClient(BaseClient):
             configure_tables_tg_url = url_builder.configure_tables_and_tablegroups_url(self.client_config, source_id)
             errors = {}
             response = self.call_api("POST", configure_tables_tg_url,
-                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
-                              {"configuration": configuration_obj})
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     {"configuration": configuration_obj})
             parsed_response = IWUtils.ejson_deserialize(response.content)
             result = parsed_response.get('result', {}).get("configuration", {}).get("iw_mappings", [])
             count = 0
@@ -554,7 +555,8 @@ class SourceClient(BaseClient):
                 for config_item in result:
                     table_upsert_status = config_item.get('table_upsert_status', None)
                     if table_upsert_status is not None and len(table_upsert_status.get("error", [])) != 0:
-                        if not table_upsert_status["error"][0].startswith("Truncate the table:") and not table_upsert_status["error"][0].startswith("After ingestion you can't change"):
+                        if not table_upsert_status["error"][0].startswith("Truncate the table:") and not \
+                        table_upsert_status["error"][0].startswith("After ingestion you can't change"):
                             self.logger.info(f"{table_upsert_status}")
                             count = count + 1
                             errors[count] = table_upsert_status["error"]
@@ -567,7 +569,7 @@ class SourceClient(BaseClient):
                     self.logger.debug(str(config_item))
                 if len(errors) != 0:
                     self.logger.error(f"Failed due to multiple errors\n{errors}")
-                    result = parsed_response.get("result",[])
+                    result = parsed_response.get("result", [])
                     return SourceResponse.parse_result(status=Response.Status.FAILED,
                                                        error_code=ErrorCode.GENERIC_ERROR,
                                                        error_desc=f"Failed to configure tables and table groups",
@@ -584,7 +586,7 @@ class SourceClient(BaseClient):
                                                        source_id=source_id)
                 else:
                     self.logger.info(f"Successfully configured tables and table groups for the source")
-                    return SourceResponse.parse_result(status=Response.Status.SUCCESS,response=parsed_response)
+                    return SourceResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
             else:
                 self.logger.error("Failed to configure tables and table groups")
                 return SourceResponse.parse_result(status=Response.Status.FAILED,
@@ -683,7 +685,7 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to update table group" + str(e))
 
-    def get_table_group_details(self, source_id=None, params=None, tg_id=None):
+    def get_table_group_details(self, source_id=None, params=None, tg_id=None, pagination=True):
         """
         Function to list the table groups under source
         :param source_id: entity identifier for source
@@ -692,6 +694,8 @@ class SourceClient(BaseClient):
         :type tg_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id}:
@@ -724,6 +728,8 @@ class SourceClient(BaseClient):
                 else:
                     while len(result) > 0:
                         tg_list.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -825,7 +831,8 @@ class SourceClient(BaseClient):
                 if job_id is not None:
                     if not poll:
                         self.logger.info(f"Job successfully submitted for {source_id}. JobID to track is: {job_id}")
-                        return SourceResponse.parse_result(status=Response.Status.SUCCESS, job_id=job_id, response=response)
+                        return SourceResponse.parse_result(status=Response.Status.SUCCESS, job_id=job_id,
+                                                           response=response)
                     else:
                         return self.poll_job(source_id=source_id, job_id=job_id, poll_timeout=poll_timeout,
                                              polling_frequency=polling_frequency,
@@ -910,11 +917,13 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to create source job: " + str(e))
 
-    def get_list_of_sources(self, params=None):
+    def get_list_of_sources(self, params=None, pagination=True):
         """
         Function to list the sources
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -931,6 +940,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     source_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1081,7 +1092,7 @@ class SourceClient(BaseClient):
             self.logger.error("Error in updating the source advanced configs")
             raise SourceError("Error in updating the source advanced config" + str(e))
 
-    def get_advanced_configuration_of_sources(self, source_id=None, params=None, key=None):
+    def get_advanced_configuration_of_sources(self, source_id=None, params=None, key=None, pagination=True):
         """
         Function to get the advanced configuration of source
         :param source_id: Entity identifier for source
@@ -1090,6 +1101,8 @@ class SourceClient(BaseClient):
         :type key: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id}:
@@ -1123,6 +1136,8 @@ class SourceClient(BaseClient):
                 else:
                     while len(result) > 0:
                         adv_config_list.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -1231,13 +1246,15 @@ class SourceClient(BaseClient):
             self.logger.error("Error in updating the source configs")
             raise SourceError("Error in updating the source configs" + str(e))
 
-    def list_tables_in_source(self, source_id=None, params=None):
+    def list_tables_in_source(self, source_id=None, params=None, pagination=True):
         """
         Function to list the tables part of the source
         :param source_id: Entity identifier for source
         :type source_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id}:
@@ -1258,6 +1275,8 @@ class SourceClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     tables_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1281,13 +1300,15 @@ class SourceClient(BaseClient):
             self.logger.error("Error in listing tables under source")
             raise SourceError("Error in listing tables under source" + str(e))
 
-    def get_list_of_table_groups(self, source_id=None, params=None):
+    def get_list_of_table_groups(self, source_id=None, params=None, pagination=True):
         """
         Function to list the tables groups part of the source
         :param source_id: Entity identifier for source
         :type source_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id}:
@@ -1308,6 +1329,8 @@ class SourceClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     tablegrp_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1635,23 +1658,31 @@ class SourceClient(BaseClient):
             self.logger.error("Error in updating the export configuration of the table")
             raise SourceError(f"Error in updating the export configuration of the table for {table_id} " + str(e))
 
-    def get_table_ingestion_metrics(self, source_id=None, table_id=None):
+    def get_table_ingestion_metrics(self, source_id=None, table_id=None, params=None, pagination=True):
         """
         Function to fetch ingestion metrics of source tables
         :param source_id: Entity identifier for source
         :type source_id: String
         :param table_id: table entity id
         :type table_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id}:
             self.logger.error("source id cannot be None")
             raise Exception("source id cannot be None")
+        if params is None:
+            params = {"limit": 20, "offset": 0}
         if table_id is None:
-            url_to_get_ing_metrics = url_builder.get_ingestion_metrics_source_url(self.client_config, source_id)
+            url_to_get_ing_metrics = url_builder.get_ingestion_metrics_source_url(self.client_config, source_id) \
+                                     + IWUtils.get_query_params_string_from_dict(params=params)
         else:
             url_to_get_ing_metrics = url_builder.get_ingestion_metrics_table_url(self.client_config, source_id,
-                                                                                 table_id)
+                                                                                 table_id)\
+                                     + IWUtils.get_query_params_string_from_dict(params=params)
         metric_results = []
         try:
             response = IWUtils.ejson_deserialize(
@@ -1661,6 +1692,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     metric_results.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -2107,13 +2140,15 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to get the source configurations for {source_id} " + str(e))
 
-    def list_tables_under_source(self, source_id=None, params=None):
+    def list_tables_under_source(self, source_id=None, params=None, pagination=True):
         """
         Function to list tables under source
         :param source_id: Entity identifier for source
         :type source_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         tables_list = []
@@ -2134,6 +2169,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     tables_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -2407,7 +2444,7 @@ class SourceClient(BaseClient):
             raise SourceError(f"Failed to update the table schema for {table_id} " + str(e))
 
     def get_file_mappings_for_json_source(self, source_id=None, file_mapping_id=None, file_mapping_name=None,
-                                          params=None):
+                                          params=None, pagination=True):
         """
         Function to get file mappings
         :param source_id: Entity identifier for source
@@ -2415,6 +2452,8 @@ class SourceClient(BaseClient):
         :param file_mapping_id: Entity identifier of the file mapping
         :param file_mapping_name: Name of the file mapping for which details are to be fetched
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id}:
@@ -2440,6 +2479,8 @@ class SourceClient(BaseClient):
                     result = response.get("result", [])
                     while len(result) > 0:
                         file_mappings_list.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -2663,7 +2704,7 @@ class SourceClient(BaseClient):
             self.logger.exception('Error occurred while trying to create a json table.')
             raise SourceError(response.get("message", "Error occurred while trying to create a json table."))
 
-    def get_json_source_table(self, source_id=None, file_mapping_id=None, table_id=None, params=None):
+    def get_json_source_table(self, source_id=None, file_mapping_id=None, table_id=None, params=None, pagination=True):
         """
         Function to get json source table details
         :param file_mapping_id: Entity identifier for file mapping
@@ -2672,6 +2713,8 @@ class SourceClient(BaseClient):
         :type source_id: String
         :param table_id: Entity identifier for table
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id, file_mapping_id}:
@@ -2693,6 +2736,8 @@ class SourceClient(BaseClient):
                     result = response.get("result", [])
                     while len(result) > 0:
                         tables_list.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -2763,13 +2808,15 @@ class SourceClient(BaseClient):
         except Exception as e:
             raise SourceError(f"Failed to delete the json source table {table_id} " + str(e))
 
-    def get_source_audit_logs(self, source_id=None, params=None):
+    def get_source_audit_logs(self, source_id=None, params=None, pagination=True):
         """
         Function to get audit logs of source
         :param source_id: Entity identifier for source
         :type source_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         audit_logs = []
@@ -2790,6 +2837,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     audit_logs.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -2810,7 +2859,7 @@ class SourceClient(BaseClient):
             self.logger.error(f"Failed to get the audit logs of {source_id} " + str(e))
             raise SourceError(f"Failed to get the audit logs of {source_id} " + str(e))
 
-    def get_table_audit_logs(self, source_id=None, table_id=None, params=None):
+    def get_table_audit_logs(self, source_id=None, table_id=None, params=None, pagination=True):
         """
         Function to get audit logs of source
         :param source_id: Entity identifier for source
@@ -2818,6 +2867,8 @@ class SourceClient(BaseClient):
         :param table_id: Entity identifier of table
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         audit_logs = []
@@ -2838,6 +2889,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     audit_logs.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -2858,7 +2911,7 @@ class SourceClient(BaseClient):
             self.logger.error(f"Failed to get the audit logs of table {table_id} " + str(e))
             raise SourceError(f"Failed to get the audit logs of table {table_id} " + str(e))
 
-    def get_tablegroup_audit_logs(self, source_id=None, table_group_id=None, params=None):
+    def get_tablegroup_audit_logs(self, source_id=None, table_group_id=None, params=None, pagination=True):
         """
         Function to get audit logs of source
         :param source_id: Entity identifier for source
@@ -2866,6 +2919,8 @@ class SourceClient(BaseClient):
         :param table_group_id: Entity identifier of table group
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         audit_logs = []
@@ -2887,6 +2942,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     audit_logs.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -2908,13 +2965,15 @@ class SourceClient(BaseClient):
             self.logger.error(f"Failed to get the audit logs of table group {table_group_id} " + str(e))
             raise SourceError(f"Failed to get the audit logs of table group {table_group_id} " + str(e))
 
-    def get_list_of_advanced_config_of_table(self, source_id=None, table_id=None, params=None):
+    def get_list_of_advanced_config_of_table(self, source_id=None, table_id=None, params=None, pagination=True):
         """
             Function to get list of Advance Config of the table
             :param source_id: Entity identifier of the source
             :param table_id: Entity identifier of the table
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
+            :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+            :type pagination: Boolean
             :return: response dict
         """
         if None in {source_id, table_id}:
@@ -2934,6 +2993,8 @@ class SourceClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     adv_config_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -3322,13 +3383,15 @@ class SourceClient(BaseClient):
             self.logger.exception('Error occurred while trying to add/update validation spec for table')
             raise SourceError('Error occurred while trying to add/update validation spec for table')
 
-    def list_validation_specs_for_table(self, source_id=None, table_id=None, params=None):
+    def list_validation_specs_for_table(self, source_id=None, table_id=None, params=None, pagination=True):
         """
         Function to list the validation specs for a table
         :param source_id: Entity identifier of the source
         :param table_id: Entity identifier of the table
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {source_id, table_id}:
@@ -3348,6 +3411,8 @@ class SourceClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     validations_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -3402,18 +3467,21 @@ class SourceClient(BaseClient):
             self.logger.error("Error in deleting the validation spec of the table")
             raise SourceError("Error in deleting the validation spec of the table" + str(e))
 
-    def configure_table_group_schedule_user(self, source_id, table_group_id):
+    def configure_table_group_schedule_user(self, source_id, table_group_id, schedule_user_details):
         """
         Configure Table Group schedule user of a particular Table Group belonging to the Source
         :param source_id: Source ID of which Table Group belongs
         :type source_id: String
         :param table_group_id: Table Group ID to fetch schedule for.
         :type table_group_id: String
+        :param schedule_user_details: Scheduler User Details
+        :type schedule_user_details: JSON
         :return: Response Dict
         """
         if source_id is None or table_group_id is None:
             self.logger.error("source_id or table_group_id cannot be None")
             raise Exception("source_id or table_group_id cannot be None")
+        """
         response = None
         try:
             response = IWUtils.ejson_deserialize(
@@ -3440,6 +3508,45 @@ class SourceClient(BaseClient):
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to configure table group schedule user.')
             raise SourceError('Error occurred while trying to configure table group schedule user.')
+        """
+        # To Validate credentials
+        update_table_group_response = None
+        try:
+            response = self.call_api("PUT", url_builder.verify_refresh_token_url(self.client_config),
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     schedule_user_details)
+
+            if response.status_code == 200:
+                self.logger.info("Email and Refresh token validated")
+            else:
+                raise Exception("Failed to validate email and refresh token")
+
+            table_group_response = self.get_table_group_details(source_id=source_id, tg_id=table_group_id)
+            table_group_response_parsed = table_group_response.get('result', {}).get('response', {}).get('result', {})
+
+            table_group_response_parsed[0]['scheduler_username'] = schedule_user_details["scheduler_username"]
+            table_group_response_parsed[0]['scheduler_auth_token'] = schedule_user_details["scheduler_auth_token"]
+
+            update_table_group_response = self.update_table_group(source_id=source_id, table_group_id=table_group_id,
+                                                                  table_group_obj=table_group_response_parsed[0])
+
+            if update_table_group_response.get('result', {}).get('response', {}) is None:
+                self.logger.error('Failed to configure table group schedule user')
+                return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                   error_code=ErrorCode.USER_ERROR,
+                                                   error_desc='Failed to configure table group schedule user',
+                                                   response=update_table_group_response.get('result', {}).get('response', {}))
+            table_group_id = str(table_group_id)
+            self.logger.info(
+                'Successfully configured table group {id} schedule user.'.format(id=table_group_id))
+            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
+                                               response=update_table_group_response.get('result', {}).get('response', {}))
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(update_table_group_response))
+            self.logger.exception('Error occurred while trying to configure table group schedule user.')
+            raise SourceError('Error occurred while trying to configure table group schedule user.')
+
+
 
     def enable_table_group_schedule(self, source_id, table_group_id, schedule_config):
         """
