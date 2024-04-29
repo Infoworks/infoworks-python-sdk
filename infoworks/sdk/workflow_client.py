@@ -679,7 +679,7 @@ class WorkflowClient(BaseClient):
         except:
             raise WorkflowError("Unable to get workflow name")
 
-    def get_list_of_workflow_runs(self, domain_id=None, workflow_id=None, params=None, api_body_for_filter={}):
+    def get_list_of_workflow_runs(self, domain_id=None, workflow_id=None, params=None, api_body_for_filter={},pagination=True):
         """
         Gets List of Infoworks Data workflow runs details for given domain id and workflow id
         :param domain_id: Domain id to which the workflows belongs to, if None all workflows in all domains will be fetched
@@ -694,6 +694,8 @@ class WorkflowClient(BaseClient):
         example:
         {'limit': 10000, 'date_range': {'type': 'last', 'unit': 'day', 'value': 1}, 'offset': 0}
         ```
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response List
         """
         response = None
@@ -724,6 +726,8 @@ class WorkflowClient(BaseClient):
                                                              response=response)
                     while len(result) > 0:
                         workflow_runs_list.extend(result)
+                        if not pagination:
+                            break
                         api_body_for_filter["offset"] = api_body_for_filter.get("limit")
                         response = IWUtils.ejson_deserialize(
                             self.call_api("POST", url_to_list_workflow_runs, IWUtils.get_default_header_for_v3(
@@ -736,9 +740,8 @@ class WorkflowClient(BaseClient):
                 workflow_runs_list = []
                 response = IWUtils.ejson_deserialize(
                     self.call_api("GET", url_builder.get_all_workflows_runs_url_with_domain_id(
-                        self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                        self.client_config, domain_id, workflow_id) + IWUtils.get_query_params_string_from_dict(params=params), IWUtils.get_default_header_for_v3(
                         self.client_config['bearer_token'])).content)
-
                 result = response.get('result', None)
                 if result is None:
                     self.logger.error('Failed to get the list of workflow runs')
@@ -751,6 +754,8 @@ class WorkflowClient(BaseClient):
                     initial_msg = response.get("message", "")
                     while len(result) > 0:
                         workflow_runs_list.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -769,13 +774,15 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to get workflow details.')
             raise WorkflowError('Error occurred while trying to get workflow details.')
 
-    def get_list_of_workflow_runs_jobs(self, run_id=None, params=None):
+    def get_list_of_workflow_runs_jobs(self, run_id=None, params=None,pagination=True):
         """
          Gets List of Infoworks Data workflow runs jobs details
         :param run_id: Run id to which the workflows belongs to, if None all workflows
         :type run_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if None in {run_id}:
@@ -809,6 +816,8 @@ class WorkflowClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     workflow_run_jobs_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -818,6 +827,7 @@ class WorkflowClient(BaseClient):
                         self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
                             self.client_config['bearer_token'])).content)
                     result = response.get("result", [])
+
             response["result"] = workflow_run_jobs_list
             response["message"] = initial_msg
             return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response=response)

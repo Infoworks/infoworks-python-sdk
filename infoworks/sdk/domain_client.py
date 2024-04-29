@@ -44,10 +44,13 @@ class DomainClient(BaseClient):
             self.logger.error(f"Failed to create domain" + str(e))
             raise DomainError(f"Failed to create domain" + str(e))
 
-    def list_domains(self, params=None):
+    def list_domains(self, params=None, pagination=True):
         """
         Function to list domains
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -64,6 +67,8 @@ class DomainClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     domains_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -172,13 +177,15 @@ class DomainClient(BaseClient):
             self.logger.error(f"Error in deleting the domain {domain_id}")
             raise DomainError(f"Error in deleting the domain {domain_id} " + str(e))
 
-    def get_sources_associated_with_domain(self, domain_id, params=None):
+    def get_sources_associated_with_domain(self, domain_id, params=None, pagination=True):
         """
         Function to get sources associated with the domain
         :param domain_id: Entity identifier for the domain
         :type domain_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type params: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -198,6 +205,8 @@ class DomainClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     src_under_domain_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -348,13 +357,15 @@ class DomainClient(BaseClient):
             self.logger.error("Error in finding domain id")
             raise DomainError("Error in finding domain id" + str(e))
 
-    def get_pipeline_extensions_associated_with_domain(self, domain_id, params=None):
+    def get_pipeline_extensions_associated_with_domain(self, domain_id, params=None, pagination=True):
         """
         Function to get pipeline extensions associated with the domain
         :param domain_id: Entity identifier for the domain
         :type domain_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type params: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -374,6 +385,8 @@ class DomainClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     pl_extn_under_domain_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -576,11 +589,15 @@ class DomainClient(BaseClient):
             self.logger.exception('Error occurred while trying to get/delete adv config details.')
             raise DomainError('Error occurred while trying to get/delete adv config details.')
 
-    def get_accessible_pipelines_under_domain(self, domain_id):
+    def get_accessible_pipelines_under_domain(self, domain_id,params=None,pagination=True):
         """
         Function to get the pipelines accessible under a domain
         :param domain_id: Entity identifier for domain
         :type domain_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: Response Dict
         """
         if domain_id is None:
@@ -588,40 +605,89 @@ class DomainClient(BaseClient):
             raise Exception("domain_id cannot be None")
 
         response = None
-
+        if params is None:
+            params = {"limit": 20, "offset": 0}
         try:
+            accessible_pipelines_under_domain=[]
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.url_to_get_accessible_pipelines(
-                self.client_config, domain_id), IWUtils.get_default_header_for_v3(
+                self.client_config, domain_id) + IWUtils.get_query_params_string_from_dict(params=params), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
-
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=domain_id,
-                                                response=response)
-
+            if response is not None:
+                result = response.get("result", [])
+                initial_msg = response.get("message", "")
+                while len(result) > 0:
+                    accessible_pipelines_under_domain.extend(result)
+                    if not pagination:
+                        break
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+                response["result"] = accessible_pipelines_under_domain
+                response["message"] = initial_msg
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=domain_id, response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response="Failed to get accessible pipelines under domain"
+                                                    )
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to get accessible pipelines')
             raise DomainError('Error occurred while trying to get accessible pipelines')
 
-    def get_accessible_workflows_under_domain(self, domain_id):
+    def get_accessible_workflows_under_domain(self, domain_id,params=None,pagination=True):
         """
         Function to get the workflows accessible under a domain
         :param domain_id: Entity identifier for domain
         :type domain_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type params: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: Response Dict
         """
         if domain_id is None:
             self.logger.error("domain_id cannot be None")
             raise Exception("domain_id cannot be None")
-
+        if params is None:
+            params = {"limit": 20, "offset": 0}
         response = None
-
         try:
+            accessible_workflows_under_domain = []
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.url_to_get_accessible_workflows(
-                self.client_config, domain_id), IWUtils.get_default_header_for_v3(
+                self.client_config, domain_id) + IWUtils.get_query_params_string_from_dict(params=params), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
-
-            return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=domain_id,
-                                                response=response)
+            if response is not None:
+                result = response.get("result", [])
+                initial_msg = response.get("message", "")
+                while len(result) > 0:
+                    accessible_workflows_under_domain.extend(result)
+                    if not pagination:
+                        break
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+                response["result"] = accessible_workflows_under_domain
+                response["message"] = initial_msg
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, entity_id=domain_id,
+                                                    response=response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.USER_ERROR,
+                                                    response="Failed to get accessible workflows under domain"
+                                                    )
 
         except Exception as e:
             self.logger.error('Response from server: ' + str(response))

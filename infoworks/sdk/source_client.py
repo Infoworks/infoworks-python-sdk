@@ -3460,8 +3460,8 @@ class SourceClient(BaseClient):
               "end_min": 30,
               "repeat_interval_measure": 2,
               "repeat_interval_unit": "{string}",
-              "ends": true,
-              "is_custom_job": true,
+              "ends": True,
+              "is_custom_job": True,
               "custom_job_details": {
                 "starts_daily_at": "14:00",
                 "ends_daily_at": "15:00",

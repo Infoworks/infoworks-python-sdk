@@ -75,7 +75,7 @@ class PipelineGroupClient(BaseClient):
                 failed_count = failed_count + 1
             time.sleep(polling_frequency)
 
-    def list_jobs_under_pipeline_group(self, domain_id, pipeline_group_id, params=None):
+    def list_jobs_under_pipeline_group(self, domain_id, pipeline_group_id, params=None,pagination=True):
         """
             Function to list the jobs under pipeline group
             :param domain_id: Entity identifier for domain
@@ -83,6 +83,8 @@ class PipelineGroupClient(BaseClient):
             :param pipeline_group_id: Entity identifier of the pipeline group
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
+            :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+            :type pagination: Boolean
             :return: response dict
         """
         if None in {domain_id, pipeline_group_id}:
@@ -103,6 +105,8 @@ class PipelineGroupClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     pipeline_groups_jobs_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -200,7 +204,7 @@ class PipelineGroupClient(BaseClient):
             self.logger.exception('Error occurred while trying to get pipeline group details.')
             raise PipelineError('Error occurred while trying to get pipeline group details.')
 
-    def list_pipeline_job_details_in_pipeline_group_job(self, domain_id, pipeline_group_id, job_id, params=None):
+    def list_pipeline_job_details_in_pipeline_group_job(self, domain_id, pipeline_group_id, job_id, params=None,pagination=True):
         """
             Function to list the pipeline jobs in a pipeline group job
             :param domain_id: Entity identifier for domain
@@ -209,6 +213,8 @@ class PipelineGroupClient(BaseClient):
             :param job_id: Entity identifier of the pipeline group job
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
+            :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+            :type pagination: Boolean
             :return: response dict
         """
         if None in {pipeline_group_id, domain_id, job_id}:
@@ -228,6 +234,8 @@ class PipelineGroupClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     pipelines_in_pipeline_groups_jobs_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -251,7 +259,7 @@ class PipelineGroupClient(BaseClient):
             self.logger.error("Error in listing pipeline jobs in pipeline group job")
             raise PipelineError("Error in listing pipeline jobs in pipeline group job" + str(e))
 
-    def list_cluster_job_runs_in_pipeline_group_job(self, domain_id, pipeline_group_id, job_id, params=None):
+    def list_cluster_job_runs_in_pipeline_group_job(self, domain_id, pipeline_group_id, job_id, params=None, pagination=True):
         """
             Function to list the cluster jobs in a pipeline group job
             :param domain_id: Entity identifier for domain
@@ -260,6 +268,8 @@ class PipelineGroupClient(BaseClient):
             :param job_id: Entity identifier of the pipeline group job
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
+            :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+            :type pagination: Boolean
             :return: response dict
         """
         if None in {pipeline_group_id, domain_id, job_id}:
@@ -279,6 +289,8 @@ class PipelineGroupClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     cluster_jobs_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -401,13 +413,15 @@ class PipelineGroupClient(BaseClient):
             self.logger.exception('Error occurred while trying to create a new pipeline group.')
             raise PipelineError('Error occurred while trying to create a new pipeline group.')
 
-    def list_pipeline_groups_under_domain(self, domain_id, params=None):
+    def list_pipeline_groups_under_domain(self, domain_id, params=None, pagination=True):
         """
         Function to list the pipeline groups under domain
         :param domain_id: Entity identifier for domain
         :type domain_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response list
         """
         if None in {domain_id}:
@@ -427,6 +441,8 @@ class PipelineGroupClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     pipeline_groups_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -584,13 +600,15 @@ class PipelineGroupClient(BaseClient):
             self.logger.exception('Error occurred while trying to update the pipeline group.')
             raise PipelineError('Error occurred while trying to update the pipeline group.')
 
-    def get_accessible_pipeline_groups(self, domain_id, params=None):
+    def get_accessible_pipeline_groups(self, domain_id, params=None, pagination=True):
         """
             Function to get the accessible pipeline group
             :param domain_id: Domain id to which the pipeline  group  belongs to
             :type domain_id: String
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
+            :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+            :type pagination: Boolean
             :return: response dict
         """
         if domain_id is None:
@@ -609,9 +627,9 @@ class PipelineGroupClient(BaseClient):
                 result = response.get("result", [])
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
-                    print(result)
-                    print(response)
                     pipeline_groups_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -635,7 +653,7 @@ class PipelineGroupClient(BaseClient):
             self.logger.error("Error in listing accessible pipeline groups")
             raise PipelineError("Error in listing accessible pipeline groups" + str(e))
 
-    def get_list_of_advanced_config_of_pipeline_groups(self, domain_id, pipeline_group_id, params=None):
+    def get_list_of_advanced_config_of_pipeline_groups(self, domain_id, pipeline_group_id, params=None, pagination=True):
         """
             Function to get list of Advance Config pipeline group
             :param domain_id: Domain id to which the pipeline  group belongs to
@@ -644,6 +662,8 @@ class PipelineGroupClient(BaseClient):
             :type pipeline_group_id: String
             :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
             :type: JSON dict
+            :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+            :type pagination: Boolean
             :return: response dict
         """
         if None in {pipeline_group_id, domain_id}:
@@ -664,6 +684,8 @@ class PipelineGroupClient(BaseClient):
                 initial_msg = response.get("message", "")
                 while len(result) > 0:
                     adv_config_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],

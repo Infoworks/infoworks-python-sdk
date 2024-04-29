@@ -12,11 +12,13 @@ class AdminClient(BaseClient):
         self._datalineage = {"path": [], "dataflow_objects": [], "master_pipeline_ids": [],
                              "master_sourcetable_ids": []}
 
-    def list_users(self, params=None):
+    def list_users(self, params=None, pagination=True):
         """
         Function to list the users
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -33,6 +35,8 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     users_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -174,13 +178,15 @@ class AdminClient(BaseClient):
             self.logger.error("Error in deleting user " + str(e))
             raise AdminError("Error in deleting user " + str(e))
 
-    def get_user_details(self, user_id=None, params=None):
+    def get_user_details(self, user_id=None, params=None, pagination=True):
         """
         Function to get the user details
         :param user_id: Entity identifier of the user
         :type user_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type params: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -203,6 +209,8 @@ class AdminClient(BaseClient):
                 else:
                     while len(result) > 0:
                         users_list.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -575,7 +583,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in updating environment" + str(e))
             raise AdminError("Error in updating environment" + str(e))
 
-    def get_storage_details(self, environment_id, storage_id=None, params=None):
+    def get_storage_details(self, environment_id, storage_id=None, params=None, pagination=True):
         """
         Function to get storage details
         :param environment_id: Entity identifier of the environment
@@ -584,6 +592,8 @@ class AdminClient(BaseClient):
         :type storage_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type params: Dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: Response Dict
         """
         if params is None and storage_id is None:
@@ -610,6 +620,8 @@ class AdminClient(BaseClient):
                 else:
                     while len(result) > 0:
                         storage_details.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -632,7 +644,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in getting storage details " + str(e))
             raise AdminError("Error in getting storage details" + str(e))
 
-    def get_compute_template_details(self, environment_id, compute_id=None, is_interactive=False, params=None):
+    def get_compute_template_details(self, environment_id, compute_id=None, is_interactive=False, params=None, pagination=True):
         """
          Function to get compute template details
          :param environment_id: Entity identifier of the environment
@@ -643,6 +655,8 @@ class AdminClient(BaseClient):
          :type is_interactive: Boolean
          :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
          :type params: Dict
+         :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+         :type pagination: Boolean
          :return: Response Dict
          """
         if params is None and compute_id is None:
@@ -675,6 +689,8 @@ class AdminClient(BaseClient):
                 else:
                     while len(result) > 0:
                         compute_details.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -831,6 +847,53 @@ class AdminClient(BaseClient):
                                                 error_code=ErrorCode.USER_ERROR,
                                                 response=response.get("result", {}).get("response", {})
                                                 )
+
+    def list_source_extensions(self, params=None, pagination=True):
+        """
+        Function to list the source extensions
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_source_extensions = url_builder.create_source_extension_url(self.client_config) \
+                                    + IWUtils.get_query_params_string_from_dict(params=params)
+        source_extensions_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_source_extensions,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    source_extensions_list.extend(result)
+                    if not pagination:
+                        break
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing secret store",
+                                                            response=response
+                                                            )
+
+                response["result"] = source_extensions_list
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing secret stores")
+            raise AdminError("Error in listing secret store" + str(e))
 
     def get_source_extension(self, extension_id):
         """
@@ -1044,13 +1107,15 @@ class AdminClient(BaseClient):
         except Exception as e:
             raise AdminError(f"Failed to update the data connection" + str(e))
 
-    def get_data_connection(self, data_connection_id=None, params=None):
+    def get_data_connection(self, data_connection_id=None, params=None, pagination=True):
         """
         Function to create data connection in the domain
         :param data_connection_id: id of dataconnection for which config has to be fetched
         :type data_connection_id: String
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -1075,6 +1140,8 @@ class AdminClient(BaseClient):
                 else:
                     while len(result) > 0:
                         dataconnection_list.extend(result)
+                        if not pagination:
+                            break
                         nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                           ip=self.client_config['ip'],
                                                                           port=self.client_config['port'],
@@ -1125,11 +1192,13 @@ class AdminClient(BaseClient):
         except Exception as e:
             raise AdminError(f"Failed in delete data connection" + str(e))
 
-    def list_secret_stores(self, params=None):
+    def list_secret_stores(self, params=None, pagination=True):
         """
         Function to list the secret stores
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -1146,6 +1215,8 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     secret_stores_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1301,11 +1372,13 @@ class AdminClient(BaseClient):
             self.logger.error("Error in deleting secret store " + str(e))
             raise AdminError("Error in deleting secret store " + str(e))
 
-    def list_service_authentication(self, params=None):
+    def list_service_authentication(self, params=None, pagination=True):
         """
         Function to list the service authentication mechanisms in Infoworks
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -1322,6 +1395,8 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     secret_stores_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1493,11 +1568,13 @@ class AdminClient(BaseClient):
             self.logger.error("Error in deleting service auth " + str(e))
             raise AdminError("Error in deleting service auth " + str(e))
 
-    def list_secrets(self, params=None):
+    def list_secrets(self, params=None, pagination=True):
         """
         Function to list the secrets in Infoworks
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -1514,6 +1591,8 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     secret_stores_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1661,11 +1740,13 @@ class AdminClient(BaseClient):
             self.logger.error("Error in deleting secret " + str(e))
             raise AdminError("Error in deleting secret " + str(e))
 
-    def list_domains_as_admin(self, params=None):
+    def list_domains_as_admin(self, params=None, pagination=True):
         """
         Function to list the domains as admin user
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -1683,6 +1764,8 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     users_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1826,12 +1909,14 @@ class AdminClient(BaseClient):
             raise AdminError(
                 f"Error stop the cluster. Please do it by yourself from UI." + str(e))
 
-    def list_accessible_sources_under_domain_as_admin(self, domain_id, params=None):
+    def list_accessible_sources_under_domain_as_admin(self, domain_id, params=None, pagination=True):
         """
         Function to list the accessible sources under domain
         :param domain_id: Entity identifier for domain
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -1849,6 +1934,8 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     output_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1924,11 +2011,13 @@ class AdminClient(BaseClient):
                 self.logger.error("Error in deleting schedules " + str(e))
                 raise AdminError("Error in deleting schedules " + str(e))
 
-    def list_schedules_as_admin(self, params=None):
+    def list_schedules_as_admin(self, params=None, pagination=True):
         """
         Function to list all the schedules as an admin
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
         :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
         :return: response dict
         """
         if params is None:
@@ -1946,6 +2035,8 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 while len(result) > 0:
                     output_list.extend(result)
+                    if not pagination:
+                        break
                     nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
                                                                       ip=self.client_config['ip'],
                                                                       port=self.client_config['port'],
@@ -1967,3 +2058,239 @@ class AdminClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in listing schedules")
             raise AdminError("Error in listing schedules" + str(e))
+
+    def list_job_hooks(self, params=None, pagination=True):
+        """
+        Function to list all the job-hooks as an admin
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        job_hooks_url = url_builder.list_job_hooks(
+            self.client_config) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+
+        output_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", job_hooks_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    output_list.extend(result)
+                    if not pagination:
+                        break
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing job_hooks",
+                                                            response=response
+                                                            )
+
+                response["result"] = output_list
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing job_hooks")
+            raise AdminError("Error in listing job_hooks" + str(e))
+
+    def get_list_of_job_hook_dependencies(self, job_hook_id=None,params=None):
+        """
+        Function to list all the dependencies of job hook
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param job_hook_id: Identifier of Job hook
+        :type: String
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        if job_hook_id is None:
+            self.logger.error("job_hook_id cannot be None")
+            raise Exception("job_hook_id cannot be None")
+        job_hook_dependencies_url = url_builder.get_list_of_job_hook_dependencies(
+            self.client_config,job_hook_id) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", job_hook_dependencies_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                if result is None:
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing job_hook dependencies",
+                                                            response=response
+                                                            )
+
+                response["result"] = result
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing job_hook dependencies")
+            raise AdminError("Error in listing job_hook dependencies" + str(e))
+
+    def get_list_of_source_extension_dependencies(self, source_extension_id=None,params=None):
+        """
+        Function to list all the dependencies of source extension
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param source_extension_id : Identifier of source extension
+        :type: String
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        if source_extension_id is None:
+            self.logger.error("source_extension_id cannot be None")
+            raise Exception("source_extension_id cannot be None")
+        source_extension_dependencies_url = url_builder.get_list_of_source_extension_dependencies(
+            self.client_config,source_extension_id) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", source_extension_dependencies_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                if result is None:
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing source_extension dependencies",
+                                                            response=response
+                                                            )
+
+                response["result"] = result
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing source_extension dependencies")
+            raise AdminError("Error in listing source_extension dependencies" + str(e))
+
+    def list_generic_source_types(self, params=None, pagination=True):
+        """
+        Function to list the generic source types registered in infoworks
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_list_generic_source_types = url_builder.list_generic_source_types(self.client_config) + IWUtils.get_query_params_string_from_dict(
+            params=params)
+
+        generic_source_types_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_list_generic_source_types,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                while len(result) > 0:
+                    generic_source_types_list.extend(result)
+                    if not pagination:
+                        break
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", None)
+                    if result is None:
+                        return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                            error_code=ErrorCode.GENERIC_ERROR,
+                                                            error_desc="Error in listing generic source types",
+                                                            response=response
+                                                            )
+
+                response["result"] = generic_source_types_list
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing generic source types")
+            raise AdminError("Error in listing generic source types" + str(e))
+
+    def get_generic_source_type_by_id(self, generic_source_type_id=None):
+        """
+        Function to get generic source type by id
+        :param generic_source_type_id: Entity identifier of the generic source type
+        :type generic_source_type_id: String
+        :return: response dict
+        """
+
+        if generic_source_type_id is None:
+            self.logger.error("generic_source_type_id cannot be None")
+            raise Exception("generic_source_type_id cannot be None")
+        get_generic_source_type_by_id_url = url_builder.list_generic_source_types(
+            self.client_config, generic_source_type_id)
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", get_generic_source_type_by_id_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                if result is None:
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.GENERIC_ERROR,
+                                                        error_desc="Error in getting generic source id details",
+                                                        response=response
+                                                        )
+
+                response["result"] = result
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in getting generic source id details")
+            raise AdminError("Error in getting generic source id details" + str(e))
+
+    def get_list_of_generic_source_type_dependencies(self, generic_source_type_id=None,params=None):
+        """
+        Function to list all the dependencies of generic source type
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param generic_source_type_id: Identifier of generic source type
+        :type: String
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        if generic_source_type_id is None:
+            self.logger.error("generic_source_type_id cannot be None")
+            raise Exception("generic_source_type_id cannot be None")
+        source_extension_dependencies_url = url_builder.list_generic_source_types(
+            self.client_config, generic_source_type_id) + "/dependencies" + IWUtils.get_query_params_string_from_dict(
+            params=params)
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", source_extension_dependencies_url,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                result = response.get("result", [])
+                if result is None:
+                    return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                        error_code=ErrorCode.GENERIC_ERROR,
+                                                        error_desc="Error in listing generic source type dependencies",
+                                                        response=response
+                                                        )
+
+                response["result"] = result
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing generic source type dependencies")
+            raise AdminError("Error in listing generic source type dependencies" + str(e))

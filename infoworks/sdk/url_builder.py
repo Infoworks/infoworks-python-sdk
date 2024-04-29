@@ -2265,3 +2265,60 @@ def stop_streaming_job_url(config, source_id):
         protocol=config['protocol'],
         source_id=source_id)
     return request
+
+
+def list_job_hooks(config):
+    """
+        returns URL for listing job hooks under admin
+        :param config: client configurations
+        :type config: dict
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/job-hooks'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+def get_list_of_job_hook_dependencies(config,job_hook_id):
+    """
+        returns URL for listing dependencies under given job hook
+        :param config: client configurations
+        :param job_hook_id: Identifier for job hook
+        :type job_hook_id: string
+        :type config: dict
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/job-hooks/{job_hook_id}/dependencies'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'],
+        job_hook_id=job_hook_id)
+    return request
+
+def get_list_of_source_extension_dependencies(config,source_extension_id):
+    """
+        returns URL for listing dependencies under given source_extension
+        :param config: client configurations
+        :param source_extension_id: Identifier for job hook
+        :type source_extension_id: string
+        :type config: dict
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/source-extensions/{source_extension_id}/dependencies'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'],
+        source_extension_id=source_extension_id)
+    return request
+
+def list_generic_source_types(config,generic_source_type_id=None):
+    """
+        returns URL for list generic source types registered in Infoworks
+        :param config: client configurations
+        :type config: dict
+    """
+    if generic_source_type_id is None:
+        request = '{protocol}://{ip}:{port}/v3/admin/generic-source-type'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    else:
+        request = '{protocol}://{ip}:{port}/v3/admin/generic-source-type/{generic_source_type_id}'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            generic_source_type_id=generic_source_type_id)
+    return request
