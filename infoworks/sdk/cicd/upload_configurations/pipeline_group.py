@@ -142,7 +142,7 @@ class PipelineGroup:
             del self.configuration_obj["id"]
             configuration_obj = copy.deepcopy(self.configuration_obj)
             for item in self.configuration_obj:
-                if item in ["createdAt","createdBy","modifiedAt","modifiedBy","environment_configurations"]:
+                if item in ["createdAt","createdBy","modifiedAt","modifiedBy","environment_configurations","state","state_modified_by"]:
                     del configuration_obj[item]
             self.configuration_obj = configuration_obj
             for pipeline in self.configuration_obj["pipelines"]:
@@ -164,7 +164,7 @@ class PipelineGroup:
             del self.configuration_obj["id"]
             configuration_obj = copy.deepcopy(self.configuration_obj)
             for item in self.configuration_obj:
-                if item in ["createdAt", "createdBy", "modifiedAt", "modifiedBy", "environment_configurations"]:
+                if item in ["createdAt", "createdBy", "modifiedAt", "modifiedBy", "environment_configurations","state","state_modified_by"]:
                     del configuration_obj[item]
             self.configuration_obj = configuration_obj
             for pipeline in self.configuration_obj["pipelines"]:
