@@ -977,6 +977,15 @@ class JobMetricsClient(BaseClient):
             'starting_watermark_value': '', 'ending_watermark_value': '',
             "pre_target_count": "", "fetch_records_count": 0,
             "target_records_count": ""}
+        # Fetches Cluster Run Info (i.e. Table Data in a Job)
+        cluster_data = self.get_cluster_runs_of_job(job_id)
+        if cluster_data:
+            # Job Start Time and End Time for no Pipeline Metrics
+            running_job_template['job_start_time'] = cluster_data[0]['started_at']
+            running_job_template['job_end_time'] = cluster_data[0]['ended_at']
+            running_job_template['cluster_id'] = cluster_data[0]['cluster_id']
+            job_cluster_id = cluster_data[0]['cluster_id']
+
         running_od = OrderedDict()
         if job_status.upper() in ["RUNNING", "PENDING", "CANCELED", "ABORTED", "FAILED"]:
             for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
