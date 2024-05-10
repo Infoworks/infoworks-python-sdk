@@ -3467,7 +3467,7 @@ class SourceClient(BaseClient):
             self.logger.error("Error in deleting the validation spec of the table")
             raise SourceError("Error in deleting the validation spec of the table" + str(e))
 
-    def configure_table_group_schedule_user(self, source_id, table_group_id, schedule_user_details):
+    def configure_table_group_schedule_user(self, source_id, table_group_id, schedule_user_details=None):
         """
         Configure Table Group schedule user of a particular Table Group belonging to the Source
         :param source_id: Source ID of which Table Group belongs
@@ -3481,70 +3481,70 @@ class SourceClient(BaseClient):
         if source_id is None or table_group_id is None:
             self.logger.error("source_id or table_group_id cannot be None")
             raise Exception("source_id or table_group_id cannot be None")
-        """
-        response = None
-        try:
-            response = IWUtils.ejson_deserialize(
-                self.call_api("PUT", url_builder.configure_table_group_schedule_user_url(
-                    self.client_config, source_id, table_group_id), IWUtils.get_default_header_for_v3(
-                    self.client_config['bearer_token'])).content)
+        if schedule_user_details is None:
+            response = None
+            try:
+                response = IWUtils.ejson_deserialize(
+                    self.call_api("PUT", url_builder.configure_table_group_schedule_user_url(
+                        self.client_config, source_id, table_group_id), IWUtils.get_default_header_for_v3(
+                        self.client_config['bearer_token'])).content)
 
-            result = response.get('result', None)
+                result = response.get('result', None)
 
-            if result is None:
-                self.logger.error('Failed to configure table group schedule user')
-                return SourceResponse.parse_result(status=Response.Status.FAILED,
-                                                   error_code=ErrorCode.USER_ERROR,
-                                                   error_desc='Failed to configure table group schedule user',
+                if result is None:
+                    self.logger.error('Failed to configure table group schedule user')
+                    return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                       error_code=ErrorCode.USER_ERROR,
+                                                       error_desc='Failed to configure table group schedule user',
+                                                       response=response)
+
+                table_group_id = str(table_group_id)
+                self.logger.info(
+                    'Successfully configured table group {id} schedule user.'.format(id=table_group_id))
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
                                                    response=response)
 
-            table_group_id = str(table_group_id)
-            self.logger.info(
-                'Successfully configured table group {id} schedule user.'.format(id=table_group_id))
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
-                                               response=response)
+            except Exception as e:
+                self.logger.error('Response from server: ' + str(response))
+                self.logger.exception('Error occurred while trying to configure table group schedule user.')
+                raise SourceError('Error occurred while trying to configure table group schedule user.')
+        else:
+            # To Validate credentials
+            update_table_group_response = None
+            try:
+                response = self.call_api("PUT", url_builder.verify_refresh_token_url(self.client_config),
+                                         IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                         schedule_user_details)
 
-        except Exception as e:
-            self.logger.error('Response from server: ' + str(response))
-            self.logger.exception('Error occurred while trying to configure table group schedule user.')
-            raise SourceError('Error occurred while trying to configure table group schedule user.')
-        """
-        # To Validate credentials
-        update_table_group_response = None
-        try:
-            response = self.call_api("PUT", url_builder.verify_refresh_token_url(self.client_config),
-                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
-                                     schedule_user_details)
+                if response.status_code == 200:
+                    self.logger.info("Email and Refresh token validated")
+                else:
+                    raise Exception("Failed to validate email and refresh token")
 
-            if response.status_code == 200:
-                self.logger.info("Email and Refresh token validated")
-            else:
-                raise Exception("Failed to validate email and refresh token")
+                table_group_response = self.get_table_group_details(source_id=source_id, tg_id=table_group_id)
+                table_group_response_parsed = table_group_response.get('result', {}).get('response', {}).get('result', {})
 
-            table_group_response = self.get_table_group_details(source_id=source_id, tg_id=table_group_id)
-            table_group_response_parsed = table_group_response.get('result', {}).get('response', {}).get('result', {})
+                table_group_response_parsed[0]['scheduler_username'] = schedule_user_details["scheduler_username"]
+                table_group_response_parsed[0]['scheduler_auth_token'] = schedule_user_details["scheduler_auth_token"]
 
-            table_group_response_parsed[0]['scheduler_username'] = schedule_user_details["scheduler_username"]
-            table_group_response_parsed[0]['scheduler_auth_token'] = schedule_user_details["scheduler_auth_token"]
+                update_table_group_response = self.update_table_group(source_id=source_id, table_group_id=table_group_id,
+                                                                      table_group_obj=table_group_response_parsed[0])
 
-            update_table_group_response = self.update_table_group(source_id=source_id, table_group_id=table_group_id,
-                                                                  table_group_obj=table_group_response_parsed[0])
-
-            if update_table_group_response.get('result', {}).get('response', {}) is None:
-                self.logger.error('Failed to configure table group schedule user')
-                return SourceResponse.parse_result(status=Response.Status.FAILED,
-                                                   error_code=ErrorCode.USER_ERROR,
-                                                   error_desc='Failed to configure table group schedule user',
+                if update_table_group_response.get('result', {}).get('response', {}) is None:
+                    self.logger.error('Failed to configure table group schedule user')
+                    return SourceResponse.parse_result(status=Response.Status.FAILED,
+                                                       error_code=ErrorCode.USER_ERROR,
+                                                       error_desc='Failed to configure table group schedule user',
+                                                       response=update_table_group_response.get('result', {}).get('response', {}))
+                table_group_id = str(table_group_id)
+                self.logger.info(
+                    'Successfully configured table group {id} schedule user.'.format(id=table_group_id))
+                return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
                                                    response=update_table_group_response.get('result', {}).get('response', {}))
-            table_group_id = str(table_group_id)
-            self.logger.info(
-                'Successfully configured table group {id} schedule user.'.format(id=table_group_id))
-            return SourceResponse.parse_result(status=Response.Status.SUCCESS, source_id=source_id,
-                                               response=update_table_group_response.get('result', {}).get('response', {}))
-        except Exception as e:
-            self.logger.error('Response from server: ' + str(update_table_group_response))
-            self.logger.exception('Error occurred while trying to configure table group schedule user.')
-            raise SourceError('Error occurred while trying to configure table group schedule user.')
+            except Exception as e:
+                self.logger.error('Response from server: ' + str(update_table_group_response))
+                self.logger.exception('Error occurred while trying to configure table group schedule user.')
+                raise SourceError('Error occurred while trying to configure table group schedule user.')
 
 
 
