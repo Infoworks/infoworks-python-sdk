@@ -205,7 +205,7 @@
                     "storage": {
                         "storage_type": "cloud",
                         "cloud_type": "s3",
-                        "access_id": "AKIAVKIERLLLZE6N3H6U",
+                        "access_id": "",
                         "access_type": "use_access_credentials",
                         "support_gov_cloud": false,
                         "endpoint": ""
