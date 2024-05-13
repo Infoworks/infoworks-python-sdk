@@ -7,9 +7,10 @@ from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, c
     configure_source_url, get_environment_details, get_environment_storage_details, get_environment_compute_details, \
     get_environment_interactive_compute_details, get_source_configurations_url, get_pipeline_url, \
     get_data_connection, source_info, list_users_url, list_secrets_url, get_pipeline_group_base_url, list_pipelines_url, \
-    create_domain_url
+    create_domain_url, get_table_configuration
 from infoworks.sdk.cicd.cicd_response import CICDResponse
 import json
+
 
 class Utils:
     def __init__(self, serviceaccountemail):
@@ -225,13 +226,13 @@ class Utils:
             cicd_client.logger.info("{} {}".format(filename, target_file_path))
             print(f"Exporting configurations file to {target_file_path}")
             with open(target_file_path, 'w') as file_ptr:
-                #contents_to_write = IWUtils.ejson_serialize(config_obj)
-                json.dump(config_obj,file_ptr,indent=4)
+                # contents_to_write = IWUtils.ejson_serialize(config_obj)
+                json.dump(config_obj, file_ptr, indent=4)
             cicd_client.logger.info("Configurations exported successfully")
             print("Configurations exported successfully")
         return filename, config_obj
 
-    def list_pipelines(self,cicd_client, domain_id=None, params=None):
+    def list_pipelines(self, cicd_client, domain_id=None, params=None):
         """
         Function to list the pipelines
         :param domain_id: Entity identified for domain
@@ -253,7 +254,8 @@ class Utils:
         try:
             response = IWUtils.ejson_deserialize(
                 cicd_client.call_api("GET", url_to_list_pipelines,
-                              IWUtils.get_default_header_for_v3(cicd_client.client_config['bearer_token'])).content)
+                                     IWUtils.get_default_header_for_v3(
+                                         cicd_client.client_config['bearer_token'])).content)
             if response is not None:
                 result = response.get("result", [])
                 initial_msg = response.get("message", "")
@@ -277,15 +279,15 @@ class Utils:
             cicd_client.logger.error("Error in listing pipelines")
             raise Exception("Error in listing pipelines" + str(e))
 
-    def add_secret_name_to_id(self,data,cicd_client):
+    def add_secret_name_to_id(self, data, cicd_client):
         for key, value in data.items():
             if isinstance(value, dict):
                 # If the value is a dictionary, recurse into it
-                secret_name = self.add_secret_name_to_id(value,cicd_client)
+                secret_name = self.add_secret_name_to_id(value, cicd_client)
                 if secret_name:
                     return secret_name
             elif key == "secret_id":
-                #print(f"Found secret_name: {value}")
+                # print(f"Found secret_name: {value}")
                 # resolve secret name to ID
                 secret_name = self.get_secret_name_from_id(cicd_client=cicd_client, secret_id=value)
                 if secret_name:
@@ -293,7 +295,8 @@ class Utils:
                 # Add your logic here to do something with the secret_name
                 return value
 
-    def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path):
+    def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path,
+                     dump_watermarks=True):
         response_to_return = {}
         filename = None
         environment_id, environment_compute_template_id, environment_storage_id = None, None, None
@@ -317,8 +320,8 @@ class Utils:
 
         if response.status_code == 200:
             status = "SUCCESS"
-        #removing below elif because sql pipeline migration is supported with config-migration api from 5.5
-        #elif response.status_code == 406:
+        # removing below elif because sql pipeline migration is supported with config-migration api from 5.5
+        # elif response.status_code == 406:
         #    return self.get_sql_pipeline_config(cicd_client, domain_id, entity_id, target_file_path)
         else:
             status = "FAILED"
@@ -351,48 +354,6 @@ class Utils:
                         configuration_obj["filter_tables_properties"] = result.get("filter_tables_properties", {})
                         source_connection_objects = configuration_obj["configuration"]["source_configs"]["connection"]
                         self.add_secret_name_to_id(data=source_connection_objects, cicd_client=cicd_client)
-                        # if source_connection_objects.get("storage", None) is not None:
-
-                            # for File based sources
-                            # if source_connection_objects.get("storage", {}).get("password", {}).get("password_type",
-                            #                                                                         "") == "secret_store":
-                            #     # for SFTP password auth
-                            #     secret_id = source_connection_objects["storage"]["password"]["secret_id"]
-                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                            #     if secret_name:
-                            #         source_connection_objects["storage"]["password"]["secret_name"] = secret_name
-                            # elif source_connection_objects.get("storage", {}).get("access_key_name", {}).get(
-                            #         "password_type", "") == "secret_store":
-                            #     # for adls gen2 storage account access key auth
-                            #     secret_id = source_connection_objects["storage"]["access_key_name"]["secret_id"]
-                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                            #     if secret_name:
-                            #         source_connection_objects["storage"]["access_key_name"]["secret_name"] = secret_name
-                            # elif source_connection_objects.get("storage", {}).get("service_credential", {}).get(
-                            #         "password_type", "") == "secret_store":
-                            #     # for adls gen2 service credential auth
-                            #     secret_id = source_connection_objects["storage"]["service_credential"]["secret_id"]
-                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                            #     if secret_name:
-                            #         source_connection_objects["storage"]["service_credential"][
-                            #             "secret_name"] = secret_name
-                            # elif source_connection_objects.get("storage", {}).get("account_key", {}).get(
-                            #         "password_type", "") == "secret_store":
-                            #     # for blob storage account key auth
-                            #     secret_id = source_connection_objects["storage"]["account_key"]["secret_id"]
-                            #     secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                            #     if secret_name:
-                            #         source_connection_objects["storage"]["account_key"]["secret_name"] = secret_name
-                            # else:
-                            #     pass
-                        # else:
-                        #     # for RDBMS sources
-                        #     if source_connection_objects.get("password", {}).get("password_type", "") == "secret_store":
-                        #         # for SFTP password auth
-                        #         secret_id = source_connection_objects["password"]["secret_id"]
-                        #         secret_name = self.get_secret_name_from_id(cicd_client, secret_id)
-                        #         if secret_name:
-                        #             source_connection_objects["password"]["secret_name"] = secret_name
                         # handle associated domains
                         if configuration_obj.get("configuration", {}).get("source_configs", {}).get(
                                 "associated_domains", None) is None:
@@ -410,6 +371,36 @@ class Utils:
                             table_config["configuration"]["export_configuration"]["connection"]["password"] = None
                         else:
                             pass  # TO_DO
+
+                # Dump table watermarks
+                table_watermark_mappings = {}
+                if dump_watermarks:
+                    for table_config in configuration_obj["configuration"]["table_configs"]:
+                        # table_name = table_config.get("configuration", {}).get("name", "")
+                        table_id = table_config.get("entity_id", None)
+                        source_id = entity_id
+                        if source_id is not None and table_id is not None:
+                            get_tbl_details_url = get_table_configuration(cicd_client.client_config, source_id,
+                                                                          table_id)
+                            response = cicd_client.call_api("GET", get_tbl_details_url,
+                                                            IWUtils.get_default_header_for_v3(
+                                                                cicd_client.client_config['bearer_token']))
+                            parsed_response = IWUtils.ejson_deserialize(response.content)
+                            if response.status_code == 200:
+                                last_ingested_cdc_value = parsed_response.get("result").get("last_ingested_cdc_value",
+                                                                                            None)
+                                last_merged_watermark = parsed_response.get("result").get("last_merged_watermark",
+                                                                                          None)
+                                row_count = parsed_response.get("result").get("row_count", None)
+                                full_load_performed = parsed_response.get("result").get("full_load_performed", None)
+                                table_watermark_mappings[table_id] = {
+                                    "last_ingested_cdc_value": last_ingested_cdc_value,
+                                    "last_merged_watermark": last_merged_watermark,
+                                    "row_count": row_count,
+                                    "full_load_performed": full_load_performed}
+                                configuration_obj["table_watermark_mappings"] = table_watermark_mappings
+                            else:
+                                print("Get Table Config Failed " + json.dumps(response))
 
                 # add domain names to mapped domain ids
                 accessible_domain_ids = configuration_obj["configuration"]["source_configs"].get("associated_domains",
@@ -596,12 +587,12 @@ class Utils:
                     cicd_client.logger.info("{} {}".format(filename, target_file_path))
                     print(f"Exporting configurations file to {target_file_path}")
                     with open(target_file_path, 'w') as file_ptr:
-                        #contents_to_write = IWUtils.ejson_serialize(configuration_obj)
-                        #if replace_words != "":
+                        # contents_to_write = IWUtils.ejson_serialize(configuration_obj)
+                        # if replace_words != "":
                         #    for key, value in [item.split("->") for item in replace_words.split(";")]:
                         #        contents_to_write = contents_to_write.replace(key, value)
-                        #file_ptr.write(contents_to_write)
-                        json.dump(configuration_obj,file_ptr,indent=4)
+                        # file_ptr.write(contents_to_write)
+                        json.dump(configuration_obj, file_ptr, indent=4)
                     cicd_client.logger.info("Configurations exported successfully")
                     print("Configurations exported successfully")
             except Exception as e:
