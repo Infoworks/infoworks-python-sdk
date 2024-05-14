@@ -563,3 +563,56 @@ class GenericJDBCSource:
             src_client_obj.logger.info(f"Successfully imported source configurations to {source_id}")
             return SourceResponse.parse_result(status=response["result"]["status"].upper(), source_id=source_id,
                                                response=response)
+
+    def update_table_state_as_ready(self,src_client_obj, source_id):
+        tables = self.configuration_obj["configuration"]["table_configs"]
+        table_state_update_dict = {}
+        tables_watermark_mappings = self.configuration_obj.get("table_watermark_mappings", {})
+        for table in tables:
+            table_name = table["configuration"]["name"]
+            src_client_obj.logger.info(f"Updating the table state information for table {table_name}")
+            table_update_payload = {"name": table_name, "source": source_id, "state": "ready"}
+            print("table_update_payload:",table_update_payload)
+            if table["configuration"].get("schema_name_at_source", "") != "":
+                table_document = src_client_obj.list_tables_in_source(source_id, params={
+                    "filter": {"origTableName": table["configuration"]["name"],
+                               "schemaNameAtSource": table["configuration"]["schema_name_at_source"]}}).get("result",
+                                                                                                            {}).get(
+                    "response", {}).get("result", [])
+            elif table["configuration"].get("catalog_name", ""):
+                table_document = src_client_obj.list_tables_in_source(source_id, params={
+                    "filter": {"origTableName": table["configuration"]["name"],
+                               "catalog_name": table["configuration"]["catalog_name"]}}).get("result", {}).get(
+                    "response", {}).get("result", [])
+            elif table["configuration"]["configuration"].get("query",""):
+                table_document = src_client_obj.list_tables_in_source(source_id, params={
+                    "filter": {"table": table_name}}).get("result", {}).get(
+                    "response", {}).get("result", [])
+            else:
+                print(f"Skipping updating state for table {table_name} as it did not match any existing table.")
+            table_id = None
+            if len(table_document) > 0:
+                table_document = table_document[0]
+                table_id = table_document["id"]
+            if table_id is not None:
+                response = src_client_obj.update_table_configuration(source_id=source_id, table_id=table_id,
+                                                                     config_body=table_update_payload)
+                if response["result"]["status"].upper() != "SUCCESS":
+                    src_client_obj.logger.error(
+                        "Failed to update state for table {table_name}".format(table_name=table_name))
+                    src_client_obj.logger.error(response.get("result", {}).get("response", {}).get("message", ""))
+                    table_state_update_dict[table_name] = (
+                    "FAILED", response.get("result", {}).get("response", {}).get("message", ""))
+                else:
+                    src_client_obj.logger.info(
+                        "Successfully updated state for table {table_name}".format(table_name=table_name))
+                    table_state_update_dict[table_name] = ("SUCCESS", "")
+        failed_state_update_tables = [(table_name, status[1]) for table_name, status in
+                                       table_state_update_dict.items() if status[0].upper() == "FAILED"]
+        overall_update_status = "FAILED" if len(failed_state_update_tables) > 0 else "SUCCESS"
+        if overall_update_status == "FAILED":
+            response = {f"Tables state update failed for tables:{failed_state_update_tables}"}
+        else:
+            response = {f"Tables state updated successfully"}
+        return SourceResponse.parse_result(status=overall_update_status, source_id=source_id,
+                                           response=response)

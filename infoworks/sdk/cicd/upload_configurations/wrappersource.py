@@ -200,6 +200,9 @@ class WrapperSource(BaseClient):
                                                          minimal_response_with_error))
                             self.logger.info("Configured source successfully")
                             print("Configured Source successfully!")
+                            if configuration_obj.get("table_watermark_mappings", {}):
+                                source_obj.update_table_watermarks_and_state_as_ready(self,source_id)
+
                         else:
 
                             self.logger.info("Failed to configure source")
@@ -297,6 +300,8 @@ class WrapperSource(BaseClient):
                                                          minimal_response_with_error))
                             self.logger.info("Configured source successfully")
                             print("Configured Source successfully!")
+                            if configuration_obj.get("table_watermark_mappings", {}):
+                                source_obj.update_table_watermarks_and_state_as_ready(self,source_id)
                         else:
 
                             self.logger.info("Failed to configure source")
@@ -573,6 +578,8 @@ class WrapperSource(BaseClient):
                                             overall_steps_status.append(("configure_tables_and_table_groups",
                                                                      status.upper(),
                                                                      minimal_response_with_error))
+                                            if configuration_obj.get("table_watermark_mappings", {}):
+                                                source_obj.update_table_state_as_ready(self, source_id)
                                         else:
                                             self.logger.error("Failed to configure source")
                                             print("Failed to configure source")
@@ -641,6 +648,8 @@ class WrapperSource(BaseClient):
                                 if status == "SUCCESS":
                                     self.logger.info("Configured source successfully")
                                     print("Configured source successfully")
+                                    if configuration_obj.get("table_watermark_mappings", {}):
+                                        source_obj.update_table_state_as_ready(self, source_id)
                         else:
                             self.logger.error("Failed to launch source test connection")
                             self.logger.error(status)
@@ -801,6 +810,8 @@ class WrapperSource(BaseClient):
                                                                              status,
                                                                              minimal_response_with_error))
                                                 self.logger.info(minimal_response_with_error)
+                                                if configuration_obj.get("table_watermark_mappings", {}):
+                                                    source_obj.update_table_state_as_ready(self, source_id)
                                             else:
                                                 print(configure_tables_and_tablegroups_response)
                                                 self.logger.error(configure_tables_and_tablegroups_response)
@@ -950,6 +961,8 @@ class WrapperSource(BaseClient):
                                     else:
                                         print(configure_tables_and_tablegroups_response)
                                         self.logger.error(configure_tables_and_tablegroups_response)
+                                        if configuration_obj.get("table_watermark_mappings", {}):
+                                            source_obj.update_table_state_as_ready(self, source_id)
                                     raise Exception("Failed to configure source")
                             else:
                                 self.logger.error("Failed while browsing tables")
