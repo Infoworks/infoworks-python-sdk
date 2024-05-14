@@ -398,9 +398,10 @@ class Utils:
                                 table_watermark_mappings[table_id] = {
                                     "last_ingested_cdc_value": last_ingested_cdc_value,
                                     "last_merged_watermark": last_merged_watermark,
-                                    "max_modified_timestamp": max_modified_timestamp,
                                     "row_count": row_count,
                                     "full_load_performed": full_load_performed}
+                                if max_modified_timestamp:
+                                    table_watermark_mappings[table_id]["max_modified_timestamp"] = max_modified_timestamp
                                 configuration_obj["table_watermark_mappings"] = table_watermark_mappings
                             else:
                                 print("Get Table Config Failed " + json.dumps(response))
