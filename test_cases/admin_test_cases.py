@@ -8,7 +8,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 refresh_token = ""
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("https", "host_name", "443", refresh_token)
+iwx_client.initialize_client_with_defaults("https", "aks-qa-600.infoworks.technology", "443", refresh_token)
 
 
 class TestAdminClientSDK:
@@ -33,7 +33,7 @@ class TestAdminClientSDK:
                     "needs_password_reset": False
                 },
                 "roles": ["modeller"],
-                "password": "ABCDabcd1234##"
+                "password": "ABCDabcd1234##" # pragma: allowlist secret
             })
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
@@ -238,10 +238,10 @@ class TestAdminClientSDK:
                 "type": "TARGET",
                 "sub_type": "SNOWFLAKE",
                 "properties": {
-                    "url": "",
-                    "account": "",
-                    "user_name": "",
-                    "password": "",
+                    "url": "a",
+                    "account": "a",
+                    "username": "a",
+                    "password": "a",
                     "additional_params": "",
                     "warehouse": "DEMO_WH"
                 }
@@ -262,10 +262,10 @@ class TestAdminClientSDK:
                 "type": "TARGET",
                 "sub_type": "SNOWFLAKE",
                 "properties": {
-                    "url": "",
-                    "account": "",
-                    "username": "",
-                    "password": "",
+                    "url": "xyz",
+                    "account": "xyz",
+                    "username": "xyz",
+                    "password": "xyz",
                     "additional_params": "",
                     "warehouse": "DEMO_WH"
                 }
@@ -318,7 +318,7 @@ class TestAdminClientSDK:
                 "authentication_properties": {
                     "subscription_id": "xxx",
                     "client_id": "xxx",
-                    "client_secret": "xxx",
+                    "client_secret": "xxx", # pragma: allowlist secret
                     "object_id": "xxx",
                     "tenant_id": "xxx"
                 }
@@ -425,8 +425,8 @@ class TestAdminClientSDK:
         try:
             response = iwx_client.create_secret(data={
                 "name": "mongo-pg-pwd-iwx",
-                "secret_store": "64182fd27eeb1c40de2b6007",
-                "secret_name": "mongo-pg-pwd-iwx"
+                "secret_store": "64182fd27eeb1c40de2b6007", # pragma: allowlist secret
+                "secret_name": "mongo-pg-pwd-iwx" # pragma: allowlist secret
             })
             print(response)
             pytest.secret_id = response["result"]["response"]["result"]["id"]

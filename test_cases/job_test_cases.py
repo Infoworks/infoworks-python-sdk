@@ -10,7 +10,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 refresh_token = ""
 iwx_client = InfoworksClientSDK()
-iwx_client.initialize_client_with_defaults("https", "host_name", "443", refresh_token)
+iwx_client.initialize_client_with_defaults("https", "aks-qa-600.infoworks.technology", "443", refresh_token)
 
 
 class TestJobsSDKFlow:
@@ -19,7 +19,9 @@ class TestJobsSDKFlow:
     def test_get_all_jobs_for_source(self):
         try:
             response = iwx_client.get_all_jobs_for_source(source_id=ValueStorage.source_id,
-                                                          params={"filter": {"jobType": "source_crawl"}})
+                                                          params={"filter": {"jobType": {
+                                                              "$in": ["source_crawl", "source_structured_cdc_merge",
+                                                                      "source_structured_crawl"]}}})
             print(response)
             assert response["result"]["status"].upper() == "SUCCESS"
             if len(response["result"]["response"]["result"]) > 0:
