@@ -517,7 +517,7 @@ class DomainClient(BaseClient):
                 request_url = url_builder.advanced_config_domain_url(self.client_config, domain_id)
             else:
                 request_type = "PUT"
-                request_url = url_builder.advanced_config_domain_url(self.client_config, domain_id) + f"{key}"
+                request_url = url_builder.advanced_config_domain_url(self.client_config, domain_id) + f"/{key}"
             response = IWUtils.ejson_deserialize(
                 self.call_api(request_type, request_url,
                               IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
@@ -562,7 +562,7 @@ class DomainClient(BaseClient):
             request_type = "GET" if action_type.lower() == "get" else "DELETE"
             response = IWUtils.ejson_deserialize(
                 self.call_api(request_type, url_builder.advanced_config_domain_url(
-                    self.client_config, domain_id) + f"{key}", IWUtils.get_default_header_for_v3(
+                    self.client_config, domain_id) + f"/{key}", IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
             result = response.get('result', {})
             message = response.get("message", "")

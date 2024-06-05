@@ -362,6 +362,10 @@ class CSVSource:
                 table_document = src_client_obj.list_tables_in_source(source_id, params={
                     "filter": {"table": table_name}}).get("result", {}).get(
                     "response", {}).get("result", [])
+            elif table_name:
+                table_document = src_client_obj.list_tables_in_source(source_id, params={
+                    "filter": {"table": table_name}}).get("result", {}).get(
+                    "response", {}).get("result", [])
             else:
                 print(f"Skipping updating state for table {table_name} as it did not match any existing table.")
             table_id = None

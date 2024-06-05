@@ -1,6 +1,6 @@
 import traceback
 
-from infoworks.sdk.url_builder import list_sources_url, create_workflow_url, list_domains_url, configure_workflow_url
+from infoworks.sdk.url_builder import list_sources_url, create_workflow_url, list_domains_url, configure_workflow_url,list_pipeline_versions_url,list_pipelines_url
 from infoworks.sdk.utils import IWUtils
 import sys
 import configparser
@@ -67,7 +67,94 @@ class Workflow:
             print(str(e))
             print(traceback.format_exc())
 
+    def get_existing_domain_id(self,wf_client_obj,domain_name):
+        existing_domain_id=None
+        if domain_name is not None:
+            domains_url_base = list_domains_url(wf_client_obj.client_config)
+            filter_condition = IWUtils.ejson_serialize({"name": domain_name})
+            domains_url = domains_url_base + f"?filter={{filter_condition}}".format(filter_condition=filter_condition)
+            response = requests.request("GET", domains_url, headers={
+                'Authorization': 'Bearer ' + wf_client_obj.client_config["bearer_token"],
+                'Content-Type': 'application/json'}, verify=False)
+            if response.status_code == 406:
+                headers = wf_client_obj.regenerate_bearer_token_if_needed(
+                    {'Authorization': 'Bearer ' + wf_client_obj.client_config["bearer_token"],
+                     'Content-Type': 'application/json'})
+                response = requests.request("GET", domains_url, headers=headers, verify=False)
+            existing_domain_id = None
+            if response is not None:
+                result = response.json().get("result", [])
+                if len(result) > 0:
+                    existing_domain_id = result[0]["id"]
+                else:
+                    wf_client_obj.logger.error('Can not find domain with given name {} '.format(domain_name))
+                    wf_client_obj.logger.error('Unable to create workflow')
+                    print(f'Can not find domain with given name {domain_name} ')
+                    print('Unable to create workflow')
+                    raise Exception("Unable to create workflow")
+            wf_client_obj.logger.info('domainId {}'.format(existing_domain_id))
+            return existing_domain_id
+
+    def get_existing_pipeline_id(self,wf_client_obj,domain_id,pipeline_name):
+        existing_pipeline_id = None
+        if domain_id is not None:
+            pipelines_url_base = list_pipelines_url(wf_client_obj.client_config,domain_id=domain_id)
+            filter_condition = IWUtils.ejson_serialize({"name": pipeline_name})
+            pipelines_url = pipelines_url_base + f"?filter={{filter_condition}}".format(filter_condition=filter_condition)
+            response = requests.request("GET", pipelines_url, headers={
+                'Authorization': 'Bearer ' + wf_client_obj.client_config["bearer_token"],
+                'Content-Type': 'application/json'}, verify=False)
+            if response.status_code == 406:
+                headers = wf_client_obj.regenerate_bearer_token_if_needed(
+                    {'Authorization': 'Bearer ' + wf_client_obj.client_config["bearer_token"],
+                     'Content-Type': 'application/json'})
+                response = requests.request("GET", pipelines_url, headers=headers, verify=False)
+            if response is not None:
+                result = response.json().get("result", [])
+                if len(result) > 0:
+                    existing_pipeline_id = result[0]["id"]
+                else:
+                    wf_client_obj.logger.error('Can not find pipeline with given name {} '.format(pipeline_name))
+                    wf_client_obj.logger.error('Unable to create workflow')
+                    print(f'Can not find pipeline with given name {pipeline_name} ')
+                    print('Unable to create workflow')
+                    raise Exception("Unable to create workflow")
+            wf_client_obj.logger.info('pipeline_id {}'.format(existing_pipeline_id))
+            return existing_pipeline_id
+
+    def set_active_pipeline_version_id(self,wf_client_obj):
+        for mapping in self.configuration_obj["configuration"]["iw_mappings"]:
+            if mapping["entity_type"] == "pipeline":
+                domain_name = mapping["recommendation"]["domain_name"]
+                pipeline_name = mapping["recommendation"]["pipeline_name"]
+                domain_id = self.get_existing_domain_id(wf_client_obj, domain_name)
+                pipeline_id = self.get_existing_pipeline_id(wf_client_obj, domain_id, pipeline_name=pipeline_name)
+                filter_condition = IWUtils.ejson_serialize({"is_active": True})
+                pipeline_active_version_url = list_pipeline_versions_url(wf_client_obj.client_config,domain_id=domain_id,pipeline_id=pipeline_id) + f"?filter={{filter_condition}}".format(filter_condition=filter_condition)
+                response = requests.request("GET", pipeline_active_version_url,
+                                            headers={'Authorization': 'Bearer ' + wf_client_obj.client_config[
+                                                'bearer_token'],
+                                                     'Content-Type': 'application/json'}, verify=False)
+                if response.status_code == 406:
+                    wf_client_obj.client_config['bearer_token'] = get_bearer_token(
+                        wf_client_obj.client_config["protocol"],
+                        wf_client_obj.client_config["ip"],
+                        wf_client_obj.client_config["port"],
+                        wf_client_obj.client_config["refresh_token"])
+                    headers = IWUtils.get_default_header_for_v3(wf_client_obj.client_config['bearer_token'])
+                    response = requests.request("GET", pipeline_active_version_url,
+                                                headers=headers, verify=False)
+                if response is not None:
+                    pipeline_versions_result = response.json().get("result", [])
+                    if pipeline_versions_result:
+                        pipeline_version_id=pipeline_versions_result[0]["version"]
+                        mapping["selected_versions"][0]["version"] = pipeline_version_id
+                wf_client_obj.logger.info(response.json())
+                print(response.json())
+
     def create(self, wf_client_obj, domain_id, domain_name):
+        # update the active version of pipeline
+        self.set_active_pipeline_version_id(wf_client_obj)
         sources_in_wfs = []
         workflow_name = self.configuration_obj["configuration"]["entity"]["entity_name"]
         for item in self.configuration_obj["configuration"]["iw_mappings"]:
@@ -136,7 +223,6 @@ class Workflow:
             print(f"domainId:{existing_domain_id}")
         else:
             final_domain_id = domain_id
-
         wf_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
         print(f'Adding user {user_email} to domain {final_domain_id}')
         domain_obj.add_user_to_domain(wf_client_obj, final_domain_id, None, user_email)

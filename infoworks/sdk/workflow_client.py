@@ -430,7 +430,7 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while cancelled the workflows.' + str(e))
             raise WorkflowError('Error occurred while cancelled the workflows.' + str(e))
 
-    def get_status_of_workflow(self, workflow_run_id=None, workflow_id=None):
+    def get_status_of_workflow(self, workflow_run_id=None, workflow_id=None,domain_id=None):
         """
         Fetches status of Infoworks Data workflow for given workflow id and run id
         :param workflow_run_id: run id of the workflow running
@@ -445,7 +445,7 @@ class WorkflowClient(BaseClient):
         response = None
         try:
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.get_workflow_status_url(
-                self.client_config, workflow_id, workflow_run_id), IWUtils.get_default_header_for_v3(
+                self.client_config, workflow_id, workflow_run_id,domain_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
 
             result = response.get('result', None)
