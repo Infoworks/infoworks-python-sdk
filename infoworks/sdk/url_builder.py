@@ -2334,3 +2334,23 @@ def list_generic_source_types(config,generic_source_type_id=None):
             protocol=config['protocol'],
             generic_source_type_id=generic_source_type_id)
     return request
+
+
+def get_custom_tags_url(config, custom_tag_id=None):
+    """
+        returns URL for custom tags registered in Infoworks
+        :param config: client configurations
+        :type config: dict
+        :param custom_tag_id: Unique Identifier of Custom Tag
+        :type custom_tag_id: string
+    """
+    if custom_tag_id is None:
+        request = '{protocol}://{ip}:{port}/v3/admin/custom-tags'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'])
+    else:
+        request = '{protocol}://{ip}:{port}/v3/admin/custom-tags/{custom_tag_id}'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            custom_tag_id=custom_tag_id)
+    return request
