@@ -831,7 +831,7 @@ class PipelineGroupClient(BaseClient):
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token']), ).content)
             result = response.get('result', None)
-            if not result:
+            if result is None:
                 self.logger.error(f"Failed to get the pipeline group job summary for job {job_id} ")
                 return GenericResponse.parse_result(status=Response.Status.FAILED,
                                                     error_code=ErrorCode.USER_ERROR,
