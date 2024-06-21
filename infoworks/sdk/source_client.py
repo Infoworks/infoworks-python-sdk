@@ -151,7 +151,7 @@ class SourceClient(BaseClient):
                 "driver_version": "v2",
                 "connection_url": "jdbc:oracle:thin:@52.73.246.109:1521:xe",
                 "username": "automation_db",
-                "password": "eEBcRuPkw0zh9oIPvKnal+1BNKmFH5TfdI1ieDinruUv47Z5+f/oPjb+uyqUmfcQusM2DjoHc3OM", # can be iwx encrypted password or plain text password
+                "password": "", # can be iwx encrypted password or plain text password
                 "connection_mode": "JDBC",
                 "database": "ORACLE"
                 }
@@ -3135,7 +3135,7 @@ class SourceClient(BaseClient):
             "id": "9376bf97a286e35efe86d321",
             "name": "dim_state",
             "original_table_name": "dim_state",
-            "data_lake_path": "/iw/sources/customer_360_sql_server_schema/9376bf97a286e35efe86d321",
+            "data_lake_path": "/iw/sources/customer_360_sql_server_schema/9376bf97a286e35efe86d321",# pragma: allowlist secret
             "meta_crawl_performed": true,
             "columns": [
                 {
@@ -3281,10 +3281,10 @@ class SourceClient(BaseClient):
             source_crawl_job_summary_url = url_builder.get_crawl_job_summary_url(self.client_config,
                                                                                  source_id,
                                                                                  job_id) + f"?num_lines={num_lines}"
-            response = IWUtils.ejson_deserialize(self.call_api("GET", source_crawl_job_summary_url,
+            response = self.call_api("GET", source_crawl_job_summary_url,
                                                                IWUtils.get_default_header_for_v3(
                                                                    self.client_config['bearer_token']),
-                                                               ).content)
+                                                               )
             result = response.get('result', None)
             if not result:
                 self.logger.error(f"Failed to get the source job crawl summary fro job {job_id} ")
