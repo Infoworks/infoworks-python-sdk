@@ -171,7 +171,7 @@ class BaseClient(object):
                 return response
         elif method.upper() == "DELETE":
             self.logger.info(f"Calling {url}")
-            response = self.http.delete(url, headers=headers, timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC,
+            response = self.http.delete(url, headers=headers, timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC,json=data,
                                         verify=False)
             if response.status_code in [401, 406]:
                 headers = self.regenerate_bearer_token_if_needed(headers)

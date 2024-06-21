@@ -1631,8 +1631,8 @@ class AdminClient(BaseClient):
         ```
         example_data = {
             "name": "mongo-pg-pwd",
-            "secret_store": "",
-            "secret_name": ""
+            "secret_store": "64182fd27eeb1c40de2b6007", # pragma: allowlist secret
+            "secret_name": "mongo-pg-pwd" # pragma: allowlist secret
         }
         ```
         :return: response dict
@@ -1696,8 +1696,8 @@ class AdminClient(BaseClient):
         ```
         example_data = {
             "name": "mongo-pg-pwd",
-            "secret_store": "",
-            "secret_name": ""
+            "secret_store": "64182fd27eeb1c40de2b6007", # pragma: allowlist secret
+            "secret_name": "mongo-pg-pwd" # pragma: allowlist secret
         }
         ```
         :return: response dict
@@ -2302,6 +2302,120 @@ class AdminClient(BaseClient):
         except Exception as e:
             self.logger.error("Error in listing generic source type dependencies")
             raise AdminError("Error in listing generic source type dependencies" + str(e))
+
+    def get_list_of_custom_tags(self, params=None, pagination=True):
+        """
+        Function to list the custom tags
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
+        :return: response dict
+        """
+        if params is None:
+            params = {"limit": 20, "offset": 0}
+        url_to_get_custom_tags = url_builder.get_custom_tags_url(
+            self.client_config) + IWUtils.get_query_params_string_from_dict(params=params)
+        custom_tags_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_custom_tags,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                initial_msg = response.get("message", "")
+                result = response.get("result", [])
+                while len(result) > 0:
+                    custom_tags_list.extend(result)
+                    if not pagination:
+                        break
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            else:
+                self.logger.error("Failed to get list of custom tags")
+                return GenericResponse.parse_result(status=Response.Status.FAILED, response=response)
+            response["result"] = custom_tags_list
+            response["message"] = initial_msg
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Failed to get custom tags")
+            raise AdminError("Failed to get custom tags" + str(e))
+
+    def get_custom_tag(self, custom_tag_id):
+        """
+        Function to get custom tag
+        :param custom_tag_id: Unique Identifier of custom tag
+        :type: string
+        :return: response dict
+        """
+        if custom_tag_id is None:
+            self.logger.error("custom_tag_id cannot be None")
+            raise Exception("custom_tag_id cannot be None")
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_builder.get_custom_tags_url(self.client_config, custom_tag_id),
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            result = response.get("result", None)
+            if result is not None:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                raise Exception("Could not get the custom tag")
+        except Exception as e:
+            self.logger.error("Error in getting custom tag")
+            raise AdminError("Error in getting custom tag : " + str(e))
+
+    def get_custom_tag_by_key_value(self, custom_tag_key=None, custom_tag_value=None):
+        """
+        Function to get custom tag id by key, value pair
+        :custom_tag_key: key of infoworks custom tag
+        :custom_tag_value: value of infoworks custom tag
+        """
+        if custom_tag_key is None and custom_tag_value is None:
+            self.logger.error("custom_tag_key and custom_tag_value both cannot be None")
+            raise Exception("custom_tag_key and custom_tag_value both cannot be None")
+        try:
+            custom_tags_list = []
+            if custom_tag_key is None:
+                params = {"filter": {"value": custom_tag_value}}
+            elif custom_tag_value is None:
+                params = {"filter": {"key": custom_tag_key}}
+            else:
+                params = {"filter": {"key": custom_tag_key, "value": custom_tag_value}}
+            url_to_get_custom_tags = url_builder.get_custom_tags_url(
+                self.client_config) + IWUtils.get_query_params_string_from_dict(params=params)
+
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_to_get_custom_tags,
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response is not None:
+                initial_msg = response.get("message", "")
+                result = response.get("result", [])
+                while len(result) > 0:
+                    custom_tags_list.extend(result)
+                    nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                      ip=self.client_config['ip'],
+                                                                      port=self.client_config['port'],
+                                                                      protocol=self.client_config['protocol'],
+                                                                      )
+                    response = IWUtils.ejson_deserialize(
+                        self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                            self.client_config['bearer_token'])).content)
+                    result = response.get("result", [])
+            else:
+                self.logger.error("Failed to get list of custom tags")
+                return GenericResponse.parse_result(status=Response.Status.FAILED, response=response)
+            response["result"] = custom_tags_list
+            response["message"] = initial_msg
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as error:
+            self.logger.error(f"Failed to get custom tag id : {error}")
+            raise AdminError(f"Failed to get custom tag id : {error}")
 
     def create_compute_cluster(self, environment_id, compute_body=None, compute_type="interactive"):
         """
