@@ -541,7 +541,8 @@ class AdminClient(BaseClient):
             self.client_config)
         try:
             response = self.call_api("POST", url_to_list_environments,
-                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),environment_body)
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     environment_body)
             parsed_response = IWUtils.ejson_deserialize(response.content)
             if response.status_code == 200:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
@@ -556,7 +557,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in creating environment" + str(e))
             raise AdminError("Error in creating environment" + str(e))
 
-    def update_environment(self, environment_id = None,environment_body=None):
+    def update_environment(self, environment_id=None, environment_body=None):
         """
         Function to update data environment
         :param environment_id: Id of the data environment
@@ -565,14 +566,15 @@ class AdminClient(BaseClient):
         :type environment_body: Dict
         :return: Response Dict
         """
-        if None in [environment_body,environment_id]:
+        if None in [environment_body, environment_id]:
             self.logger.error("environment_id or environment_body cannot be None")
             raise Exception("environment_id or environment_body cannot be None")
         url_to_list_environments = url_builder.get_environment_details(
-            self.client_config)+f"/{environment_id}"
+            self.client_config) + f"/{environment_id}"
         try:
             response = self.call_api("PATCH", url_to_list_environments,
-                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),environment_body)
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     environment_body)
             parsed_response = IWUtils.ejson_deserialize(response.content)
             if response.status_code == 200:
                 return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
@@ -648,7 +650,8 @@ class AdminClient(BaseClient):
             self.logger.error("Error in getting storage details " + str(e))
             raise AdminError("Error in getting storage details" + str(e))
 
-    def get_compute_template_details(self, environment_id, compute_id=None, is_interactive=False, params=None, pagination=True):
+    def get_compute_template_details(self, environment_id, compute_id=None, is_interactive=False, params=None,
+                                     pagination=True):
         """
          Function to get compute template details
          :param environment_id: Entity identifier of the environment
@@ -864,7 +867,7 @@ class AdminClient(BaseClient):
         if params is None:
             params = {"limit": 20, "offset": 0}
         url_to_list_source_extensions = url_builder.create_source_extension_url(self.client_config) \
-                                    + IWUtils.get_query_params_string_from_dict(params=params)
+                                        + IWUtils.get_query_params_string_from_dict(params=params)
         source_extensions_list = []
         try:
             response = IWUtils.ejson_deserialize(
@@ -1030,7 +1033,7 @@ class AdminClient(BaseClient):
             "account": "",
             "user_name": "ramesh",
             "password": {
-                "password_type": "infoworks_managed"
+                "password_type": "infoworks_managed" # pragma: allowlist secret
                 "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
             },
             "password": "", -->  Needed if the password_type is infoworks_managed
@@ -1078,7 +1081,7 @@ class AdminClient(BaseClient):
             "account": "",
             "username": "ramesh",
             "password": {
-                "password_type": "infoworks_managed",
+                "password_type": "infoworks_managed", # pragma: allowlist secret
                 "secret_id": "6418304b7eeb1c40de2b6008" --> Needed if password_type is secret_store
             },
             "password": "", -->  Needed if the password_type is infoworks_managed
@@ -1628,8 +1631,8 @@ class AdminClient(BaseClient):
         ```
         example_data = {
             "name": "mongo-pg-pwd",
-            "secret_store": "64182fd27eeb1c40de2b6007",
-            "secret_name": "mongo-pg-pwd"
+            "secret_store": "64182fd27eeb1c40de2b6007", # pragma: allowlist secret
+            "secret_name": "mongo-pg-pwd" # pragma: allowlist secret
         }
         ```
         :return: response dict
@@ -1693,8 +1696,8 @@ class AdminClient(BaseClient):
         ```
         example_data = {
             "name": "mongo-pg-pwd",
-            "secret_store": "64182fd27eeb1c40de2b6007",
-            "secret_name": "mongo-pg-pwd"
+            "secret_store": "64182fd27eeb1c40de2b6007", # pragma: allowlist secret
+            "secret_name": "mongo-pg-pwd" # pragma: allowlist secret
         }
         ```
         :return: response dict
@@ -2111,7 +2114,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in listing job_hooks")
             raise AdminError("Error in listing job_hooks" + str(e))
 
-    def get_list_of_job_hook_dependencies(self, job_hook_id=None,params=None):
+    def get_list_of_job_hook_dependencies(self, job_hook_id=None, params=None):
         """
         Function to list all the dependencies of job hook
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
@@ -2126,7 +2129,7 @@ class AdminClient(BaseClient):
             self.logger.error("job_hook_id cannot be None")
             raise Exception("job_hook_id cannot be None")
         job_hook_dependencies_url = url_builder.get_list_of_job_hook_dependencies(
-            self.client_config,job_hook_id) + IWUtils.get_query_params_string_from_dict(
+            self.client_config, job_hook_id) + IWUtils.get_query_params_string_from_dict(
             params=params)
         try:
             response = IWUtils.ejson_deserialize(
@@ -2136,10 +2139,10 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 if result is None:
                     return GenericResponse.parse_result(status=Response.Status.FAILED,
-                                                            error_code=ErrorCode.GENERIC_ERROR,
-                                                            error_desc="Error in listing job_hook dependencies",
-                                                            response=response
-                                                            )
+                                                        error_code=ErrorCode.GENERIC_ERROR,
+                                                        error_desc="Error in listing job_hook dependencies",
+                                                        response=response
+                                                        )
 
                 response["result"] = result
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
@@ -2147,7 +2150,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in listing job_hook dependencies")
             raise AdminError("Error in listing job_hook dependencies" + str(e))
 
-    def get_list_of_source_extension_dependencies(self, source_extension_id=None,params=None):
+    def get_list_of_source_extension_dependencies(self, source_extension_id=None, params=None):
         """
         Function to list all the dependencies of source extension
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
@@ -2162,7 +2165,7 @@ class AdminClient(BaseClient):
             self.logger.error("source_extension_id cannot be None")
             raise Exception("source_extension_id cannot be None")
         source_extension_dependencies_url = url_builder.get_list_of_source_extension_dependencies(
-            self.client_config,source_extension_id) + IWUtils.get_query_params_string_from_dict(
+            self.client_config, source_extension_id) + IWUtils.get_query_params_string_from_dict(
             params=params)
         try:
             response = IWUtils.ejson_deserialize(
@@ -2172,10 +2175,10 @@ class AdminClient(BaseClient):
                 result = response.get("result", [])
                 if result is None:
                     return GenericResponse.parse_result(status=Response.Status.FAILED,
-                                                            error_code=ErrorCode.GENERIC_ERROR,
-                                                            error_desc="Error in listing source_extension dependencies",
-                                                            response=response
-                                                            )
+                                                        error_code=ErrorCode.GENERIC_ERROR,
+                                                        error_desc="Error in listing source_extension dependencies",
+                                                        response=response
+                                                        )
 
                 response["result"] = result
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
@@ -2194,7 +2197,8 @@ class AdminClient(BaseClient):
         """
         if params is None:
             params = {"limit": 20, "offset": 0}
-        url_to_list_generic_source_types = url_builder.list_generic_source_types(self.client_config) + IWUtils.get_query_params_string_from_dict(
+        url_to_list_generic_source_types = url_builder.list_generic_source_types(
+            self.client_config) + IWUtils.get_query_params_string_from_dict(
             params=params)
 
         generic_source_types_list = []
@@ -2263,7 +2267,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in getting generic source id details")
             raise AdminError("Error in getting generic source id details" + str(e))
 
-    def get_list_of_generic_source_type_dependencies(self, generic_source_type_id=None,params=None):
+    def get_list_of_generic_source_type_dependencies(self, generic_source_type_id=None, params=None):
         """
         Function to list all the dependencies of generic source type
         :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
@@ -2412,3 +2416,70 @@ class AdminClient(BaseClient):
         except Exception as error:
             self.logger.error(f"Failed to get custom tag id : {error}")
             raise AdminError(f"Failed to get custom tag id : {error}")
+
+    def create_compute_cluster(self, environment_id, compute_body=None, compute_type="interactive"):
+        """
+        Function to create an interactive compute
+        :param environment_id: Entity identifier of the environment in which compute should be created
+        :param compute_type: interactive/ephemeral
+        :param compute_body: Body to create the interactive compute
+        :type compute_body: Dict
+        :return: Response Dict
+        """
+        if None in [compute_body, environment_id]:
+            self.logger.error("compute_body or environment_id cannot be None")
+            raise Exception("compute_body or environment_id cannot be None")
+        url_to_list_environments = url_builder.get_environment_details(self.client_config, env_id=environment_id)
+        if compute_type == "interactive":
+            url_to_create_compute = url_to_list_environments.strip("/") + "/environment-interactive-clusters"
+        else:
+            url_to_create_compute = url_to_list_environments.strip("/") + "/environment-compute-template"
+        try:
+            response = self.call_api("POST", url_to_create_compute,
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     compute_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error in creating {compute_type} compute ")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error in creating {compute_type} compute" + str(e))
+            raise AdminError(f"Error in creating {compute_type} compute" + str(e))
+
+    def create_storage(self, environment_id, storage_body=None):
+        """
+        Function to create storage for environment id
+        :param environment_id: Entity identifier of the environment in which storage should be created
+        :param storage_body: Body to create the storage
+        :type storage_body: Dict
+        :return: Response Dict
+        """
+        if None in [storage_body, environment_id]:
+            self.logger.error("storage_body or environment_id cannot be None")
+            raise Exception("storage_body or environment_id cannot be None")
+        url_to_list_environments = url_builder.get_environment_details(self.client_config, env_id=environment_id)
+        url_to_create_storage = url_to_list_environments.strip("/") + "/environment-storage"
+
+        try:
+            response = self.call_api("POST", url_to_create_storage,
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     storage_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error in creating storage ")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error in creating storage" + str(e))
+            raise AdminError(f"Error in creating storage" + str(e))
