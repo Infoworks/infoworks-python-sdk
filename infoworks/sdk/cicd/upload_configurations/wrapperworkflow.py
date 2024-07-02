@@ -127,6 +127,7 @@ class WrapperWorkflow(BaseClient):
         :param domain_name: Domain name to which the pipeline belongs to
         :param replace_words: Pass the strings to be replaced in the configuration file. Example: DEV->PROD;dev->prod
         """
+        overall_steps_status = []
         try:
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
@@ -138,12 +139,20 @@ class WrapperWorkflow(BaseClient):
             wf_obj.update_mappings_for_configurations(self.mappings)
             wf_id, domain_id = wf_obj.create(self, domain_id, domain_name)
             if wf_id is not None:
-                status = wf_obj.configure(self, wf_id, domain_id)
+                overall_steps_status.append(
+                    ("workflow_creation", "SUCCESS", "created/obtained existing workflow successfully!"))
+                status,import_config_status = wf_obj.configure(self, wf_id, domain_id)
+                overall_steps_status.extend(import_config_status)
+            else:
+                raise Exception("Failed to create workflow or get existing workflow")
         except Exception as e:
             self.logger.error(str(e))
+            overall_steps_status.append(("workflow_import_status", "FAILED",
+                                         str(e)))
             print(str(e))
             print(traceback.format_exc())
-
+        finally:
+            self.print_overall_steps_status(overall_steps_status)
     def __execute(self, thread_number, q):
         while True:
             try:

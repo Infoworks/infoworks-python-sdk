@@ -12,7 +12,7 @@ import os.path
 import queue
 import threading
 import networkx as nx
-
+import pandas as pd
 
 class WrapperPipeline(BaseClient):
     def __init__(self):
@@ -114,6 +114,12 @@ class WrapperPipeline(BaseClient):
             return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=compute_details)
         except Exception as e:
             self.logger.error("Error in getting compute template details")
+
+    def print_overall_steps_status(self,overall_steps_status):
+        overall_steps_status_df = pd.DataFrame(data=overall_steps_status,
+                                               columns=["STEP", "OVERALL_STATUS", "RESPONSE"])
+        print(overall_steps_status_df.to_markdown())
+
     def cicd_create_configure_pipeline(self, configuration_file_path, domain_id=None, domain_name=None,
                                        override_configuration_file=None,
                                        replace_words="", read_passwords_from_secrets=False, env_tag="", secret_type=""):
@@ -127,6 +133,7 @@ class WrapperPipeline(BaseClient):
         :param replace_words: Pass the strings to be replaced in the configuration file. Example: DEV->PROD;dev->prod
         :param read_passwords_from_secrets: True/False. If True all the pipeline related passwords are read from encrypted file name passed
         """
+        overall_steps_status = []
         try:
             if domain_id is None and domain_name is None:
                 domain_name = Path(configuration_file_path).name.split("#")[0]
@@ -171,6 +178,8 @@ class WrapperPipeline(BaseClient):
                         if len(result["result"]["response"]) != 0:
                             compute_id = result["result"]["response"][0]["id"]
             if env_id is None:
+                overall_steps_status.append(("pipeline_creation", "FAILED",
+                                             "Neither Environment ID nor Environment mapping equivalent found"))
                 print("No env id and no mapping found")
                 raise Exception("No env id and no mapping found")
             pl_obj = Pipeline(configuration_file_path, env_id, storage_id, compute_id, replace_words,
@@ -180,14 +189,20 @@ class WrapperPipeline(BaseClient):
             pipeline_id, domain_id = pl_obj.create(self, domain_id, domain_name)
 
             if pipeline_id is not None:
-                status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings,
+                overall_steps_status.append(("pipeline_creation", "SUCCESS", "created/obtained existing pipeline successfully!"))
+                status,import_config_status = pl_obj.configure(self, pipeline_id, domain_id, override_configuration_file, self.mappings,
                                               read_passwords_from_secrets, env_tag=env_tag, secret_type=secret_type)
+                overall_steps_status.extend(import_config_status)
         except Exception as e:
+            overall_steps_status.append(("pipeline_import", "FAILED",
+                                         str(e)))
             self.logger.error(str(e))
             print(str(e))
             self.logger.error(traceback.format_exc())
             print(traceback.format_exc())
-
+        finally:
+            self.print_overall_steps_status(overall_steps_status)
+            return overall_steps_status
     def cicd_create_configure_pipeline_group(self, configuration_file_path, domain_id=None, domain_name=None,
                                              override_configuration_file=None,
                                              replace_words="", read_passwords_from_secrets=False, env_tag="",

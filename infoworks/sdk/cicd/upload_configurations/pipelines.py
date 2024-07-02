@@ -118,15 +118,15 @@ class Pipeline:
                         time.sleep(POLLING_FREQUENCY_IN_SEC)
                         return self.poll_pipeline_job(pipeline_client_obj, domain_id, pipeline_id)
                     else:
-                        return "SUCCESS" if job_status.lower() == "completed" else "FAILED"
+                        return "SUCCESS" if job_status.lower() == "completed" else "FAILED",parsed_response
             else:
                 print("Error during polling of pipeline build metadata job")
                 print(parsed_response)
-                return "FAILED"
+                return "FAILED",parsed_response
         else:
             print("Error during polling of pipeline build metadata job")
             print(parsed_response)
-            return "FAILED"
+            return "FAILED",parsed_response
 
     def create(self, pipeline_client_obj, domain_id, domain_name):
         pipeline_name = self.configuration_obj["configuration"]["entity"]["entity_name"]
@@ -278,6 +278,7 @@ class Pipeline:
 
     def configure(self, pipeline_client_obj, pipeline_id, domain_id, override_dataconnection_config_file=None,
                   mappings=None, read_passwords_from_secrets=False, env_tag="", secret_type=""):
+        import_config_status = []
         if mappings is None:
             mappings = {}
         if self.configuration_obj.get("dataconnection_configurations", None):
@@ -328,6 +329,7 @@ class Pipeline:
                 response = IWUtils.ejson_deserialize(response.content)
                 pipeline_client_obj.logger.info(response)
                 print(response)
+                import_config_status.append(('data_connection_import',response.get("status",""),response))
 
         import_configs = {
             "run_pipeline_metadata_build": True,
@@ -353,14 +355,24 @@ class Pipeline:
                 pipeline_client_obj.client_config["refresh_token"])
             headers = IWUtils.get_default_header_for_v3(pipeline_client_obj.client_config['bearer_token'])
             response = requests.post(url_for_importing_pipeline, data=json_string, headers=headers, verify=False)
+        status_code = response.status_code
         response = IWUtils.ejson_deserialize(response.content)
-        if response is not None:
+        error=[]
+        for iw_mapping in response.get("result",{}).get("configuration",{}).get("iw_mappings",[]):
+            import_error = iw_mapping.get("error","")
+            if import_error:
+                error.append(import_error)
+        pipeline_import_status = "SUCCESS" if (error==[] and status_code == 200) else "FAILED"
+        pipeline_import_response = response if (pipeline_import_status=="SUCCESS" or status_code != 200) else error
+        import_config_status.append(('pipeline_import_status', pipeline_import_status, pipeline_import_response))
+        if response is not None and pipeline_import_status == "SUCCESS":
             pipeline_client_obj.logger.info(response.get("message", "") + " Done")
             pipeline_client_obj.logger.info(response)
             print(f'{response.get("message", "")} Done')
             print(response)
-            pipeline_metadata_build_status = self.poll_pipeline_job(pipeline_client_obj, domain_id, pipeline_id)
-            return pipeline_metadata_build_status
+            pipeline_metadata_build_status,parsed_response = self.poll_pipeline_job(pipeline_client_obj, domain_id, pipeline_id)
+            import_config_status.append(('pipeline_metadata_build_status', pipeline_metadata_build_status, parsed_response.get("result",parsed_response)))
+            return pipeline_metadata_build_status,import_config_status
         else:
             print(response)
-            return "FAILED"
+            return "FAILED",import_config_status

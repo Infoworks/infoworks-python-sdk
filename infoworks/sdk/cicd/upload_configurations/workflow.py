@@ -293,6 +293,7 @@ class Workflow:
         return new_workflow_id, final_domain_id
 
     def configure(self, wf_client_obj, workflow_id, domain_id):
+        import_config_status = []
         url_for_importing_workflow = configure_workflow_url(wf_client_obj.client_config, domain_id, workflow_id)
         json_string = IWUtils.ejson_serialize({"configuration": self.configuration_obj["configuration"]})
         response = requests.put(url_for_importing_workflow, data=json_string,
@@ -306,8 +307,18 @@ class Workflow:
             headers = IWUtils.get_default_header_for_v3(wf_client_obj.client_config['bearer_token'])
             response = requests.put(url_for_importing_workflow, data=json_string, headers=headers, verify=False)
         response = IWUtils.ejson_deserialize(response.content)
+        error = []
+        status_code = response.status_code
+        for iw_mapping in response.get("result", {}).get("configuration", {}).get("iw_mappings", []):
+            import_error = iw_mapping.get("error", "")
+            if import_error:
+                error.append(import_error)
+        workflow_import_status = "SUCCESS" if (error == [] and status_code == 200) else "FAILED"
+        workflow_import_response = response if (workflow_import_status == "SUCCESS" or status_code != 200) else error
+        import_config_status.append(('workflow_import_status', workflow_import_status, workflow_import_response))
         wf_client_obj.logger.info(response)
         print(response)
         if response is not None:
             wf_client_obj.logger.info(response.get("message", "") + " Done")
             print(response.get("message", "") + " Done")
+        return workflow_import_status,import_config_status

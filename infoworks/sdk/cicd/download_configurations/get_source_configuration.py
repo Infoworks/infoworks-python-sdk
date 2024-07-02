@@ -11,14 +11,14 @@ class DownloadSource(BaseClient):
 
     def cicd_get_sourceconfig_export(self, source_ids, config_file_export_path, files_overwrite=True,
                                      serviceaccountemail="admin@infoworks.io",
-                                     replace_words="", dump_watermarks=True):
+                                     replace_words="", dump_watermarks=True,custom_tag_id=None):
         self.cicd_get_sourceconfig_dumps(source_ids, config_file_export_path, files_overwrite,
                                          serviceaccountemail,
-                                         replace_words,dump_watermarks)
+                                         replace_words,dump_watermarks,custom_tag_id)
 
     def cicd_get_sourceconfig_dumps(self, source_ids, config_file_dump_path, files_overwrite=True,
                                     serviceaccountemail="admin@infoworks.io",
-                                    replace_words="", dump_watermarks=True):
+                                    replace_words="", dump_watermarks=True,custom_tag_id=None):
         # replace_words = "DEV->PROD;dev->prod"
         utils_obj = Utils(serviceaccountemail)
         if not os.path.exists(os.path.join(config_file_dump_path, "modified_files")):
@@ -36,7 +36,7 @@ class DownloadSource(BaseClient):
             try:
                 filename, configuration_obj = utils_obj.dump_to_file(self, "source", None,
                                                                      source_id, replace_words,
-                                                                     config_file_dump_path, dump_watermarks)
+                                                                     config_file_dump_path, dump_watermarks,custom_tag_id=custom_tag_id)
                 if filename is not None:
                     f.write(filename)
                     f.write("\n")

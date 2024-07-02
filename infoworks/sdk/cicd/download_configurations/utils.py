@@ -7,7 +7,7 @@ from infoworks.sdk.url_builder import get_parent_entity_url, list_domains_url, c
     configure_source_url, get_environment_details, get_environment_storage_details, get_environment_compute_details, \
     get_environment_interactive_compute_details, get_source_configurations_url, get_pipeline_url, \
     get_data_connection, source_info, list_users_url, list_secrets_url, get_pipeline_group_base_url, list_pipelines_url, \
-    create_domain_url, get_table_configuration
+    create_domain_url, get_table_configuration, list_tables_under_source, create_table_group_url
 from infoworks.sdk.cicd.cicd_response import CICDResponse
 import json
 
@@ -296,7 +296,7 @@ class Utils:
                 return value
 
     def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path,
-                     dump_watermarks=True):
+                     dump_watermarks=True,custom_tag_id=None):
         response_to_return = {}
         filename = None
         environment_id, environment_compute_template_id, environment_storage_id = None, None, None
@@ -405,7 +405,75 @@ class Utils:
                                 configuration_obj["table_watermark_mappings"] = table_watermark_mappings
                             else:
                                 print("Get Table Config Failed " + json.dumps(response))
+                # filter tables and table groups by custom tag if custom tag is not None
+                if custom_tag_id:
+                    filtered_table_ids =[]
+                    filtered_table_group_ids = []
+                    list_tables_under_source_url = list_tables_under_source(config=cicd_client.client_config, source_id = entity_id) +'?filter={"configuration.custom_tags":\"'+custom_tag_id+'\"}'
+                    custom_tag_tables = cicd_client.call_api("GET", list_tables_under_source_url, IWUtils.get_default_header_for_v3(
+                        cicd_client.client_config[
+                            'bearer_token']))
 
+                    filtered_tables_parsed_response = IWUtils.ejson_deserialize(custom_tag_tables.content)
+                    print(filtered_tables_parsed_response)
+                    if custom_tag_tables.status_code == 200:
+                        status = "SUCCESS"
+                        filtered_tables_parsed_response=filtered_tables_parsed_response.get("result",[])
+                        filtered_table_ids = [table["id"] for table in filtered_tables_parsed_response]
+                        print("filtered_table_ids",filtered_table_ids)
+                    else:
+                        status = "FAILED"
+                        print(parsed_response)
+
+                    list_table_groups_under_source_url = create_table_group_url(config=cicd_client.client_config, source_id = entity_id) + '?filter={"configuration.custom_tags":\"'+custom_tag_id+'\"}'
+                    custom_tag_table_groups = cicd_client.call_api("GET", list_table_groups_under_source_url, IWUtils.get_default_header_for_v3(
+                        cicd_client.client_config[
+                            'bearer_token']))
+                    print(list_table_groups_under_source_url)
+                    print(custom_tag_table_groups)
+                    custom_tag_table_groups_parsed_response = IWUtils.ejson_deserialize(custom_tag_table_groups.content)
+                    print("custom_tag_table_groups_parsed_response",custom_tag_table_groups_parsed_response)
+                    if custom_tag_table_groups.status_code == 200:
+                        status = "SUCCESS"
+                        filtered_table_groups=custom_tag_table_groups_parsed_response.get("result",[])
+                        filtered_table_group_ids = [tg["id"] for tg in filtered_table_groups]
+                        print("filtered_table_group_ids",filtered_table_group_ids)
+                    else:
+                        status = "FAILED"
+                        print(parsed_response)
+                    updated_tables = []
+                    updated_table_groups = []
+                    for table in configuration_obj["configuration"]["table_configs"]:
+                        if table["entity_id"] in filtered_table_ids:
+                            updated_tables.append(table)
+                        else:
+                            print(f"Removing {table['configuration']['name'].upper()} from table_configs section")
+                    configuration_obj["configuration"]["table_configs"] = updated_tables
+                    for tg in configuration_obj["configuration"]["table_group_configs"]:
+                        if tg["entity_id"] in filtered_table_group_ids:
+                            updated_table_groups.append(tg)
+                        else:
+                            print(f"Removing {tg['configuration']['name'].upper()} from table_group_configs section")
+                    configuration_obj["configuration"]["table_group_configs"] = updated_table_groups
+                    updated_iw_mappings = []
+                    for iw_mapping in configuration_obj["configuration"]["iw_mappings"]:
+                        if iw_mapping.get("entity_type","")=="table":
+                            if iw_mapping.get("entity_id", "") in filtered_table_ids:
+                                updated_iw_mappings.append(iw_mapping)
+                            else:
+                                table_id = iw_mapping.get("entity_id", "")
+                                print(
+                                    f"Removing table {table_id} from iw_mappings section")
+                        elif iw_mapping.get("entity_type","")=="table_group":
+                            if iw_mapping.get("entity_id", "") in filtered_table_group_ids:
+                                updated_iw_mappings.append(iw_mapping)
+                            else:
+                                tg_id = iw_mapping.get("entity_id", "")
+                                print(
+                                    f"Removing table group {tg_id} from iw_mappings section")
+                        else:
+                            updated_iw_mappings.append(iw_mapping)
+                    configuration_obj["configuration"]["iw_mappings"] = updated_iw_mappings
                 # add domain names to mapped domain ids
                 accessible_domain_ids = configuration_obj["configuration"]["source_configs"].get("associated_domains",
                                                                                                  [])
