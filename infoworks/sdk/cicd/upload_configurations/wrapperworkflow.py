@@ -11,7 +11,7 @@ import os.path
 import queue
 import threading
 import networkx as nx
-
+import pandas as pd
 
 class WrapperWorkflow(BaseClient):
     def __init__(self):
@@ -116,7 +116,10 @@ class WrapperWorkflow(BaseClient):
         except Exception as e:
             self.logger.error("Error in getting compute template details")
             print("Error in getting compute template details")
-
+    def print_overall_steps_status(self,overall_steps_status):
+        overall_steps_status_df = pd.DataFrame(data=overall_steps_status,
+                                               columns=["STEP", "OVERALL_STATUS", "RESPONSE"])
+        print(overall_steps_status_df.to_markdown())
     def cicd_create_configure_workflow(self, configuration_file_path, domain_id=None, domain_name=None,
                                        replace_words=""):
         """
