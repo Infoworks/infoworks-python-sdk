@@ -5,10 +5,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="infoworkssdk",
-    version="4.1.1",
+    version="5.0",
     author="Infoworks CE Team",
     author_email="abhishek.raviprasad@infoworks.io",
-    description="A package to work with Infoworks via SDK. This library is compatible with Infoworks v5.x onwards. Code can be found in https://github.com/Infoworks/InfoworksPythonSDK branch: release/sdk-3.0",
+    description="A package to work with Infoworks via SDK. This library is compatible with Infoworks v6.x onwards. Code can be found in https://github.com/Infoworks/InfoworksPythonSDK branch: release/sdk-3.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Infoworks/InfoworksPythonSDK",
