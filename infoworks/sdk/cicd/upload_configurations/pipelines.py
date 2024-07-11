@@ -11,6 +11,7 @@ from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create_pipeline_url, create_data_connection, \
     configure_pipeline_url, get_pipeline_jobs_url, pipeline_version_base_url
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
+from infoworks.sdk.cicd.upload_configurations.utils import Utils
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 from infoworks.sdk.local_configurations import POLLING_FREQUENCY_IN_SEC
@@ -337,6 +338,11 @@ class Pipeline:
             "import_data_connection": True,
             "include_optional_properties": True
         }
+        # Added for Pipeline Tags
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(self.configuration_obj["configuration"]["pipeline_configs"],
+                                                         pipeline_client_obj)
+
         url_for_importing_pipeline = configure_pipeline_url(pipeline_client_obj.client_config, domain_id, pipeline_id)
         pipeline_client_obj.logger.info(f"URL to configure pipeline: {url_for_importing_pipeline}")
         print(f"URL to configure pipeline: {url_for_importing_pipeline}")

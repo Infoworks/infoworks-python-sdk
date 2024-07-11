@@ -295,6 +295,20 @@ class Utils:
                 # Add your logic here to do something with the secret_name
                 return value
 
+    def add_custom_tags_to_id(self, data, cicd_client):
+        data["custom_tag_key_values"] = {}
+        for key, value in data.items():
+            if key == "custom_tags":
+                for tag_id in value:
+                    try:
+                        response = cicd_client.get_custom_tag(custom_tag_id=tag_id)
+                        custom_tag_key = response['result']['response']['result']['key']
+                        custom_tag_value = response['result']['response']['result']['value']
+                        data["custom_tag_key_values"][custom_tag_key] = custom_tag_value
+                    except Exception as error:
+                        cicd_client.logger.error(f"Failed to get custom tag : {error}")
+                        print(f"Failed to get custom tag : {error}")
+
     def dump_to_file(self, cicd_client, entity_type, domain_id, entity_id, replace_words, target_file_path,
                      dump_watermarks=True,custom_tag_id=None):
         response_to_return = {}
@@ -354,6 +368,19 @@ class Utils:
                         configuration_obj["filter_tables_properties"] = result.get("filter_tables_properties", {})
                         source_connection_objects = configuration_obj["configuration"]["source_configs"]["connection"]
                         self.add_secret_name_to_id(data=source_connection_objects, cicd_client=cicd_client)
+                        # Added For Source Tags
+                        source_configs = configuration_obj['configuration']['source_configs']
+                        self.add_custom_tags_to_id(data=source_configs, cicd_client=cicd_client)
+                        # Added for table Tags
+                        table_configs = configuration_obj['configuration']['table_configs']
+                        for table in table_configs:
+                            self.add_custom_tags_to_id(data=table['configuration']['configuration'],
+                                                       cicd_client=cicd_client)
+                        # Added for table group Tags
+                        table_group_configs = configuration_obj['configuration']['table_group_configs']
+                        for table_group in table_group_configs:
+                            self.add_custom_tags_to_id(data=table_group['configuration'], cicd_client=cicd_client)
+
                         # handle associated domains
                         if configuration_obj.get("configuration", {}).get("source_configs", {}).get(
                                 "associated_domains", None) is None:
@@ -526,6 +553,10 @@ class Utils:
                 entity_name = configuration_obj["configuration"]["entity"][
                     "entity_name"] if entity_type != "pipeline_group" else configuration_obj["name"]
                 if entity_type == "pipeline":
+                    # Added for Pipeline Tags
+                    pipeline_configs = configuration_obj['configuration']['pipeline_configs']
+                    self.add_custom_tags_to_id(data=pipeline_configs, cicd_client=cicd_client)
+
                     environment_id, environment_compute_template_id, environment_storage_id = self.get_env_details(
                         cicd_client, entity_id,
                         entity_type,
@@ -587,6 +618,10 @@ class Utils:
                     for index, pipeline in enumerate(configuration_obj["pipelines"]):
                         pipeline["name"] = pipeline_name_lookup.get(pipeline["pipeline_id"], None)
                     environment_id = configuration_obj["environment_id"]
+                    # Added for Pipeline Group Tags
+                    pipeline_group_configs = configuration_obj
+                    self.add_custom_tags_to_id(data=pipeline_group_configs, cicd_client=cicd_client)
+
                 domains_url_base = list_domains_url(cicd_client.client_config)
                 filter_condition = IWUtils.ejson_serialize({"_id": domain_id})
                 domains_url = domains_url_base + f"?filter={{filter_condition}}".format(
@@ -629,6 +664,9 @@ class Utils:
                                                                        "environment_storage_name": storage_name}
                 else:
                     print("in else")
+                # Added for Workflow Tags
+                workflow_configs = configuration_obj['configuration']['workflow']
+                self.add_custom_tags_to_id(data=workflow_configs, cicd_client=cicd_client)
             else:
                 env_name, storage_name, compute_name = self.get_env_entities_names(
                     cicd_client, environment_id,

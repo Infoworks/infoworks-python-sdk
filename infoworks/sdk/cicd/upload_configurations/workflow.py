@@ -7,6 +7,7 @@ import configparser
 import requests
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
 from infoworks.core.iw_authentication import get_bearer_token
+from infoworks.sdk.cicd.upload_configurations.utils import Utils
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
 
@@ -293,6 +294,10 @@ class Workflow:
         return new_workflow_id, final_domain_id
 
     def configure(self, wf_client_obj, workflow_id, domain_id):
+        # Added for Workflow Tags
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(self.configuration_obj["configuration"]["worfklow"],
+                                                         wf_client_obj)
         import_config_status = []
         url_for_importing_workflow = configure_workflow_url(wf_client_obj.client_config, domain_id, workflow_id)
         json_string = IWUtils.ejson_serialize({"configuration": self.configuration_obj["configuration"]})
