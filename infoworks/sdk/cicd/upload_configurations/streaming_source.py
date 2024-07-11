@@ -110,6 +110,8 @@ class StreamingSource:
             create_streaming_source_payload["target_database_name"] = data.get("target_database_name","")
         if data.get("staging_schema_name",""):
             create_streaming_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(create_streaming_source_payload, src_client_obj)
         # adding associated domains if any
         accessible_domain_names = data.get("associated_domain_names",[])
         accessible_domain_ids = []

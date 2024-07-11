@@ -200,6 +200,8 @@ class RDBMSSource:
         for key in additional_keys_in_source_config:
             if key not in ["connection"] and key not in create_rdbms_source_payload.keys():
                 create_rdbms_source_payload[key] = data[key]
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(create_rdbms_source_payload, src_client_obj)
         # adding associated domains if any
         accessible_domain_names = data.get("associated_domain_names", [])
         accessible_domain_ids = []
@@ -291,6 +293,8 @@ class RDBMSSource:
                 for key in override_keys:
                     connection_object[key] = information["source_details"][src_name][key]
         self.replace_secret_name_with_mapping(connection_object, src_client_obj)
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(connection_object, src_client_obj)
         # if connection_object.get("password", {}).get("password_type", "") == "secret_store":
         #     # for RDBMS passwords in keyvault
         #     secret_name = connection_object["password"]["secret_name"]
@@ -602,17 +606,17 @@ class RDBMSSource:
                             "upload_option"] = "serverLocation"
         # Added for Source Tags
         source_configs = self.configuration_obj["configuration"]["source_configs"]
-        utils_obj = Utils()
-        utils_obj.replace_custom_tags_names_with_mapping(source_configs, src_client_obj)
-        # Added for Table Tags
-        table_configs = self.configuration_obj['configuration']['table_configs']
-        for table in table_configs:
-            utils_obj.replace_custom_tags_names_with_mapping(table['configuration']['configuration'],
-                                                             src_client_obj)
-        # Added for Table Group Tags
-        table_group_configs = self.configuration_obj['configuration']['table_group_configs']
-        for table_group in table_group_configs:
-            utils_obj.replace_custom_tags_names_with_mapping(table_group['configuration'], src_client_obj)
+        # utils_obj = Utils()
+        # utils_obj.replace_custom_tags_names_with_mapping(source_configs, src_client_obj)
+        # # Added for Table Tags
+        # table_configs = self.configuration_obj['configuration']['table_configs']
+        # for table in table_configs:
+        #     utils_obj.replace_custom_tags_names_with_mapping(table['configuration']['configuration'],
+        #                                                      src_client_obj)
+        # # Added for Table Group Tags
+        # table_group_configs = self.configuration_obj['configuration']['table_group_configs']
+        # for table_group in table_group_configs:
+        #     utils_obj.replace_custom_tags_names_with_mapping(table_group['configuration'], src_client_obj)
 
         response = src_client_obj.configure_tables_and_tablegroups(source_id, configuration_obj=self.configuration_obj[
             "configuration"])

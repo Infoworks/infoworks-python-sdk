@@ -81,6 +81,8 @@ class SalesforceSource:
             "storage_id": self.storage_id,
             "is_source_ingested": True
         }
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(create_salesforce_source_payload, src_client_obj)
         src_create_response = src_client_obj.create_source(source_config=create_salesforce_source_payload)
         if src_create_response["result"]["status"].upper() == "SUCCESS":
             source_id_created = src_create_response["result"]["source_id"]

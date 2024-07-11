@@ -180,6 +180,8 @@ class CdataSource:
         for key in additional_keys_in_source_config:
             if key not in ["connection"] and key not in create_cdata_source_payload.keys():
                 create_cdata_source_payload[key] = data[key]
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(create_cdata_source_payload, src_client_obj)
         # adding associated domains if any
         accessible_domain_names = data.get("associated_domain_names", [])
         accessible_domain_ids = []
