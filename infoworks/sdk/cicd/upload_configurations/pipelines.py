@@ -339,9 +339,9 @@ class Pipeline:
             "include_optional_properties": True
         }
         # Added for Pipeline Tags
-        utils_obj = Utils()
-        utils_obj.replace_custom_tags_names_with_mapping(self.configuration_obj["configuration"]["pipeline_configs"],
-                                                         pipeline_client_obj)
+        # utils_obj = Utils()
+        # utils_obj.replace_custom_tags_names_with_mapping(self.configuration_obj["configuration"]["pipeline_configs"],
+        #                                                  pipeline_client_obj)
 
         url_for_importing_pipeline = configure_pipeline_url(pipeline_client_obj.client_config, domain_id, pipeline_id)
         pipeline_client_obj.logger.info(f"URL to configure pipeline: {url_for_importing_pipeline}")
