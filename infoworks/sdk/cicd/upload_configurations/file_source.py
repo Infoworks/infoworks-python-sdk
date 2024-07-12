@@ -285,18 +285,18 @@ class FileSource:
                         src_client_obj.logger.error(
                             f"Failed to lookup the export configuration password from secrets due to {str(e)}")
         # Added for Source Tags
-        source_configs = self.configuration_obj["configuration"]["source_configs"]
-        utils_obj = Utils()
-        utils_obj.replace_custom_tags_names_with_mapping(source_configs, src_client_obj)
-        # Added for Table Tags
-        table_configs = self.configuration_obj['configuration']['table_configs']
-        for table in table_configs:
-            utils_obj.replace_custom_tags_names_with_mapping(table['configuration']['configuration'],
-                                                             src_client_obj)
-        # Added for Table Group Tags
-        table_group_configs = self.configuration_obj['configuration']['table_group_configs']
-        for table_group in table_group_configs:
-            utils_obj.replace_custom_tags_names_with_mapping(table_group['configuration'], src_client_obj)
+        # source_configs = self.configuration_obj["configuration"]["source_configs"]
+        # utils_obj = Utils()
+        # utils_obj.replace_custom_tags_names_with_mapping(source_configs, src_client_obj)
+        # # Added for Table Tags
+        # table_configs = self.configuration_obj['configuration']['table_configs']
+        # for table in table_configs:
+        #     utils_obj.replace_custom_tags_names_with_mapping(table['configuration']['configuration'],
+        #                                                      src_client_obj)
+        # # Added for Table Group Tags
+        # table_group_configs = self.configuration_obj['configuration']['table_group_configs']
+        # for table_group in table_group_configs:
+        #     utils_obj.replace_custom_tags_names_with_mapping(table_group['configuration'], src_client_obj)
 
         response = src_client_obj.configure_tables_and_tablegroups(source_id,
                                                                    configuration_obj=source_import_payload.get(
