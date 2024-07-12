@@ -9,6 +9,7 @@ from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.url_builder import get_pipeline_group_base_url,list_domains_url,list_pipelines_url
 from infoworks.sdk.cicd.upload_configurations.update_configurations import InfoworksDynamicAccessNestedDict
 from infoworks.sdk.cicd.upload_configurations.local_configurations import PRE_DEFINED_MAPPINGS
+from infoworks.sdk.cicd.upload_configurations.utils import Utils
 
 class PipelineGroup:
     def __init__(self, pipeline_group_config_path, environment_id, storage_id, interactive_id,
@@ -101,6 +102,9 @@ class PipelineGroup:
 
         pipeline_group_name = self.configuration_obj["name"]
         pipeline_group_id = None
+        utils_obj = Utils()
+        utils_obj.replace_custom_tags_names_with_mapping(self.configuration_obj,
+                                                         pipeline_group_obj)
         final_domain_id=domain_id
         if self.environment_id is not None:
             self.configuration_obj["environment_id"]=self.environment_id
