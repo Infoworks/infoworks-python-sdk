@@ -296,7 +296,7 @@ class Workflow:
     def configure(self, wf_client_obj, workflow_id, domain_id):
         # Added for Workflow Tags
         utils_obj = Utils()
-        utils_obj.replace_custom_tags_names_with_mapping(self.configuration_obj["configuration"]["worfklow"],
+        utils_obj.replace_custom_tags_names_with_mapping(self.configuration_obj["configuration"]["workflow"],
                                                          wf_client_obj)
         import_config_status = []
         url_for_importing_workflow = configure_workflow_url(wf_client_obj.client_config, domain_id, workflow_id)
@@ -311,9 +311,9 @@ class Workflow:
                                                                            wf_client_obj.client_config["refresh_token"])
             headers = IWUtils.get_default_header_for_v3(wf_client_obj.client_config['bearer_token'])
             response = requests.put(url_for_importing_workflow, data=json_string, headers=headers, verify=False)
+        status_code = response.status_code
         response = IWUtils.ejson_deserialize(response.content)
         error = []
-        status_code = response.status_code
         for iw_mapping in response.get("result", {}).get("configuration", {}).get("iw_mappings", []):
             import_error = iw_mapping.get("error", "")
             if import_error:

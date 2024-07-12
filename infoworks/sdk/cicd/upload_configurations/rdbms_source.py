@@ -486,7 +486,7 @@ class RDBMSSource:
                         table_update_payload[key] = f'"{value}"'
                     else:
                         table_update_payload[key] = value
-            print("table_update_payload:",table_update_payload)
+            #print("table_update_payload:",table_update_payload)
             if table["configuration"].get("schema_name_at_source", "") != "":
                 table_document = src_client_obj.list_tables_in_source(source_id, params={
                     "filter": {"origTableName": table["configuration"]["name"],
