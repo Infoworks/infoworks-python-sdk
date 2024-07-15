@@ -15,7 +15,7 @@ import copy
 #             yield '.'.join(curr_key + [k])
 
 def get_keys(d, curr_key=[]):
-    if isinstance(d,str):
+    if not isinstance(d,dict) and not isinstance(d,list):
         return
     for k, v in d.items():
         if isinstance(v, dict):
