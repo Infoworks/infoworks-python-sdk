@@ -165,7 +165,7 @@ class BaseClient(object):
                                        timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
             if response.status_code in [401, 406]:
                 headers = self.regenerate_bearer_token_if_needed(headers)
-                return self.http.put(url, headers=headers, json=data,
+                return self.http.patch(url, headers=headers, json=data,
                                      timeout=local_configurations.REQUEST_TIMEOUT_IN_SEC, verify=False)
             else:
                 return response
