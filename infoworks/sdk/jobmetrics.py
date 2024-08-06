@@ -454,7 +454,9 @@ class JobMetricsClient(BaseClient):
                 job_type = job["type"]
                 job_status = job["status"]
                 job_createdAt = job["created_at"]
-                job_start_time = job_createdAt.split('.')[0].replace('T', ' ')
+                #job_start_time = job_createdAt.split('.')[0].replace('T', ' ')
+                job_start_time = job['build_started_at'].split('.')[0].replace('T', ' ')
+                job_end_time = job['build_ended_at'].split('.')[0].replace('T', ' ')
                 job_created_by = job.get('created_by')
                 workflow_id = job.get('triggered_by', {}).get('parent_id', '')
                 workflow_run_id = job.get('triggered_by', {}).get('run_id', '')
@@ -466,6 +468,7 @@ class JobMetricsClient(BaseClient):
                 try:
                     tg_id, processedAt, job_end_time, job_status, entity_type = self.get_tablegroup_id_from_job(
                         job_id, source["id"])
+                    job_end_time = job_end_time.split('.')[0].replace('T', ' ')
                     table_group_name, all_tables_list = self.get_table_group_name(tg_id, source["id"])
                 except Exception as error:
                     # This means the job is non-table group job
@@ -493,7 +496,7 @@ class JobMetricsClient(BaseClient):
                 source_job_row_template = {
                     'workflow_id': workflow_id, 'workflow_run_id': workflow_run_id,
                     'job_id': job_id, 'job_type': self.job_type_mappings[job_type.upper()],
-                    'job_start_time': job_start_time, 'job_end_time': "",
+                    'job_start_time': job_start_time, 'job_end_time': job_end_time,
                     'job_created_by': job_created_by, 'cluster_id': "", "cluster_name": "",
                     'job_status': job_status.upper(), 'job_table_status': '',
                     'entity_type': entity_type, "source_name": src_name, "source_schema_name": "",
@@ -682,6 +685,8 @@ class JobMetricsClient(BaseClient):
         job_cluster_id = job.get('cluster_id')
         job_cluster_name = job.get('cluster_name')
         job_createdAt = job['created_at']
+        job_start_time = job['build_started_at'].split('.')[0].replace('T', ' ')
+        job_end_time = job['build_ended_at'].split('.')[0].replace('T', ' ')
         entity_type = job['entity_type']
         job_created_by = job.get('created_by')
         running_job_template = {
@@ -689,8 +694,8 @@ class JobMetricsClient(BaseClient):
             'workflow_run_id': job.get('triggered_by', {}).get('run_id', ''),
             'job_id': job_id,
             'job_type': job_type.upper(),
-            'job_start_time': job_createdAt.split('.')[0].replace('T', ' '),
-            'job_end_time': "",
+            'job_start_time': job_start_time,
+            'job_end_time': job_end_time,
             'job_created_by': job_created_by,
             'cluster_id': job_cluster_id,
             'cluster_name': job_cluster_name,
@@ -702,12 +707,12 @@ class JobMetricsClient(BaseClient):
             'starting_watermark_value': '', 'ending_watermark_value': '',
             "pre_target_count": "", "fetch_records_count": 0,
             "target_records_count": ""}
-        # Fetches Cluster Run Info (i.e. Table Data in a Job)
+        # Fetches Cluster Run Info (i.e. Pipeline Data in a Job)
         cluster_data = self.get_cluster_runs_of_job(job_id)
         if cluster_data:
             # Job Start Time and End Time for no Pipeline Metrics
-            running_job_template['job_start_time'] = cluster_data[0]['started_at']
-            running_job_template['job_end_time'] = cluster_data[0]['ended_at']
+            running_job_template['job_start_time'] = cluster_data[0]['started_at'].split('.')[0].replace('T', ' ')
+            running_job_template['job_end_time'] = cluster_data[0]['ended_at'].split('.')[0].replace('T', ' ')
             running_job_template['cluster_id'] = cluster_data[0]['cluster_id']
             running_job_template['cluster_name'] = cluster_data[0]['cluster_name']
             job_cluster_id = cluster_data[0]['cluster_id']
@@ -780,19 +785,19 @@ class JobMetricsClient(BaseClient):
                         table['pre_target_count'] = int(
                             table.get('target_records_count') - int(table.get('number_of_records_written')))
                         table['target_records_count'] = int(table.get('target_records_count'))
-                    od = OrderedDict()
-                    table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
-                    table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
-                    table['fetch_records_count'] = int(table['number_of_records_written'])
-                    for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
-                                'job_end_time', 'job_created_by', 'cluster_id', 'cluster_name', 'job_status',
-                                'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
-                                'table_group_name',
-                                'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value',
-                                'target_schema_name', 'target_table_name', 'pre_target_count', 'fetch_records_count',
-                                'target_records_count']:
-                        od[key] = table.get(key, "")
-                    temp.append(od)
+                od = OrderedDict()
+                table['job_start_time'] = table['job_start_time'].split('.')[0].replace('T', ' ')
+                table['job_end_time'] = table['job_end_time'].split('.')[0].replace('T', ' ')
+                table['fetch_records_count'] = int(table['number_of_records_written'])
+                for key in ['workflow_id', 'workflow_run_id', 'job_id', 'entity_type', 'job_type', 'job_start_time',
+                            'job_end_time', 'job_created_by', 'cluster_id', 'cluster_name', 'job_status',
+                            'source_name', 'source_file_names', 'source_schema_name', 'source_database_name',
+                            'table_group_name',
+                            'iwx_table_name', 'starting_watermark_value', 'ending_watermark_value',
+                            'target_schema_name', 'target_table_name', 'pre_target_count', 'fetch_records_count',
+                            'target_records_count']:
+                    od[key] = table.get(key, "")
+                temp.append(od)
             self.job_metrics_final.extend(temp)
 
     def get_abc_job_metrics(self, time_range_for_jobs_in_mins=5, workflow_id=None, workflow_run_id=None):

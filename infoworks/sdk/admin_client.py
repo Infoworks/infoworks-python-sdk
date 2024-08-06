@@ -2452,6 +2452,41 @@ class AdminClient(BaseClient):
             self.logger.error(f"Error in creating {compute_type} compute" + str(e))
             raise AdminError(f"Error in creating {compute_type} compute" + str(e))
 
+    def update_compute_cluster(self, environment_id, compute_id, compute_body=None, compute_type="interactive"):
+        """
+        Function to update compute cluster
+        :param environment_id: Entity identifier of the environment in which compute should be created
+        :param compute_type: interactive/ephemeral
+        :param compute_body: Body to create the interactive compute
+        :type compute_body: Dict
+        :return: Response Dict
+        """
+        if None in [compute_body, environment_id]:
+            self.logger.error("compute_body or environment_id cannot be None")
+            raise Exception("compute_body or environment_id cannot be None")
+        url_to_list_environments = url_builder.get_environment_details(self.client_config, env_id=environment_id)
+        if compute_type == "interactive":
+            url_to_create_compute = url_to_list_environments.strip("/") + "/environment-interactive-clusters/" + compute_id
+        else:
+            url_to_create_compute = url_to_list_environments.strip("/") + "/environment-compute-template/" + compute_id
+        try:
+            response = self.call_api("PATCH", url_to_create_compute,
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     compute_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error in updating {compute_type} compute ")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error in updating {compute_type} compute" + str(e))
+            raise AdminError(f"Error in updating {compute_type} compute" + str(e))
+
     def create_storage(self, environment_id, storage_body=None):
         """
         Function to create storage for environment id
@@ -2483,3 +2518,35 @@ class AdminClient(BaseClient):
         except Exception as e:
             self.logger.error(f"Error in creating storage" + str(e))
             raise AdminError(f"Error in creating storage" + str(e))
+
+    def update_storage(self, environment_id, storage_id, storage_body=None):
+        """
+        Function to create storage for environment id
+        :param environment_id: Entity identifier of the environment in which storage should be created
+        :param storage_body: Body to create the storage
+        :type storage_body: Dict
+        :return: Response Dict
+        """
+        if None in [storage_body, environment_id]:
+            self.logger.error("storage_body or environment_id cannot be None")
+            raise Exception("storage_body or environment_id cannot be None")
+        url_to_list_environments = url_builder.get_environment_details(self.client_config, env_id=environment_id)
+        url_to_create_storage = url_to_list_environments.strip("/") + "/environment-storage/"+storage_id
+
+        try:
+            response = self.call_api("PATCH", url_to_create_storage,
+                                     IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                     storage_body)
+            parsed_response = IWUtils.ejson_deserialize(response.content)
+            if response.status_code == 200:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=parsed_response)
+            else:
+                return GenericResponse.parse_result(status=Response.Status.FAILED,
+                                                    error_code=ErrorCode.GENERIC_ERROR,
+                                                    response=parsed_response,
+                                                    error_desc=parsed_response.get("details",
+                                                                                   f"Error in updating storage ")
+                                                    )
+        except Exception as e:
+            self.logger.error(f"Error in updating storage" + str(e))
+            raise AdminError(f"Error in updating storage" + str(e))

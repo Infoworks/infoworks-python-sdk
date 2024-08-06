@@ -82,6 +82,7 @@ class IWUtils(object):
             'filter') else string
         string = string + "&projections=" + urllib.parse.quote(json.dumps(params.get('projections'))) if params.get(
             'projections') else string
+        string = string + "&fetch_all=" + str(params.get('fetch_all')) if params.get('fetch_all') else string
         return string
 
     @staticmethod
