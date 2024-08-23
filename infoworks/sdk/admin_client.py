@@ -2550,3 +2550,21 @@ class AdminClient(BaseClient):
         except Exception as e:
             self.logger.error(f"Error in updating storage" + str(e))
             raise AdminError(f"Error in updating storage" + str(e))
+
+    def list_auth_configs(self):
+        """
+        Function to list the auth configs
+        :return: response dict
+        """
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_builder.list_auth_configuration_url(self.client_config),
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            result = response.get("result", None)
+            if result is not None:
+                return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+            else:
+                raise Exception("Error in listing auth config")
+        except Exception as e:
+            self.logger.error("Error in listing auth config")
+            raise AdminError("Error in listing auth config : " + str(e))

@@ -215,6 +215,7 @@ def add_tables_to_source_url(config, source_id):
                                                                                             source_id=source_id)
     return request
 
+
 def add_query_tables_to_source_url(config, source_id):
     """
     returns URL to add query tables using v3 api
@@ -229,6 +230,7 @@ def add_query_tables_to_source_url(config, source_id):
                                                                                            protocol=config['protocol'],
                                                                                            source_id=source_id)
     return request
+
 
 def configure_tables_and_tablegroups_url(config, source_id):
     """
@@ -597,7 +599,7 @@ def trigger_workflow_url(config, domain_id, workflow_id):
     return request
 
 
-def get_workflow_status_url(config, workflow_id, workflow_run_id,domain_id):
+def get_workflow_status_url(config, workflow_id, workflow_run_id, domain_id):
     """
     returns URL to fetch status of workflow using v3 api
     :param config: client configurations
@@ -623,6 +625,7 @@ def get_workflow_status_url(config, workflow_id, workflow_run_id,domain_id):
             workflow_run_id=workflow_run_id,
             domain_id=domain_id)
         return request
+
 
 def get_all_workflows_url(config):
     """
@@ -2290,7 +2293,8 @@ def list_job_hooks(config):
         protocol=config['protocol'])
     return request
 
-def get_list_of_job_hook_dependencies(config,job_hook_id):
+
+def get_list_of_job_hook_dependencies(config, job_hook_id):
     """
         returns URL for listing dependencies under given job hook
         :param config: client configurations
@@ -2304,7 +2308,8 @@ def get_list_of_job_hook_dependencies(config,job_hook_id):
         job_hook_id=job_hook_id)
     return request
 
-def get_list_of_source_extension_dependencies(config,source_extension_id):
+
+def get_list_of_source_extension_dependencies(config, source_extension_id):
     """
         returns URL for listing dependencies under given source_extension
         :param config: client configurations
@@ -2318,7 +2323,8 @@ def get_list_of_source_extension_dependencies(config,source_extension_id):
         source_extension_id=source_extension_id)
     return request
 
-def list_generic_source_types(config,generic_source_type_id=None):
+
+def list_generic_source_types(config, generic_source_type_id=None):
     """
         returns URL for list generic source types registered in Infoworks
         :param config: client configurations
@@ -2326,8 +2332,8 @@ def list_generic_source_types(config,generic_source_type_id=None):
     """
     if generic_source_type_id is None:
         request = '{protocol}://{ip}:{port}/v3/admin/generic-source-type'.format(
-        ip=config['ip'], port=config['port'],
-        protocol=config['protocol'])
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'])
     else:
         request = '{protocol}://{ip}:{port}/v3/admin/generic-source-type/{generic_source_type_id}'.format(
             ip=config['ip'], port=config['port'],
@@ -2353,4 +2359,17 @@ def get_custom_tags_url(config, custom_tag_id=None):
             ip=config['ip'], port=config['port'],
             protocol=config['protocol'],
             custom_tag_id=custom_tag_id)
+    return request
+
+
+def list_auth_configuration_url(config):
+    """
+    returns URL to list auth config using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list auth config
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/configuration/authentication'.format(ip=config['ip'],
+                                                                                      port=config['port'],
+                                                                                      protocol=config['protocol'])
     return request
