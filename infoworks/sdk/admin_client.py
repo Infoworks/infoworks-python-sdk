@@ -1657,7 +1657,7 @@ class AdminClient(BaseClient):
             self.logger.error("Error in creating secret" + str(e))
             raise AdminError("Error in creating secret" + str(e))
 
-    def get_secret_details(self, secret_id=None):
+    def get_secret_details(self, secret_id=None,params=None):
         """
         Function to get secret details in Infoworks
         :param secret_id: secret id in infoworks
@@ -1669,7 +1669,7 @@ class AdminClient(BaseClient):
                 self.logger.error("secret_id cannot be None")
                 raise Exception("secret id cannot be None")
             response = self.call_api("GET",
-                                     url_builder.list_secrets_url(self.client_config) + f"/{secret_id}",
+                                     url_builder.list_secrets_url(self.client_config) + f"/{secret_id}" + "?resolve_ref=true",
                                      IWUtils.get_default_header_for_v3(self.client_config['bearer_token']))
             parsed_response = IWUtils.ejson_deserialize(
                 response.content)
