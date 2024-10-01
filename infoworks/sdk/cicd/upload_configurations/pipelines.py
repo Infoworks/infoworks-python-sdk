@@ -170,6 +170,8 @@ class Pipeline:
         if compute_name != "" and self.interactive_id:
             pipeline_json_object["compute_template_id"] = self.interactive_id
             run_job_on_data_plane=True
+        else:
+            print("Both Compute name and compute id not found. Will be setting run_job_on_data_plane to be false")
         pipeline_json_object["run_job_on_data_plane"] = run_job_on_data_plane
         snowflake_profile = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("snowflake_profile", "")
         if snowflake_profile!="":
