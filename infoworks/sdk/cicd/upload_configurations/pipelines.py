@@ -166,7 +166,7 @@ class Pipeline:
         if batch_engine != "":
             pipeline_json_object["batch_engine"] = batch_engine
         run_job_on_data_plane = False
-        compute_name = self.configuration_obj["configuration"].get("entity", {}).get("computeName", "")
+        compute_name = self.configuration_obj["configuration"].get("entity", {}).get("compute_name", "")
         if compute_name != "" and self.interactive_id:
             pipeline_json_object["compute_template_id"] = self.interactive_id
             run_job_on_data_plane=True
@@ -214,9 +214,9 @@ class Pipeline:
         else:
             final_domain_id = domain_id
             pipeline_json_object["domain_id"] = domain_id
-        pipeline_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
-        print(f"Adding user {user_email} to domain {final_domain_id}")
-        domain_obj.add_user_to_domain(pipeline_client_obj, final_domain_id, None, user_email)
+        #pipeline_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
+        #print(f"Adding user {user_email} to domain {final_domain_id}")
+        #domain_obj.add_user_to_domain(pipeline_client_obj, final_domain_id, None, user_email)
         pipeline_client_obj.logger.info(
             'Adding sources {} to domain {}'.format(sourceids_in_pipelines, final_domain_id))
         print(f'Adding sources {sourceids_in_pipelines} to domain {final_domain_id}')
