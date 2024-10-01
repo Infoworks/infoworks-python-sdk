@@ -60,6 +60,30 @@ class AdminClient(BaseClient):
             self.logger.error("Error in listing users")
             raise AdminError("Error in listing users" + str(e))
 
+    def list_users_as_non_admin(self):
+        """
+        Function to list the users
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :param pagination: Boolean value to determine whether to return entire result set or only a portion of result defined by 'limit' under params
+        :type pagination: Boolean
+        :return: response dict
+        """
+        users_list = []
+        try:
+            response = IWUtils.ejson_deserialize(
+                self.call_api("GET", url_builder.list_users_as_non_admin_url(self.client_config),
+                              IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+            if response.get('result', []):
+                pass
+            else:
+                raise GenericResponse.parse_result(status=Response.Status.FAILED, response=response)
+
+            return GenericResponse.parse_result(status=Response.Status.SUCCESS, response=response)
+        except Exception as e:
+            self.logger.error("Error in listing users")
+            raise AdminError("Error in listing users" + str(e))
+
     def create_new_user(self, data=None, name=None, email=None, roles=None, password=None):
         """
         Function to create new user in Infoworks
