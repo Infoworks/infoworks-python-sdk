@@ -224,9 +224,9 @@ class Workflow:
             print(f"domainId:{existing_domain_id}")
         else:
             final_domain_id = domain_id
-        wf_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
-        print(f'Adding user {user_email} to domain {final_domain_id}')
-        domain_obj.add_user_to_domain(wf_client_obj, final_domain_id, None, user_email)
+        #wf_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
+        #print(f'Adding user {user_email} to domain {final_domain_id}')
+        #domain_obj.add_user_to_domain(wf_client_obj, final_domain_id, None, user_email)
         wf_client_obj.logger.info('Adding sources {} to domain {}'.format(sourceids_in_wfs, final_domain_id))
         print(f'Adding sources {sourceids_in_wfs} to domain {final_domain_id}')
         domain_obj.add_sources_to_domain(wf_client_obj, final_domain_id, sourceids_in_wfs)
