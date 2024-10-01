@@ -377,6 +377,18 @@ def list_users_url(config):
     return request
 
 
+def list_users_as_non_admin_url(config):
+    """
+    returns URL to list users using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url to list users
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/allUsers'.format(ip=config['ip'], port=config['port'],
+                                                                  protocol=config['protocol'])
+    return request
+
+
 def add_user_to_domain_url(config, user_id):
     """
     returns URL to add user to domains
