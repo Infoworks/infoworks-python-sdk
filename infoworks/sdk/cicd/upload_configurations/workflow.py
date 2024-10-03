@@ -1,6 +1,8 @@
+import base64
+import json
 import traceback
 
-from infoworks.sdk.url_builder import list_sources_url, create_workflow_url, list_domains_url, configure_workflow_url,list_pipeline_versions_url,list_pipelines_url
+from infoworks.sdk.url_builder import list_sources_url, create_workflow_url, list_domains_url, configure_workflow_url,list_pipeline_versions_url,list_pipelines_url,list_users_url
 from infoworks.sdk.utils import IWUtils
 import sys
 import configparser
@@ -185,6 +187,14 @@ class Workflow:
                 temp_src_ids.append(item["id"])
         sourceids_in_wfs = list(set(temp_src_ids))
         user_email = self.configuration_obj["user_email"]
+        current_user_token = wf_client_obj.client_config.get("bearer_token","")
+        parts = current_user_token.split('.')
+        bearer_token_string= parts[1]
+        bearer_token_string += '=' * (4 - len(parts[1]) % 4)
+        bearer_token_string = base64.b64decode(bearer_token_string)
+        bearer_token_json = json.loads(bearer_token_string)
+        bearer_token_json = json.loads(bearer_token_json.get("sub","{}"))
+        user_email = bearer_token_json.get("email",user_email)
         domain_obj = Domain(None)
         new_workflow_id = ''
         final_domain_id = None
@@ -224,9 +234,9 @@ class Workflow:
             print(f"domainId:{existing_domain_id}")
         else:
             final_domain_id = domain_id
-        #wf_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
-        #print(f'Adding user {user_email} to domain {final_domain_id}')
-        #domain_obj.add_user_to_domain(wf_client_obj, final_domain_id, None, user_email)
+        wf_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
+        print(f'Adding user {user_email} to domain {final_domain_id}')
+        domain_obj.add_user_to_domain(wf_client_obj, final_domain_id, None, user_email)
         wf_client_obj.logger.info('Adding sources {} to domain {}'.format(sourceids_in_wfs, final_domain_id))
         print(f'Adding sources {sourceids_in_wfs} to domain {final_domain_id}')
         domain_obj.add_sources_to_domain(wf_client_obj, final_domain_id, sourceids_in_wfs)

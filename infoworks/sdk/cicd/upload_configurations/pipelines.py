@@ -8,7 +8,7 @@ import time
 import base64
 from infoworks.core.iw_authentication import get_bearer_token
 from infoworks.sdk.utils import IWUtils
-from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create_pipeline_url, create_data_connection, \
+from infoworks.sdk.url_builder import list_sources_url, list_domains_url, create_pipeline_url, list_users_url, create_data_connection, \
     configure_pipeline_url, get_pipeline_jobs_url, pipeline_version_base_url
 from infoworks.sdk.cicd.upload_configurations.domains import Domain
 from infoworks.sdk.cicd.upload_configurations.utils import Utils
@@ -151,6 +151,14 @@ class Pipeline:
                 temp_src_ids.append(item["id"])
         sourceids_in_pipelines = list(set(temp_src_ids))
         user_email = self.configuration_obj["user_email"]
+        current_user_token = pipeline_client_obj.client_config.get("bearer_token","")
+        parts = current_user_token.split('.')
+        bearer_token_string= parts[1]
+        bearer_token_string += '=' * (4 - len(parts[1]) % 4)
+        bearer_token_string = base64.b64decode(bearer_token_string)
+        bearer_token_json = json.loads(bearer_token_string)
+        bearer_token_json = json.loads(bearer_token_json.get("sub","{}"))
+        user_email = bearer_token_json.get("email",user_email)
         domain_obj = Domain(self.environment_id)
         new_pipeline_id = ''
         pipeline_json_object = {
@@ -216,9 +224,9 @@ class Pipeline:
         else:
             final_domain_id = domain_id
             pipeline_json_object["domain_id"] = domain_id
-        #pipeline_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
-        #print(f"Adding user {user_email} to domain {final_domain_id}")
-        #domain_obj.add_user_to_domain(pipeline_client_obj, final_domain_id, None, user_email)
+        pipeline_client_obj.logger.info('Adding user {} to domain {}'.format(user_email, final_domain_id))
+        print(f"Adding user {user_email} to domain {final_domain_id}")
+        domain_obj.add_user_to_domain(pipeline_client_obj, final_domain_id, None, user_email)
         pipeline_client_obj.logger.info(
             'Adding sources {} to domain {}'.format(sourceids_in_pipelines, final_domain_id))
         print(f'Adding sources {sourceids_in_pipelines} to domain {final_domain_id}')
