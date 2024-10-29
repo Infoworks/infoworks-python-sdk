@@ -7,7 +7,7 @@ setuptools.setup(
     name="infoworkssdk",
     version="5.0.7",
     author="Infoworks CE Team",
-    author_email="abhishek.raviprasad@infoworks.io",
+    author_email="nitin.bs@infoworks.io",
     description="A package to work with Infoworks via SDK. This library is compatible with Infoworks v6.x onwards. Code can be found in https://github.com/Infoworks/InfoworksPythonSDK branch: release/sdk-3.0",
     long_description=long_description,
     long_description_content_type="text/markdown",
