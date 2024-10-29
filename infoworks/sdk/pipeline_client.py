@@ -659,22 +659,26 @@ class PipelineClient(BaseClient):
             raise PipelineError(
                 f"Failed to get pipeline lineage for pipeline {pipeline_id} and column {column_name} " + str(e))
 
-    def create_pipeline_version(self, domain_id=None, pipeline_id=None, body=None):
+    def create_pipeline_version(self, domain_id=None, pipeline_id=None, body=None,params=None):
         """
         Create a new Pipeline Version
         :param body: a JSON object containing pipeline version
         :type body: JSON Object
         :param domain_id: Entity identifier of domain
+        :type domain_id: String
         :param pipeline_id: Entity identifier of pipeline_id
+        :type pipeline_id: String
+        :param params: Any additional params for the API
+        :type pipeline_id: JSON Object
         :return: response dict
         """
         try:
             if None in {pipeline_id, domain_id}:
                 raise Exception(f"pipeline_id, domain_id cannot be None")
-            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.pipeline_version_base_url(
-                self.client_config, domain_id, pipeline_id), IWUtils.get_default_header_for_v3(
-                self.client_config['bearer_token']),
-                                                               body).content)
+            pipeline_version_creation_url = url_builder.pipeline_version_base_url(
+                self.client_config, domain_id, pipeline_id) + IWUtils.get_query_params_string_from_dict(params=params)
+            response = IWUtils.ejson_deserialize(self.call_api("POST", pipeline_version_creation_url, IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']),body).content)
             result = response.get('result', {})
             pipeline_version_id = result.get('id', None)
             if pipeline_version_id is None:

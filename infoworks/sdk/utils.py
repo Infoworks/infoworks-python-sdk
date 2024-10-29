@@ -83,6 +83,8 @@ class IWUtils(object):
         string = string + "&projections=" + urllib.parse.quote(json.dumps(params.get('projections'))) if params.get(
             'projections') else string
         string = string + "&fetch_all=" + str(params.get('fetch_all')) if params.get('fetch_all') else string
+        string = string + "&resolve_ref=" + str(params.get('resolve_ref')) if params.get('resolve_ref') else string
+        string = string + "&source_pipeline_version_id=" + str(params.get('source_pipeline_version_id')) if params.get('source_pipeline_version_id') else string
         return string
 
     @staticmethod
