@@ -67,7 +67,6 @@ src_create_response = iwx_client.create_source(source_config={
         })
 ```
 
-## Authors
+## Support
 
-Nitin B.S (nitin.bs@infoworks.io)
-Abhishek Raviprasad (abhishek.raviprasad@infoworks.io)
+If you need any support or assistance, please contact customer-engineering@infoworks.io
