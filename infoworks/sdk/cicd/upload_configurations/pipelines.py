@@ -166,6 +166,7 @@ class Pipeline:
             "environment_id": self.environment_id,
             "domain_id": domain_id
         }
+        pipeline_configs = self.configuration_obj["configuration"].get("pipeline_configs", {})
         # 5.2.x versions need storage id and compute id
         batch_engine = self.configuration_obj["configuration"].get("pipeline_configs", {}).get("batch_engine", "")
         storage_id = self.storage_id
@@ -187,7 +188,16 @@ class Pipeline:
         warehouse = self.configuration_obj["configuration"].get("entity", {}).get("warehouse", "")
         if warehouse:
             pipeline_json_object["snowflake_warehouse"] = warehouse
-
+        if pipeline_configs.get('warehouse'):
+            pipeline_json_object["warehouse"] = pipeline_configs.get('warehouse')
+        if pipeline_configs.get('target_catalog_name'):
+            pipeline_json_object["target_catalog_name"] = pipeline_configs.get('target_catalog_name')
+        if pipeline_configs.get('staging_catalog_name'):
+            pipeline_json_object["staging_catalog_name"] = pipeline_configs.get('staging_catalog_name')
+        if pipeline_configs.get('staging_schema_name'):
+            pipeline_json_object["staging_schema_name"] = pipeline_configs.get('staging_schema_name')
+        if pipeline_configs.get('profile'):
+            pipeline_json_object["profile"] = pipeline_configs.get('profile')
         if domain_id is None and domain_name is None:
             pipeline_client_obj.logger.error('Either domainId or domain Name is required to create pipeline.')
             print('Either domainId or domain Name is required to create pipeline.')
@@ -295,7 +305,7 @@ class Pipeline:
         if self.configuration_obj.get("dataconnection_configurations", None):
             pipeline_client_obj.logger.info("Checking for any data connection")
             print("Checking for any data connection")
-            create_data_connection_url = create_data_connection(pipeline_client_obj.client_config, domain_id)
+            create_data_connection_url = create_data_connection(pipeline_client_obj.client_config)
             for item in self.configuration_obj.get("dataconnection_configurations"):
                 pipeline_client_obj.logger.info("Creating a data connection {}".format(item["name"]))
                 print(f"Creating a data connection {item['name']}")

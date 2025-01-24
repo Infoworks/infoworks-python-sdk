@@ -81,6 +81,12 @@ class SalesforceSource:
             "storage_id": self.storage_id,
             "is_source_ingested": True
         }
+        if data.get("target_catalog_name", ""):
+            create_salesforce_source_payload["target_catalog_name"] = data.get("target_catalog_name", "")
+        if data.get("staging_catalog_name", ""):
+            create_salesforce_source_payload["staging_catalog_name"] = data.get("staging_catalog_name", "")
+        if data.get("profile", ""):
+            create_salesforce_source_payload["profile"] = data.get("profile", "")
         utils_obj = Utils()
         utils_obj.replace_custom_tags_names_with_mapping(create_salesforce_source_payload, src_client_obj)
         src_create_response = src_client_obj.create_source(source_config=create_salesforce_source_payload)

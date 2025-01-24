@@ -110,6 +110,12 @@ class FileSource:
             create_file_source_payload["target_database_name"] = data.get("target_database_name","")
         if data.get("staging_schema_name",""):
             create_file_source_payload["staging_schema_name"] = data.get("staging_schema_name", "")
+        if data.get("target_catalog_name", ""):
+            create_file_source_payload["target_catalog_name"] = data.get("target_catalog_name", "")
+        if data.get("staging_catalog_name", ""):
+            create_file_source_payload["staging_catalog_name"] = data.get("staging_catalog_name", "")
+        if data.get("profile", ""):
+            create_file_source_payload["profile"] = data.get("profile", "")
         utils_obj = Utils()
         utils_obj.replace_custom_tags_names_with_mapping(create_file_source_payload, src_client_obj)
         # adding associated domains if any
