@@ -573,7 +573,25 @@ def create_workflow_url(config, domain_id):
     return request
 
 
-def configure_workflow_url(config, domain_id, workflow_id):
+def create_workflow_version_url(config, domain_id, workflow_id):
+    """
+    returns URL to create workflow using v3 api
+    :param config: client configurations
+    :type config: dict
+    :param workflow_id: Identifier for workflow
+    :type workflow_id: string
+    :param domain_id: Identifier for domain
+    :type domain_id: string
+    :return: url for the workflow creation
+    """
+    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/versions'.format(ip=config['ip'], port=config['port'],
+                                                                                 protocol=config['protocol'],
+                                                                                 domain_id=domain_id,
+                                                                                 workflow_id=workflow_id)
+    return request
+
+
+def configure_workflow_url(config, domain_id, workflow_id, workflow_version_id=None):
     """
     returns URL to configure workflow using v3 api
     :param config: client configurations
@@ -582,17 +600,27 @@ def configure_workflow_url(config, domain_id, workflow_id):
     :type domain_id: string
     :param workflow_id: Identifier for workflow
     :type workflow_id: string
+    :param workflow_version_id: Identifier for workflow version
+    :type workflow_version_id: string
     :return: url to configure workflow
     """
-    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/config-migration'.format(
-        ip=config['ip'], port=config['port'],
-        protocol=config['protocol'],
-        domain_id=domain_id,
-        workflow_id=workflow_id)
+    if workflow_version_id:
+        request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/config-migration?version_id={workflow_version_id}'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            domain_id=domain_id,
+            workflow_id=workflow_id,
+            workflow_version_id=workflow_version_id)
+    else:
+        request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/config-migration'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            domain_id=domain_id,
+            workflow_id=workflow_id)
     return request
 
 
-def trigger_workflow_url(config, domain_id, workflow_id):
+def trigger_workflow_url(config, domain_id, workflow_id, workflow_version_id=None):
     """
     returns URL to trigger a workflow using v3 api
     :param config: client configurations
@@ -601,13 +629,23 @@ def trigger_workflow_url(config, domain_id, workflow_id):
     :type domain_id: string
     :param workflow_id: Identifier for workflow
     :type workflow_id: string
+    :param workflow_version_id: Identifier for workflow
+    :type workflow_version_id: string
     :return: url to trigger workflow
     """
-    request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/start'.format(
-        ip=config['ip'], port=config['port'],
-        protocol=config['protocol'],
-        domain_id=domain_id,
-        workflow_id=workflow_id)
+    if workflow_version_id:
+        request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/start?workflow_version_id={workflow_version_id}'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            domain_id=domain_id,
+            workflow_id=workflow_id,
+            workflow_version_id=workflow_version_id)
+    else:
+        request = '{protocol}://{ip}:{port}/v3/domains/{domain_id}/workflows/{workflow_id}/start'.format(
+            ip=config['ip'], port=config['port'],
+            protocol=config['protocol'],
+            domain_id=domain_id,
+            workflow_id=workflow_id)
     return request
 
 
@@ -647,6 +685,19 @@ def get_all_workflows_url(config):
     :return: url fetch all workflows in Infoworks using v3 api
     """
     request = '{protocol}://{ip}:{port}/v3/admin/workflows'.format(
+        ip=config['ip'], port=config['port'],
+        protocol=config['protocol'])
+    return request
+
+
+def get_all_workflow_versions_url(config):
+    """
+    returns URL to fetch all workflows in Infoworks using v3 api
+    :param config: client configurations
+    :type config: dict
+    :return: url fetch all workflows in Infoworks using v3 api
+    """
+    request = '{protocol}://{ip}:{port}/v3/admin/workflow-versions'.format(
         ip=config['ip'], port=config['port'],
         protocol=config['protocol'])
     return request
