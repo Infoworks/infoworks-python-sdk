@@ -11,9 +11,12 @@
                 "exported_at": "2023-01-25T04:27:38.407Z",
                 "exported_by": "Infoworks Admin"
             },
-            "workflow": {
-                "description": "",
-                "workflow_graph": {
+            "workflow_export": {
+                "workflow_model": {
+                    "description": ""
+                },
+                "workflow_version_model": {
+                    "workflow_graph": {
                     "tasks": [
                         {
                             "is_group": false,
@@ -52,6 +55,7 @@
                             "category": "LINK"
                         }
                     ]
+                }
                 }
             }
         }

@@ -221,32 +221,10 @@ class WorkflowClient(BaseClient):
           "{array[string]...}"
          ],
          "domainId": "{string}",
-         "workflow_graph": {
-          "tasks": [
-           {
-            "task_id": "e77850ad5127a2d7dab870ff",
-            "task_type": "ingest_table_group",
-            "location": "-237 52",
-            "title": "ingest",
-            "task_properties": {},
-            "run_properties": {
-             "enable_exponential_backoff_for_retries": true,
-             "num_retries": 5,
-             "retry_delay": 200,
-             "max_retry_delay": 1000,
-             "trigger_rule": "{string}"
-            },
-            "workflow_variables": "{}"
-           }
-          ],
-          "edges": [
-           {
-            "category": "{string}",
-            "from_task": "{string}",
-            "to_task": "{string}"
-           }
-          ]
-         }
+         "active_version_id": {string},
+         "custom_tags": [
+          "{array[string]...}"
+         ]
         }
         ```
         :return: response dict
@@ -282,9 +260,11 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to update workflow.')
             raise WorkflowError('Error occurred while trying to update workflow.')
 
-    def trigger_workflow(self, workflow_id=None, domain_id=None, trigger_wf_body=None):
+    def trigger_workflow_version(self, workflow_version_id=None, workflow_id=None, domain_id=None, trigger_wf_body=None):
         """
         Triggers Infoworks Data workflow for given workflow id
+        :param workflow_version_id: entity id of the workflow version to be triggered
+        :type workflow_version_id: String
         :param workflow_id: entity id of the workflow to be triggered
         :type workflow_id: String
         :param domain_id: Domain id to which the workflow belongs to
@@ -305,15 +285,17 @@ class WorkflowClient(BaseClient):
         if None in {domain_id, workflow_id}:
             self.logger.error("domain id or workflow_id cannot be None")
             raise Exception("domain_id or workflow_id cannot be None")
+        if workflow_version_id is None:
+            self.logger.info("No workflow version id provided trying to trigger active version")
         response = None
         try:
             if trigger_wf_body:
                 response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.trigger_workflow_url(
-                    self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                    self.client_config, domain_id, workflow_id, workflow_version_id), IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token']), data=trigger_wf_body).content)
             else:
                 response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.trigger_workflow_url(
-                    self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                    self.client_config, domain_id, workflow_id, workflow_version_id), IWUtils.get_default_header_for_v3(
                     self.client_config['bearer_token'])).content)
             result = response.get('result', {})
             run_id = result.get('id', None)
@@ -524,9 +506,11 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to poll status of workflow.')
             raise WorkflowError('Error occurred while trying to poll status of workflow.')
 
-    def get_workflow_configuration_json_export(self, workflow_id=None, domain_id=None):
+    def get_workflow_configuration_json_export(self, workflow_version_id=None, workflow_id=None, domain_id=None):
         """
         Get exported config for workflow with workflow_id in domain with domain_id
+        :param workflow_version_id: id of workflow version whose details is to be fetched
+        :type workflow_version_id: String
         :param workflow_id: id of the workflow whose details is to be fetched
         :type workflow_id: String
         :param domain_id: Domain id to which the workflow belongs to
@@ -535,11 +519,11 @@ class WorkflowClient(BaseClient):
         """
         response = None
         if None in {workflow_id, domain_id}:
-            self.logger.error("workflow_id or domain_id cannot be None")
-            raise Exception("workflow_id or domain_id cannot be None")
+            self.logger.error("workflow_version_id or workflow_id or domain_id cannot be None")
+            raise Exception("workflow_version_id or workflow_id or domain_id cannot be None")
         try:
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.configure_workflow_url(
-                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(
+                self.client_config, domain_id, workflow_id, workflow_version_id), IWUtils.get_default_header_for_v3(
                 self.client_config['bearer_token'])).content)
 
             result = response.get('result', None)
@@ -1062,7 +1046,9 @@ class WorkflowClient(BaseClient):
         :param workflow_list_body: JSON object containing array of workflow ids
         :type workflow_list_body: JSON Dict
         workflow_list_body_example: {
-        "workflow_ids": ["c265e25b886a1b5e09896885"]
+        "workflows": [{
+        "workflow_id": "c265e25b886a1b5e09896885",
+        "workflow_version_id": "688b74cb14ec5f5d6d2d1924"}]
         }
         :return: response dict
         """
@@ -1240,3 +1226,241 @@ class WorkflowClient(BaseClient):
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to get workflow lineage.')
             raise WorkflowError('Error occurred while trying to get workflow lineage.')
+
+
+    def get_list_of_workflow_versions(self, domain_id=None, workflow_id=None, params=None):
+        """
+        Gets List of Infoworks Data workflow details for given domain id
+        :param domain_id: Domain id to which the workflows belongs to, if None all workflows in all domains will be fetched
+        :type domain_id: String
+        :param workflow_id: Domain id to which the workflows belongs to, if None all workflows in all domains will be fetched
+        :type workflow_id: String
+        :param params: Pass the parameters like limit, filter, offset, sort_by, order_by as a dictionary
+        :type: JSON dict
+        :return: response dict
+        """
+        response = None
+        initial_msg = ""
+        try:
+            if None in {workflow_id, domain_id}:
+                if params is None:
+                    params = {"limit": 20, "offset": 0}
+                url_to_list_workflows = url_builder.get_all_workflow_versions_url(
+                    self.client_config) + IWUtils.get_query_params_string_from_dict(params=params)
+                workflows_list = []
+                response = IWUtils.ejson_deserialize(
+                    self.call_api("GET", url_to_list_workflows,
+                                  IWUtils.get_default_header_for_v3(self.client_config['bearer_token'])).content)
+                if response is not None:
+                    initial_msg = response.get("message", "")
+                    result = response.get("result", [])
+                    while len(result) > 0:
+                        workflows_list.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response={"result": workflows_list, "message": initial_msg})
+            else:
+                workflows_list = []
+                response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.create_workflow_version_url(
+                    self.client_config, domain_id, workflow_id)+ IWUtils.get_query_params_string_from_dict(params=params), IWUtils.get_default_header_for_v3(
+                    self.client_config['bearer_token'])).content)
+
+                if response is not None:
+                    initial_msg = response.get("message", "")
+                    result = response.get("result", [])
+                    while len(result) > 0:
+                        workflows_list.extend(result)
+                        nextUrl = '{protocol}://{ip}:{port}{next}'.format(next=response.get('links')['next'],
+                                                                          ip=self.client_config['ip'],
+                                                                          port=self.client_config['port'],
+                                                                          protocol=self.client_config['protocol'],
+                                                                          )
+                        response = IWUtils.ejson_deserialize(
+                            self.call_api("GET", nextUrl, IWUtils.get_default_header_for_v3(
+                                self.client_config['bearer_token'])).content)
+                        result = response.get("result", [])
+                return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, response={"result": workflows_list, "message": initial_msg})
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to get workflow details.')
+            raise WorkflowError('Error occurred while trying to get workflow details.')
+
+    def create_workflow_version(self, domain_id=None, workflow_id=None, workflow_version_config=None):
+        """
+        Create a new Workflow Version
+        :param domain_id: Domain id of the workflow
+        :type domain_id:String
+        :param workflow_id: Domain id of the workflow
+        :type workflow_id:String
+        :param workflow_version_config: a JSON object containing workflow configurations
+        :type workflow_version_config: JSON Object
+        ```
+        workflow_config_example = {
+        "name": "workflow_name"
+        "description": "",
+        "is_active": true
+        }
+        ```
+        :return: response dict
+        """
+        if None in {domain_id, workflow_id} and workflow_version_config is None:
+            self.logger.error("domain_id or workflow_id or workflow_config cannot be None")
+            raise Exception("domain_id or workflow_id or workflow_config cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("POST", url_builder.create_workflow_version_url(
+                self.client_config, domain_id, workflow_id), IWUtils.get_default_header_for_v3(self.client_config['bearer_token']),
+                                                               workflow_version_config).content)
+
+            result = response.get('result', {})
+            workflow_version_id = result.get('id', None)
+
+            if workflow_version_id is None:
+                self.logger.error('Workflow version failed to create.')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc='Workflow failed to create.', response=response)
+
+            workflow_version_id = str(workflow_version_id)
+            self.logger.info(
+                'Workflow version {id} has been created under domain {domain_id} and workflow {workflow_id}.'.format(
+                    id=workflow_version_id, domain_id=domain_id, workflow_id=workflow_id))
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
+                                                 workflow_version_id=workflow_version_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to create a new workflow.')
+            raise WorkflowError('Error occurred while trying to create a new workflow.')
+
+    def update_workflow_version(self, workflow_version_id=None, workflow_id=None, domain_id=None, workflow_version_config=None):
+        """
+        Updates Infoworks Data workflow version details for given workflow id
+        :param workflow_version_id: Workflow Version id of the workflow Version
+        :type workflow_version_id:String
+        :param workflow_id: entity id of the workflow to be updated
+        :type workflow_id: String
+        :param domain_id: Domain id to which the workflow belongs to
+        :type domain_id: String
+        :param workflow_version_config: a JSON object containing workflow configurations
+        :type workflow_version_config: JSON Object
+        ```
+        workflow_version_config_example = {
+         "description": "{string}",
+         "is_active": true,
+         "workflow_graph": {
+          "tasks": [
+           {
+            "task_id": "e77850ad5127a2d7dab870ff",
+            "task_type": "ingest_table_group",
+            "location": "-237 52",
+            "title": "ingest",
+            "task_properties": {},
+            "run_properties": {
+             "enable_exponential_backoff_for_retries": true,
+             "num_retries": 5,
+             "retry_delay": 200,
+             "max_retry_delay": 1000,
+             "trigger_rule": "{string}"
+            },
+            "workflow_variables": "{}"
+           }
+          ],
+          "edges": [
+           {
+            "category": "{string}",
+            "from_task": "{string}",
+            "to_task": "{string}"
+           }
+          ]
+         }
+        }
+        ```
+        :return: response dict
+        """
+        if None in {domain_id, workflow_id, workflow_version_id} and workflow_version_config is None:
+            self.logger.error("domain id or workflow_id or workflow_version_id or workflow_config cannot be None")
+            raise Exception("domain_id or workflow_id or workflow_version_id or workflow_config cannot be None")
+        response = None
+        try:
+            response = IWUtils.ejson_deserialize(self.call_api("PUT", url_builder.create_workflow_version_url(
+                self.client_config, domain_id, workflow_id) + f"/{workflow_version_id}", IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token']), workflow_version_config).content)
+
+            result = response.get('result', {})
+
+            if result.get('id', None) is None:
+                self.logger.error(f'Failed to update the workflow version {workflow_version_id}')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc=f'Failed to update the workflow version {workflow_version_id}',
+                                                     response=response)
+
+            workflow_version_id = str(workflow_version_id)
+            self.logger.info(
+                'Successfully updated the workflow version {id}.'.format(id=workflow_version_id))
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_id=workflow_id,
+                                                 workflow_version_id=workflow_version_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to update workflow.')
+            raise WorkflowError('Error occurred while trying to update workflow.')
+
+    def delete_workflow_version(self, workflow_version_id=None, workflow_id=None, domain_id=None):
+        """
+        Deletes Infoworks Data workflow  for given workflow id
+        :param workflow_version_id: Workflow Version id of the workflow Version
+        :type workflow_version_id:String
+        :param workflow_id: entity id of the workflow to be deleted
+        :type workflow_id: String
+        :param domain_id: Domain id to which the workflow belongs to
+        :type domain_id: String
+        :return: response dict
+        """
+        if None in {domain_id, workflow_id, workflow_version_id}:
+            self.logger.error("domain id or workflow_id or workflow_version_id cannot be None")
+            raise Exception("domain_id id or workflow_id or workflow_version_id cannot be None")
+        response = None
+        try:
+            if workflow_version_id is None:
+                self.logger.error('Please pass the mandatory workflow version id as parameter.')
+                raise WorkflowError('Please pass the mandatory workflow_version_id as parameter.')
+            if workflow_id is None:
+                self.logger.error('Please pass the mandatory workflow id as parameter.')
+                raise WorkflowError('Please pass the mandatory workflow_id as parameter.')
+            if domain_id is None:
+                self.logger.error('Please pass the mandatory domain_id as parameter.')
+                raise WorkflowError('Please pass the mandatory domain_id as parameter.')
+            response = IWUtils.ejson_deserialize(self.call_api("DELETE", url_builder.create_workflow_version_url(
+                self.client_config, domain_id, workflow_id) + f"/{workflow_version_id}", IWUtils.get_default_header_for_v3(
+                self.client_config['bearer_token'])).content)
+
+            if response.get('message', "") != "Successfully deleted Workflow Version":
+                self.logger.error(f'Failed to delete the workflow version {workflow_version_id}')
+                return WorkflowResponse.parse_result(status=Response.Status.FAILED,
+                                                     error_code=ErrorCode.USER_ERROR,
+                                                     error_desc=f'Failed to delete the workflow version {workflow_version_id}',
+                                                     response=response)
+
+            workflow_version_id = str(workflow_version_id)
+            self.logger.info(
+                'Successfully deleted the workflow version {id}.'.format(id=workflow_version_id))
+            return WorkflowResponse.parse_result(status=Response.Status.SUCCESS, workflow_version_id=workflow_version_id,
+                                                 workflow_id=workflow_id,
+                                                 response=response)
+
+        except Exception as e:
+            self.logger.error('Response from server: ' + str(response))
+            self.logger.exception('Error occurred while trying to delete workflow.')
+            raise WorkflowError('Error occurred while trying to delete workflow.')
