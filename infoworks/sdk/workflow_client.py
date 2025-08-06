@@ -4,10 +4,8 @@ from infoworks.error import WorkflowError
 from infoworks.sdk import url_builder
 from infoworks.sdk.base_client import BaseClient
 from infoworks.sdk.local_configurations import Response, ErrorCode
-from infoworks.sdk.url_builder import trigger_workflow_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.workflow_response import WorkflowResponse
-from test_cases.demo import domain_id
 
 
 class WorkflowClient(BaseClient):
