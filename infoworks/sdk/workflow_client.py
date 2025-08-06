@@ -4,8 +4,10 @@ from infoworks.error import WorkflowError
 from infoworks.sdk import url_builder
 from infoworks.sdk.base_client import BaseClient
 from infoworks.sdk.local_configurations import Response, ErrorCode
+from infoworks.sdk.url_builder import trigger_workflow_url
 from infoworks.sdk.utils import IWUtils
 from infoworks.sdk.workflow_response import WorkflowResponse
+from test_cases.demo import domain_id
 
 
 class WorkflowClient(BaseClient):
@@ -317,6 +319,28 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to trigger workflow.')
             raise WorkflowError('Error occurred while trying to trigger workflow.')
 
+    def trigger_workflow(self, workflow_id=None, domain_id=None, trigger_wf_body=None):
+        """
+        Triggers Infoworks Data workflow Active Version for given workflow id
+        :param workflow_id: entity id of the workflow to be triggered
+        :type workflow_id: String
+        :param domain_id: Domain id to which the workflow belongs to
+        :type domain_id: String
+        :param trigger_wf_body: Pass the workflow parameters if any
+        ```
+        trigger_wf_body = {
+            "workflow_parameters": [
+                {
+                    "key": "name",
+                    "value": "WF_API_TRIGGER"
+                }
+            ]
+        }
+        ```
+        :return: response dict
+        """
+        return self.trigger_workflow_version(workflow_id=workflow_id, domain_id=domain_id, trigger_wf_body=trigger_wf_body)
+
     def restart_or_cancel_multiple_workflows(self, action_type="restart", workflow_list_body=None):
         """
         Restart/Cancel Infoworks Data workflow for given workflow id
@@ -519,8 +543,8 @@ class WorkflowClient(BaseClient):
         """
         response = None
         if None in {workflow_id, domain_id}:
-            self.logger.error("workflow_version_id or workflow_id or domain_id cannot be None")
-            raise Exception("workflow_version_id or workflow_id or domain_id cannot be None")
+            self.logger.error("workflow_id or domain_id cannot be None")
+            raise Exception("workflow_id or domain_id cannot be None")
         try:
             response = IWUtils.ejson_deserialize(self.call_api("GET", url_builder.configure_workflow_url(
                 self.client_config, domain_id, workflow_id, workflow_version_id), IWUtils.get_default_header_for_v3(
