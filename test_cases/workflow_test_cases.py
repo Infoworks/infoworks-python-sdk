@@ -353,7 +353,7 @@ class TestWorkflowFlow():
     @pytest.mark.dependency(depends=["TestWorkflowFlow::test_create_workflow_version"])
     def test_trigger_workflow(self):
         try:
-            workflow_get_response = iwx_client.trigger_workflow_version(
+            workflow_get_response = iwx_client.trigger_workflow(
                 workflow_version_id=pytest.workflow_version_id,
                 workflow_id=pytest.workflows["workflow_api_test_1"],
                 domain_id=pytest.domain_id)
@@ -420,7 +420,7 @@ class TestWorkflowFlow():
     def test_restart_or_cancel_multiple_workflows(self):
         # Restart Multiple Workflows (This operation is only for operations_analyst user)
         try:
-            workflow_get_response = iwx_client.trigger_workflow_version(
+            workflow_get_response = iwx_client.trigger_workflow(
                 workflow_id=pytest.workflows['workflow_api_test_1'],
                 workflow_version_id=pytest.workflow_version_id,
                 domain_id=pytest.domain_id)
