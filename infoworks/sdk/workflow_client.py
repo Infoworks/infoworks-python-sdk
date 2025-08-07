@@ -260,10 +260,10 @@ class WorkflowClient(BaseClient):
             self.logger.exception('Error occurred while trying to update workflow.')
             raise WorkflowError('Error occurred while trying to update workflow.')
 
-    def trigger_workflow_version(self, workflow_version_id=None, workflow_id=None, domain_id=None, trigger_wf_body=None):
+    def trigger_workflow(self, workflow_version_id=None, workflow_id=None, domain_id=None, trigger_wf_body=None):
         """
         Triggers Infoworks Data workflow for given workflow id
-        :param workflow_version_id: entity id of the workflow version to be triggered
+        :param workflow_version_id: entity id of the workflow version to be triggered (Optional active version used if not provided)
         :type workflow_version_id: String
         :param workflow_id: entity id of the workflow to be triggered
         :type workflow_id: String
@@ -316,28 +316,6 @@ class WorkflowClient(BaseClient):
             self.logger.error('Response from server: ' + str(response))
             self.logger.exception('Error occurred while trying to trigger workflow.')
             raise WorkflowError('Error occurred while trying to trigger workflow.')
-
-    def trigger_workflow(self, workflow_id=None, domain_id=None, trigger_wf_body=None):
-        """
-        Triggers Infoworks Data workflow Active Version for given workflow id
-        :param workflow_id: entity id of the workflow to be triggered
-        :type workflow_id: String
-        :param domain_id: Domain id to which the workflow belongs to
-        :type domain_id: String
-        :param trigger_wf_body: Pass the workflow parameters if any
-        ```
-        trigger_wf_body = {
-            "workflow_parameters": [
-                {
-                    "key": "name",
-                    "value": "WF_API_TRIGGER"
-                }
-            ]
-        }
-        ```
-        :return: response dict
-        """
-        return self.trigger_workflow_version(workflow_id=workflow_id, domain_id=domain_id, trigger_wf_body=trigger_wf_body)
 
     def restart_or_cancel_multiple_workflows(self, action_type="restart", workflow_list_body=None):
         """
