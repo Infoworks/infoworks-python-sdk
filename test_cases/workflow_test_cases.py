@@ -2,7 +2,6 @@ import datetime
 import json
 import logging
 import os
-import sys
 import time
 import pytest
 import sys
@@ -82,6 +81,107 @@ class TestWorkflowFlow():
             print(str(e))
             assert False
 
+    @pytest.mark.dependency(depends=["TestWorkflowFlow::test_create_workflow"])
+    def test_create_workflow_version(self):
+        try:
+            workflow_id = pytest.workflows["workflow_api_test_1"]
+            workflow_version_config = {
+                "description": "Test version",
+                "is_active": True,
+                "workflow_graph": {
+                    "tasks": [
+                        {
+                            "is_group": False,
+                            "task_type": "bash_command_run",
+                            "task_id": "BS_3UWO",
+                            "location": "-175 -155",
+                            "title": "Bash Script",
+                            "description": "",
+                            "task_properties": {
+                                "is_script_uploaded": False,
+                                "bash_command": "echo \"Hello Workflow\""
+                            },
+                            "run_properties": {
+                                "trigger_rule": "all_success",
+                                "num_retries": 0
+                            }
+                        }
+                    ],
+                    "edges": []
+                }
+            }
+            response = iwx_client.create_workflow_version(
+                domain_id=pytest.domain_id,
+                workflow_id=workflow_id,
+                workflow_version_config=workflow_version_config
+            )
+            assert response["result"]["status"].upper() == "SUCCESS"
+            pytest.workflow_version_id = response["result"]["workflow_version_id"]
+            workflow_id = pytest.workflows["workflow_api_test_1"]
+            workflow_version_config['is_active'] = False
+            workflow_version_config['description'] = 'version for delete test'
+            response = iwx_client.create_workflow_version(
+                domain_id=pytest.domain_id,
+                workflow_id=workflow_id,
+                workflow_version_config=workflow_version_config
+            )
+            assert response["result"]["status"].upper() == "SUCCESS"
+            pytest.workflow_version_id_for_delete = response["result"]["workflow_version_id"]
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except WorkflowError as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestWorkflowFlow::test_create_workflow_version"])
+    def test_update_workflow_version(self):
+        try:
+            workflow_id = pytest.workflows["workflow_api_test_1"]
+            workflow_version_id = pytest.workflow_version_id
+            workflow_version_config = {
+                "description": "Updated version",
+                "is_active": True
+            }
+            response = iwx_client.update_workflow_version(
+                workflow_version_id=workflow_version_id,
+                workflow_id=workflow_id,
+                domain_id=pytest.domain_id,
+                workflow_version_config=workflow_version_config
+            )
+            print(response)
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except WorkflowError as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestWorkflowFlow::test_create_workflow_version"])
+    def test_get_list_of_workflow_versions(self):
+        try:
+            workflow_id = pytest.workflows["workflow_api_test_1"]
+            workflow_versions_in_workflow_get_response = iwx_client.get_list_of_workflow_versions(
+                domain_id=pytest.domain_id,
+                workflow_id=workflow_id
+            )
+            workflow_versions_all_get_response = iwx_client.get_list_of_workflow_versions()
+            assert workflow_versions_in_workflow_get_response["result"]["status"].upper() == "SUCCESS" and \
+                   workflow_versions_all_get_response["result"]["status"].upper() == "SUCCESS"
+        except WorkflowError as e:
+            print(str(e))
+            assert False
+
+    @pytest.mark.dependency(depends=["TestWorkflowFlow::test_create_workflow_version"])
+    def test_delete_workflow_version(self):
+        try:
+            workflow_id = pytest.workflows["workflow_api_test_1"]
+            workflow_version_id = pytest.workflow_version_id_for_delete
+            response = iwx_client.delete_workflow_version(
+                workflow_version_id=workflow_version_id,
+                workflow_id=workflow_id,
+                domain_id=pytest.domain_id
+            )
+            assert response["result"]["status"].upper() == "SUCCESS"
+        except WorkflowError as e:
+            print(str(e))
+            assert False
 
     @pytest.mark.dependency(depends=["TestWorkflowFlow::test_update_workflow_schedule_user"])
     def test_enable_workflow_schedule(self):
@@ -224,8 +324,8 @@ class TestWorkflowFlow():
     def test_export_workflow_configuration_json(self):
         try:
             workflow_get_json_response = iwx_client.get_workflow_configuration_json_export(
-                pytest.workflows["workflow_api_test_1"],
-                pytest.domain_id)
+                workflow_id=pytest.workflows["workflow_api_test_1"],
+                domain_id=pytest.domain_id)
             print("workflow_get_json_response", workflow_get_json_response)
             if workflow_get_json_response["result"]["status"].upper() == "SUCCESS":
                 with open(f"{cwd}/config_jsons/workflow_export_configurations.json", "w") as f:
@@ -250,10 +350,14 @@ class TestWorkflowFlow():
             assert False
 
 
-    @pytest.mark.dependency(depends=["TestWorkflowFlow::test_export_workflow_configuration_json"])
+    @pytest.mark.dependency(depends=["TestWorkflowFlow::test_create_workflow_version"])
     def test_trigger_workflow(self):
         try:
-            workflow_get_response = iwx_client.trigger_workflow(pytest.workflows["workflow_api_test_1"], pytest.domain_id)
+            workflow_get_response = iwx_client.trigger_workflow(
+                workflow_version_id=pytest.workflow_version_id,
+                workflow_id=pytest.workflows["workflow_api_test_1"],
+                domain_id=pytest.domain_id)
+            print(workflow_get_response)
             pytest.workflow_run_id = workflow_get_response["result"]["response"].get('result', {}).get('id', None)
             if pytest.workflow_run_id is None:
                 assert False
@@ -316,16 +420,18 @@ class TestWorkflowFlow():
     def test_restart_or_cancel_multiple_workflows(self):
         # Restart Multiple Workflows (This operation is only for operations_analyst user)
         try:
-            workflow_get_response = iwx_client.trigger_workflow(pytest.workflows[next(iter(pytest.workflows))],
-                                                                pytest.domain_id)
+            workflow_get_response = iwx_client.trigger_workflow(
+                workflow_id=pytest.workflows['workflow_api_test_1'],
+                workflow_version_id=pytest.workflow_version_id,
+                domain_id=pytest.domain_id)
             pytest.workflow_run_id = workflow_get_response["result"]["response"].get('result', {}).get('id', None)
             workflow_cancel_response = iwx_client.cancel_multiple_workflow(
                 {"ids": [
-                    {"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
+                    {"workflow_id": pytest.workflows['workflow_api_test_1'], "run_id": pytest.workflow_run_id}]})
             time.sleep(10)
             workflow_restart_response = iwx_client.restart_or_cancel_multiple_workflows(
                 workflow_list_body={"ids": [
-                    {"workflow_id": pytest.workflows[next(iter(pytest.workflows))], "run_id": pytest.workflow_run_id}]})
+                    {"workflow_id": pytest.workflows['workflow_api_test_1'], "run_id": pytest.workflow_run_id}]})
             assert workflow_cancel_response["result"]["status"].upper() == "SUCCESS" and \
                    workflow_restart_response["result"]["status"].upper() == "SUCCESS"
         except WorkflowError as e:
@@ -337,15 +443,19 @@ class TestWorkflowFlow():
     def test_pause_or_resume_multiple_workflows(self):
         try:
             workflow_pause_response = iwx_client.pause_or_resume_multiple_workflows(workflow_list_body={
-                "workflow_ids": [pytest.workflows[next(iter(pytest.workflows))]]
+                "workflows": [{
+                     'workflow_id': pytest.workflows['workflow_api_test_1'],
+                     'workflow_version_id': pytest.workflow_version_id
+                 }]
             })
             print(workflow_pause_response)
             time.sleep(30)
             workflow_resume_response = iwx_client.pause_or_resume_multiple_workflows(action_type="resume",
                                                                                      workflow_list_body={
-                                                                                         "workflow_ids": [pytest.workflows[
-                                                                                                              next(iter(
-                                                                                                                  pytest.workflows))]]
+                                                                                         "workflows": [{
+                                                                                             'workflow_id': pytest.workflows['workflow_api_test_1'],
+                                                                                             'workflow_version_id': pytest.workflow_version_id
+                                                                                         }]
                                                                                      })
             print(workflow_resume_response)
             assert workflow_pause_response["result"]["status"].upper() == "SUCCESS" and workflow_resume_response["result"][

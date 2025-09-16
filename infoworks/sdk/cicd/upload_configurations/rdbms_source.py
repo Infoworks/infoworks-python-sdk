@@ -394,6 +394,13 @@ class RDBMSSource:
                         if table["configuration"].get("configuration", {}).get(
                                 "target_database_name", "") != "":
                             temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
+                        if table["configuration"].get("configuration", {}).get("target_catalog_name", "") != "":
+                            temp["target_catalog_name"] = table["configuration"]["configuration"]["target_catalog_name"]
+                        if table["configuration"].get("configuration", {}).get("staging_catalog_name", "") != "":
+                            temp["staging_catalog_name"] = table["configuration"]["configuration"][
+                                "staging_catalog_name"]
+                        if table["configuration"].get("configuration", {}).get("staging_schema_name", "") != "":
+                            temp["staging_schema_name"] = table["configuration"]["configuration"]["staging_schema_name"]
                         if table.get("table_type", "") != "":
                             temp["table_type"] = table.get("table_type", "TABLE").upper()
                         tables_list.append(copy.deepcopy(temp))
@@ -431,6 +438,12 @@ class RDBMSSource:
                         temp["target_database_name"] = table["configuration"]["configuration"]["target_database_name"]
                     if table.get("table_type", "") != "":
                         temp["table_type"] = table.get("table_type", "TABLE").upper()
+                    if table["configuration"].get("configuration", {}).get("target_catalog_name", "") != "":
+                        temp["target_catalog_name"] = table["configuration"]["configuration"]["target_catalog_name"]
+                    if table["configuration"].get("configuration", {}).get("staging_catalog_name", "") != "":
+                        temp["staging_catalog_name"] = table["configuration"]["configuration"]["staging_catalog_name"]
+                    if table["configuration"].get("configuration", {}).get("staging_schema_name", "") != "":
+                        temp["staging_schema_name"] = table["configuration"]["configuration"]["staging_schema_name"]
                     tables_list.append(copy.deepcopy(temp))
                     src_client_obj.logger.info(f"Adding table {temp['table_name']} to source {source_id} config payload")
                 else:
